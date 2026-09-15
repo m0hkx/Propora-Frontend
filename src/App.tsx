@@ -12,9 +12,17 @@ import UploadDocumentModal from './pages/Documents/UploadDocumentModal';
 import type { NewDocDraft } from './pages/Documents/UploadDocumentModal';
 import Profile from './pages/Profile';
 import AddPropertyModal from './pages/Properties/AddPropertyModal';
+import TenantFormModal from './pages/Tenants/TenantFormModal';
+import type { TenantDraft } from './pages/Tenants/TenantFormModal';
+import AddLeaseModal from './pages/Leases/AddLeaseModal';
+import type { LeaseDraft } from './pages/Leases/AddLeaseModal';
+import RecordPaymentModal from './pages/Payments/RecordPaymentModal';
+import type { PaymentDraft } from './pages/Payments/RecordPaymentModal';
 import { Icon } from './components/ui';
 import { Icons } from './components/icons';
 import Toasts from './components/Toasts';
+import NotificationsPanel from './components/NotificationsPanel';
+import MessagesPanel from './components/MessagesPanel';
 import { StoreProvider } from './state/store';
 import { useStore } from './state/useStore';
 import type { Property } from './data/mock';
@@ -48,17 +56,28 @@ function headerAction(page: Page): string {
 }
 
 function AppShell() {
-  const { properties, maintenance, addProperty, addMaintenance, addDocument, pushToast } = useStore();
+  const {
+    properties, maintenance, tenants, leases, payments,
+    addProperty, addTenant, addLease, addPayment, addMaintenance, addDocument,
+    pushToast, pushNotification, notifications, conversations,
+  } = useStore();
   const [page, setPage] = useState<Page>('Dashboard');
   const [query, setQuery] = useState('');
+  const [tenantFocus, setTenantFocus] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [headerPanel, setHeaderPanel] = useState<'notif' | 'msg' | null>(null);
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [addPropOpen, setAddPropOpen] = useState(false);
+  const [addTenantOpen, setAddTenantOpen] = useState(false);
+  const [addLeaseOpen, setAddLeaseOpen] = useState(false);
+  const [recordPayOpen, setRecordPayOpen] = useState(false);
   const [newMaintOpen, setNewMaintOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const msgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -79,6 +98,32 @@ function AppShell() {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!headerPanel) return;
+    const ref = headerPanel === 'notif' ? notifRef : msgRef;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setHeaderPanel(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setHeaderPanel(null);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [headerPanel]);
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
+  const unreadMessages = conversations.reduce((s, c) => s + c.unread, 0);
+
+  const go = (p: Page, focus: string | null = null) => {
+    setTenantFocus(focus);
+    setPage(p);
+    setHeaderPanel(null);
+  };
+
   const openFullProfile = () => {
     setPage('Profile');
     setMenuOpen(false);
@@ -86,6 +131,9 @@ function AppShell() {
 
   const onHeaderAction = () => {
     if (page === 'Dashboard' || page === 'Properties') setAddPropOpen(true);
+    else if (page === 'Tenants') setAddTenantOpen(true);
+    else if (page === 'Leases') setAddLeaseOpen(true);
+    else if (page === 'Payments') setRecordPayOpen(true);
     else if (page === 'Maintenance') setNewMaintOpen(true);
     else if (page === 'Documents') setUploadOpen(true);
   };
@@ -95,6 +143,66 @@ function AppShell() {
     setAddPropOpen(false);
     pushToast('Property created successfully');
     setPage('Properties');
+  };
+
+  const createTenant = (d: TenantDraft) => {
+    const today = new Date().toISOString().slice(0, 10);
+    addTenant({
+      id: `t-${Date.now()}`,
+      name: d.name,
+      email: d.email,
+      phone: d.phone === '' ? '—' : d.phone,
+      propertyId: d.propertyId,
+      unit: d.unit,
+      beds: d.beds,
+      leaseStart: d.leaseStart === '' ? today : d.leaseStart,
+      leaseEnd: d.leaseEnd,
+      leaseStatus: 'Active',
+      rent: d.rent,
+      paymentStatus: 'Paid',
+      paymentDate: '—',
+      status: d.status,
+    });
+    setAddTenantOpen(false);
+    pushToast(`Tenant ${d.name} added`);
+    setPage('Tenants');
+  };
+
+  const createLease = (d: LeaseDraft) => {
+    const maxId = leases.reduce((m, l) => {
+      const n = Number(l.id.replace('L-', ''));
+      return Number.isNaN(n) ? m : Math.max(m, n);
+    }, 1029);
+    addLease({
+      id: `L-${maxId + 1}`,
+      propertyId: d.propertyId,
+      tenantId: d.tenantId,
+      rent: d.rent,
+      deposit: d.deposit,
+      start: d.start,
+      end: d.end,
+      status: 'Active',
+    });
+    setAddLeaseOpen(false);
+    pushToast(`Lease L-${maxId + 1} created`);
+  };
+
+  const createPayment = (d: PaymentDraft) => {
+    const maxId = payments.reduce((m, p) => {
+      const n = Number(p.id.replace('PAY-', ''));
+      return Number.isNaN(n) ? m : Math.max(m, n);
+    }, 9018);
+    addPayment({
+      id: `PAY-${maxId + 1}`,
+      tenantId: d.tenantId,
+      propertyId: d.propertyId,
+      amount: d.amount,
+      date: d.date,
+      method: d.method,
+      status: d.status,
+    });
+    setRecordPayOpen(false);
+    pushToast(`Payment of $${d.amount.toLocaleString('en-US')} recorded`);
   };
 
   const createMaintenance = (d: NewMaintenanceDraft) => {
@@ -124,6 +232,13 @@ function AppShell() {
     });
     setNewMaintOpen(false);
     pushToast('Maintenance request created');
+    pushNotification({
+      kind: 'maintenance',
+      title: 'New maintenance request',
+      detail: d.title,
+      time: 'Now',
+      link: 'Maintenance',
+    });
   };
 
   const createDocument = (d: NewDocDraft) => {
@@ -156,7 +271,7 @@ function AppShell() {
             <button
               key={p}
               type="button"
-              onClick={() => setPage(p)}
+              onClick={() => go(p)}
               className={`nav-pill ${page === p ? 'active' : ''}`}
               aria-current={page === p ? 'page' : undefined}
             >
@@ -165,8 +280,36 @@ function AppShell() {
           ))}
         </nav>
         <div className="top-actions">
-          <button className="icon-btn" type="button" aria-label="Notifications"><Icon d={Icons.bell} /></button>
-          <button className="icon-btn" type="button" aria-label="Messages"><Icon d={Icons.card} /></button>
+          <div className="avatar-wrap" ref={notifRef}>
+            <button
+              className="icon-btn badge-wrap"
+              type="button"
+              aria-label={`Notifications${unreadNotifications > 0 ? `, ${unreadNotifications} unread` : ''}`}
+              aria-haspopup="menu"
+              aria-expanded={headerPanel === 'notif'}
+              onClick={() => setHeaderPanel((v) => (v === 'notif' ? null : 'notif'))}
+            >
+              <Icon d={Icons.bell} />
+              {unreadNotifications > 0 ? <span className="count-badge">{unreadNotifications}</span> : null}
+            </button>
+            {headerPanel === 'notif' ? (
+              <NotificationsPanel onNavigate={(p) => go(p)} onClose={() => setHeaderPanel(null)} />
+            ) : null}
+          </div>
+          <div className="avatar-wrap" ref={msgRef}>
+            <button
+              className="icon-btn badge-wrap"
+              type="button"
+              aria-label={`Messages${unreadMessages > 0 ? `, ${unreadMessages} unread` : ''}`}
+              aria-haspopup="menu"
+              aria-expanded={headerPanel === 'msg'}
+              onClick={() => setHeaderPanel((v) => (v === 'msg' ? null : 'msg'))}
+            >
+              <Icon d={Icons.card} />
+              {unreadMessages > 0 ? <span className="count-badge">{unreadMessages}</span> : null}
+            </button>
+            {headerPanel === 'msg' ? <MessagesPanel /> : null}
+          </div>
           <div className="avatar-wrap" ref={menuRef}>
             <button
               className="avatar"
@@ -260,22 +403,55 @@ function AppShell() {
               />
             </label>
           )}
-          <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon d={Icons.plus} /> {headerAction(page)}</button>
+          {page === 'Profile' ? null : (
+            <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon d={Icons.plus} /> {headerAction(page)}</button>
+          )}
         </div>
       </div>
 
       <main>
-        {page === 'Dashboard' && <Dashboard />}
+        {page === 'Dashboard' && <Dashboard onNavigate={(p) => go(p)} />}
         {page === 'Properties' && <Properties query={query} />}
-        {page === 'Tenants' && <Tenants query={query} onNavigate={(p) => setPage(p)} />}
-        {page === 'Leases' && <Leases />}
-        {page === 'Payments' && <Payments />}
+        {page === 'Tenants' && <Tenants query={query} onNavigate={(p, tenantId) => go(p, tenantId ?? null)} />}
+        {page === 'Leases' && <Leases focusTenantId={tenantFocus} onClearFocus={() => setTenantFocus(null)} />}
+        {page === 'Payments' && <Payments focusTenantId={tenantFocus} onClearFocus={() => setTenantFocus(null)} />}
         {page === 'Maintenance' && <Maintenance />}
         {page === 'Documents' && <Documents />}
         {page === 'Profile' && <Profile />}
       </main>
 
       {addPropOpen && <AddPropertyModal onClose={() => setAddPropOpen(false)} onCreate={createProperty} />}
+
+      {addTenantOpen && (
+        <TenantFormModal
+          title="Add Tenant"
+          initial={{
+            name: '', email: '', phone: '', propertyId: properties[0]?.id ?? '',
+            unit: '', beds: '2 BR', rent: 0, leaseStart: '', leaseEnd: '', status: 'Active',
+          }}
+          properties={properties}
+          onClose={() => setAddTenantOpen(false)}
+          onSubmit={createTenant}
+        />
+      )}
+
+      {addLeaseOpen && (
+        <AddLeaseModal
+          properties={properties}
+          tenants={tenants}
+          onClose={() => setAddLeaseOpen(false)}
+          onCreate={createLease}
+        />
+      )}
+
+      {recordPayOpen && (
+        <RecordPaymentModal
+          properties={properties}
+          tenants={tenants}
+          onClose={() => setRecordPayOpen(false)}
+          onCreate={createPayment}
+        />
+      )}
 
       {newMaintOpen && (
         <NewMaintenanceModal

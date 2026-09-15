@@ -46,6 +46,9 @@ export default function MaintenanceDetails({
       </div>
       <div className="modal-foot">
         {m.status === 'Open' ? <button className="btn btn-teal" type="button" onClick={() => onStatusChange('In Progress')}>Start Progress</button> : null}
+        {m.status === 'In Progress' ? (
+          <button className="btn btn-ghost" type="button" onClick={() => onStatusChange('Open')}>Move back to Open</button>
+        ) : null}
         {m.status === 'In Progress' || m.status === 'Scheduled' ? (
           <button className="btn btn-teal" type="button" onClick={() => onStatusChange('Completed')}>Mark Completed</button>
         ) : null}

@@ -1,13 +1,17 @@
 import { useMemo, useState } from 'react';
-import { formatMoney, propertyCity, propertyName, tenants as seedTenants } from '../../data/mock';
+import { formatMoney, propertyName } from '../../data/mock';
 import type { Tenant } from '../../data/mock';
-import { Badge, Card } from '../../components/ui';
+import { Card } from '../../components/ui';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { useStore } from '../../state/useStore';
 import TenantStats from './TenantStats';
 import TenantFilters from './TenantFilters';
 import TenantTable from './TenantTable';
 import TenantPagination from './TenantPagination';
-import { TenantAvatar } from './TenantRow';
-import { fmtDate, leaseTone, matchesTab, paymentTone, tenantTone } from './tenantUtils';
+import TenantDetailsModal from './TenantDetailsModal';
+import TenantFormModal from './TenantFormModal';
+import type { TenantDraft } from './TenantFormModal';
+import { matchesTab } from './tenantUtils';
 import type { TenantAction, TenantSort, TenantTab } from './tenantUtils';
 
 const PAGE_SIZE = 10;
@@ -17,17 +21,17 @@ export default function Tenants({
   onNavigate,
 }: {
   query: string;
-  onNavigate: (page: 'Leases' | 'Payments') => void;
+  onNavigate: (page: 'Leases' | 'Payments', tenantId?: string) => void;
 }) {
-  const [tenants, setTenants] = useState<Tenant[]>(seedTenants);
+  const { tenants, properties, updateTenant, deleteTenant, pushToast } = useStore();
   const [tab, setTab] = useState<TenantTab>('All');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<TenantSort>('featured');
   const [page, setPage] = useState(1);
-  // Selected tenant id mirrors the /tenants/:id detail route (detail view below for now).
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState({ name: '', email: '', phone: '', rent: 0, status: 'Active' as Tenant['status'] });
+  // Selected tenant id mirrors the /tenants/:id detail route (modal for now).
+  const [viewId, setViewId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const counts = useMemo(() => {
     const c: Record<TenantTab, number> = { All: tenants.length, Active: 0, Pending: 0, Expiring: 0, Overdue: 0 };
@@ -61,47 +65,36 @@ export default function Tenants({
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const rows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
-  const selected = selectedId ? tenants.find((t) => t.id === selectedId) ?? null : null;
 
   const overdueSum = useMemo(
     () => tenants.filter((t) => t.paymentStatus === 'Overdue').reduce((s, t) => s + t.rent, 0),
     [tenants]
   );
 
-  const startEdit = (t: Tenant) => {
-    setSelectedId(t.id);
-    setDraft({ name: t.name, email: t.email, phone: t.phone, rent: t.rent, status: t.status });
-    setEditing(true);
+  const viewed = viewId ? tenants.find((t) => t.id === viewId) ?? null : null;
+  const edited = editId ? tenants.find((t) => t.id === editId) ?? null : null;
+  const deleted = deleteId ? tenants.find((t) => t.id === deleteId) ?? null : null;
+
+  const saveEdit = (id: string, draft: TenantDraft) => {
+    updateTenant(id, { ...draft });
+    setEditId(null);
+    pushToast(`Saved changes for ${draft.name}`);
   };
 
-  const saveEdit = () => {
-    if (!selectedId) return;
-    setTenants((list) => list.map((t) => (t.id === selectedId ? { ...t, ...draft } : t)));
-    setEditing(false);
-  };
-
-  const remove = (t: Tenant) => {
-    if (!window.confirm(`Delete tenant ${t.name}?`)) return;
-    setTenants((list) => list.filter((x) => x.id !== t.id));
-    if (selectedId === t.id) {
-      setSelectedId(null);
-      setEditing(false);
-    }
+  const confirmDelete = () => {
+    if (!deleted) return;
+    deleteTenant(deleted.id);
+    setDeleteId(null);
+    if (viewId === deleted.id) setViewId(null);
+    pushToast(`Deleted tenant ${deleted.name}`);
   };
 
   const onAction = (a: TenantAction, t: Tenant) => {
-    if (a === 'view') {
-      setSelectedId(t.id);
-      setEditing(false);
-    } else if (a === 'edit') {
-      startEdit(t);
-    } else if (a === 'lease') {
-      onNavigate('Leases');
-    } else if (a === 'payments') {
-      onNavigate('Payments');
-    } else {
-      remove(t);
-    }
+    if (a === 'view') setViewId(t.id);
+    else if (a === 'edit') setEditId(t.id);
+    else if (a === 'lease') onNavigate('Leases', t.id);
+    else if (a === 'payments') onNavigate('Payments', t.id);
+    else setDeleteId(t.id);
   };
 
   return (
@@ -131,57 +124,43 @@ export default function Tenants({
       {rows.length === 0 ? (
         <Card><p className="muted">No tenants match your filters.</p></Card>
       ) : (
-        <TenantTable rows={rows} onSelect={(t) => { setSelectedId(t.id); setEditing(false); }} onAction={onAction} />
+        <TenantTable rows={rows} onSelect={(t) => setViewId(t.id)} onAction={onAction} />
       )}
 
       <TenantPagination page={safePage} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
 
-      {selected && (
-        <Card>
-          {!editing ? (
-            <div className="row" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div className="tenant-cell">
-                <TenantAvatar name={selected.name} />
-                <div>
-                  <strong>{selected.name}</strong>
-                  <div className="small muted">{selected.email} · {selected.phone}</div>
-                  <div className="small muted">
-                    {propertyName(selected.propertyId)} ({propertyCity(selected.propertyId)}) · Unit {selected.unit} · {selected.beds}
-                  </div>
-                </div>
-              </div>
-              <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                <Badge tone={tenantTone(selected.status)}>{selected.status}</Badge>
-                <Badge tone={leaseTone(selected.leaseStatus)}>Lease {fmtDate(selected.leaseEnd)}</Badge>
-                <Badge tone={paymentTone(selected.paymentStatus)}>{selected.paymentStatus}</Badge>
-                <button className="btn btn-ghost btn-sm" type="button" onClick={() => startEdit(selected)}>Edit</button>
-                <button className="btn btn-ghost btn-sm" type="button" onClick={() => setSelectedId(null)}>Close</button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <strong>Edit Tenant</strong>
-              <div className="form-grid" style={{ marginTop: 12 }}>
-                <div className="field"><label htmlFor="tn-name">Full name</label><input id="tn-name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></div>
-                <div className="field"><label htmlFor="tn-email">Email</label><input id="tn-email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} /></div>
-                <div className="field"><label htmlFor="tn-phone">Phone</label><input id="tn-phone" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} /></div>
-                <div className="field"><label htmlFor="tn-rent">Monthly rent</label><input id="tn-rent" type="number" value={draft.rent} onChange={(e) => setDraft({ ...draft, rent: Number(e.target.value) })} /></div>
-                <div className="field">
-                  <label htmlFor="tn-status">Status</label>
-                  <select id="tn-status" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as Tenant['status'] })}>
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                <button className="btn btn-teal" type="button" onClick={saveEdit}>Save changes</button>
-                <button className="btn btn-ghost" type="button" onClick={() => setEditing(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
-        </Card>
+      {viewed && (
+        <TenantDetailsModal
+          tenant={viewed}
+          onClose={() => setViewId(null)}
+          onEdit={() => { setViewId(null); setEditId(viewed.id); }}
+          onViewLease={() => { setViewId(null); onNavigate('Leases', viewed.id); }}
+          onViewPayments={() => { setViewId(null); onNavigate('Payments', viewed.id); }}
+        />
+      )}
+
+      {edited && (
+        <TenantFormModal
+          title={`Edit Tenant — ${edited.name}`}
+          initial={{
+            name: edited.name, email: edited.email, phone: edited.phone,
+            propertyId: edited.propertyId, unit: edited.unit, beds: edited.beds,
+            rent: edited.rent, leaseStart: edited.leaseStart, leaseEnd: edited.leaseEnd,
+            status: edited.status,
+          }}
+          properties={properties}
+          onClose={() => setEditId(null)}
+          onSubmit={(d) => saveEdit(edited.id, d)}
+        />
+      )}
+
+      {deleted && (
+        <ConfirmDialog
+          title="Delete Tenant"
+          message={`Delete tenant ${deleted.name}? Their leases and payment records stay in the system for bookkeeping.`}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteId(null)}
+        />
       )}
     </div>
   );

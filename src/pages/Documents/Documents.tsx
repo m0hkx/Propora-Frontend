@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { propertyName, tenantName } from '../../data/mock';
 import type { DocFile } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { useStore } from '../../state/useStore';
 import DocumentStats from './DocumentStats';
 import DocumentFilters from './DocumentFilters';
@@ -17,6 +18,7 @@ export default function Documents() {
   const [grouped, setGrouped] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [startEdit, setStartEdit] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const now = useMemo(() => new Date(), []);
 
@@ -50,10 +52,19 @@ export default function Documents() {
     else if (a === 'archive') {
       updateDocument(d.id, { status: 'Archived' });
       pushToast(`Archived: ${d.name}`);
-    } else if (window.confirm(`Delete document ${d.name}?`)) {
-      deleteDocument(d.id);
-      pushToast(`Deleted: ${d.name}`);
+    } else {
+      setDeleteId(d.id);
     }
+  };
+
+  const deleted = deleteId ? documents.find((d) => d.id === deleteId) ?? null : null;
+
+  const confirmDelete = () => {
+    if (!deleted) return;
+    deleteDocument(deleted.id);
+    pushToast(`Deleted: ${deleted.name}`);
+    if (selectedId === deleted.id) setSelectedId(null);
+    setDeleteId(null);
   };
 
   const selected = selectedId ? documents.find((d) => d.id === selectedId) ?? null : null;
@@ -155,12 +166,16 @@ export default function Documents() {
             pushToast(`Archived: ${selected.name}`);
             setSelectedId(null);
           }}
-          onDelete={() => {
-            if (!window.confirm(`Delete document ${selected.name}?`)) return;
-            deleteDocument(selected.id);
-            pushToast(`Deleted: ${selected.name}`);
-            setSelectedId(null);
-          }}
+          onDelete={() => setDeleteId(selected.id)}
+        />
+      )}
+
+      {deleted && (
+        <ConfirmDialog
+          title="Delete Document"
+          message={`Delete document ${deleted.name}? This cannot be undone.`}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteId(null)}
         />
       )}
     </div>

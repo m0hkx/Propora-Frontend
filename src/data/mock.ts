@@ -382,3 +382,72 @@ export function tenantName(id: string): string {
 export function formatMoney(n: number): string {
   return '$' + n.toLocaleString('en-US');
 }
+
+export type NotificationKind = 'maintenance' | 'payment' | 'lease' | 'tenant';
+
+export interface AppNotification {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  detail: string;
+  time: string;
+  read: boolean;
+  link: 'Maintenance' | 'Payments' | 'Leases' | 'Tenants';
+}
+
+export const notifications: AppNotification[] = [
+  { id: 'n1', kind: 'maintenance', title: 'New maintenance request', detail: 'AC not cooling in C-305 (Elm & Park Lofts)', time: '25 min ago', read: false, link: 'Maintenance' },
+  { id: 'n2', kind: 'payment', title: 'Overdue payment', detail: 'Marcus Chen · $2,400 · Elm & Park C-110', time: '2 hours ago', read: false, link: 'Payments' },
+  { id: 'n3', kind: 'lease', title: 'Lease expiring soon', detail: 'Jonas Weber · B-101 ends Nov 30, 2025', time: '5 hours ago', read: false, link: 'Leases' },
+  { id: 'n4', kind: 'tenant', title: 'New tenant application', detail: 'Sunset Villas · Unit D-104 awaiting review', time: 'Yesterday', read: true, link: 'Tenants' },
+  { id: 'n5', kind: 'maintenance', title: 'Request completed', detail: 'Dishwasher noise E-401 resolved by R. Alvarez', time: 'Yesterday', read: true, link: 'Maintenance' },
+  { id: 'n6', kind: 'payment', title: 'Rent received', detail: 'Amelia Hart · $2,850 · Ocean View A-204', time: '2 days ago', read: true, link: 'Payments' },
+];
+
+export interface ChatMessage {
+  id: string;
+  from: 'them' | 'me';
+  text: string;
+  time: string;
+}
+
+export interface Conversation {
+  id: string;
+  name: string;
+  context: string;
+  unread: number;
+  messages: ChatMessage[];
+}
+
+export const conversations: Conversation[] = [
+  {
+    id: 'c1',
+    name: 'Amelia Hart',
+    context: 'Ocean View · A-204',
+    unread: 2,
+    messages: [
+      { id: 'c1m1', from: 'them', text: 'Hi! The kitchen faucet is still dripping after the visit. Could someone come back?', time: '10:12 AM' },
+      { id: 'c1m2', from: 'me', text: 'Hi Amelia, sorry about that — I have flagged it as high priority with our plumber.', time: '10:20 AM' },
+      { id: 'c1m3', from: 'them', text: 'Thank you! I am home after 4pm tomorrow if that helps.', time: '10:24 AM' },
+    ],
+  },
+  {
+    id: 'c2',
+    name: 'K. Osei',
+    context: 'Technician · HVAC',
+    unread: 1,
+    messages: [
+      { id: 'c2m1', from: 'them', text: 'C-305 compressor looks fine — likely just low refrigerant. Topping up today.', time: '9:02 AM' },
+    ],
+  },
+  {
+    id: 'c3',
+    name: 'Sofia Lind',
+    context: 'Harbor Point · E-401',
+    unread: 0,
+    messages: [
+      { id: 'c3m1', from: 'them', text: 'Thanks for the quick dishwasher fix!', time: 'Mon' },
+      { id: 'c3m2', from: 'me', text: 'You are welcome, Sofia!', time: 'Mon' },
+    ],
+  },
+];

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { AreaChart, Donut } from '../components/charts';
 import { Badge, Card, Progress } from '../components/ui';
+import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
+import { fmtDate } from './Tenants/tenantUtils';
 
 type Range = 'Monthly' | 'Quarterly' | 'Yearly';
 
-const revenueSets: Record<Range, { values: number[]; labels: string[] }> = {
-  Monthly: { values: [82, 88, 84, 92, 95, 102, 108, 115, 124], labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'] },
-  Quarterly: { values: [260, 310, 345, 372], labels: ['Q1', 'Q2', 'Q3', 'Q4'] },
-  Yearly: { values: [820, 950, 1100, 1280, 1450], labels: ['2022', '2023', '2024', '2025', '2026'] },
+const revenueSets: Record<Range, { values: number[]; labels: string[]; counts: number[] }> = {
+  Monthly: { values: [82, 88, 84, 92, 95, 102, 108, 115, 124], labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], counts: [0, 0, 0, 0, 0, 0, 1, 3, 4] },
+  Quarterly: { values: [260, 310, 345, 372], labels: ['Q1', 'Q2', 'Q3', 'Q4'], counts: [0, 0, 8, 0] },
+  Yearly: { values: [820, 950, 1100, 1280, 1450], labels: ['2022', '2023', '2024', '2025', '2026'], counts: [0, 0, 0, 0, 8] },
 };
 
 const propertyRows = [
@@ -46,12 +48,22 @@ const timeline = [
   { text: 'Property "Harbor Point" added', time: 'Yesterday' },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({
+  onNavigate,
+}: {
+  onNavigate: (page: 'Properties' | 'Maintenance' | 'Payments' | 'Leases') => void;
+}) {
   const [range, setRange] = useState<Range>('Monthly');
+  const [actionOpen, setActionOpen] = useState(false);
   const set = revenueSets[range];
-  const { properties } = useStore();
+  const { properties, payments, maintenance, tenants } = useStore();
   // Portfolio-wide total: 18 managed + any created in this session.
   const totalProperties = 18 + Math.max(0, properties.length - 6);
+
+  const overdue = payments.filter((p) => p.status === 'Overdue');
+  const openMaint = maintenance.filter((m) => m.status === 'Open');
+  const expiring = tenants.filter((t) => t.leaseStatus === 'Expiring Soon');
+  const tenantOf = (id: string) => tenants.find((t) => t.id === id)?.name ?? id;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -96,7 +108,7 @@ export default function Dashboard() {
               </select>
             </label>
           </div>
-          <AreaChart values={set.values} labels={set.labels} />
+          <AreaChart values={set.values} labels={set.labels} counts={set.counts} />
         </Card>
         <Card>
           <div className="small muted">Occupancy</div>
@@ -116,7 +128,7 @@ export default function Dashboard() {
       <div className="split-21">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Card>
-            <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button">View All Properties →</button></div>
+            <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Properties')}>View All Properties →</button></div>
             <div className="table-wrap">
               <table>
                 <thead><tr><th>Property</th><th>Occupancy</th><th>Revenue</th><th>Status</th></tr></thead>
@@ -151,26 +163,26 @@ export default function Dashboard() {
           <strong>Action Required</strong>
           <div className="list">
             <div className="list-item">
-              <span><span className="dot" style={{ background: '#DC2626' }} /> 3 Overdue Payments</span>
-              <strong>$4,250 outstanding</strong>
+              <span><span className="dot" style={{ background: '#DC2626' }} /> {overdue.length} Overdue Payments</span>
+              <strong>${overdue.reduce((s, p) => s + p.amount, 0).toLocaleString('en-US')} outstanding</strong>
             </div>
             <div className="list-item">
-              <span><span className="dot" style={{ background: '#EA580C' }} /> 5 Leases Expiring Soon</span>
+              <span><span className="dot" style={{ background: '#EA580C' }} /> {expiring.length} Leases Expiring Soon</span>
               <strong>Within 30 days</strong>
             </div>
             <div className="list-item">
-              <span><span className="dot" style={{ background: '#CA8A04' }} /> 4 Maintenance Requests</span>
+              <span><span className="dot" style={{ background: '#CA8A04' }} /> {openMaint.length} Maintenance Requests</span>
               <strong>Awaiting resolution</strong>
             </div>
           </div>
-          <button className="btn btn-teal" type="button" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>View All →</button>
+          <button className="btn btn-teal" type="button" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }} onClick={() => setActionOpen(true)}>View All →</button>
         </Card>
       </div>
 
       {/* Row 4 — Operations */}
       <div className="grid-2">
         <Card>
-          <div className="row"><strong>Recent Payments</strong><button className="btn btn-ghost" type="button">View All Payments →</button></div>
+          <div className="row"><strong>Recent Payments</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Payments')}>View All Payments →</button></div>
           <div className="table-wrap">
             <table>
               <thead><tr><th>Tenant</th><th>Property</th><th>Amount</th><th>Status</th></tr></thead>
@@ -188,7 +200,7 @@ export default function Dashboard() {
           </div>
         </Card>
         <Card>
-          <div className="row"><strong>Maintenance Requests</strong><button className="btn btn-ghost" type="button">View All Requests →</button></div>
+          <div className="row"><strong>Maintenance Requests</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Maintenance')}>View All Requests →</button></div>
           <div className="list">
             {maintenanceItems.map((m) => (
               <div key={m.title} className="list-item">
@@ -212,6 +224,56 @@ export default function Dashboard() {
           ))}
         </div>
       </Card>
+
+      {actionOpen && (
+        <Modal title="Action Required" onClose={() => setActionOpen(false)} wide>
+          <div className="modal-section">
+            <h4>Overdue Payments ({overdue.length})</h4>
+            {overdue.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Nothing overdue.</p> : (
+              <div className="list">
+                {overdue.slice(0, 5).map((p) => (
+                  <div key={p.id} className="list-item">
+                    <span>{tenantOf(p.tenantId)} · ${p.amount.toLocaleString('en-US')}</span>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Payments'); }}>
+                      Review →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="modal-section">
+            <h4>Leases Expiring Soon ({expiring.length})</h4>
+            {expiring.length === 0 ? <p className="small muted" style={{ margin: 0 }}>No upcoming expirations.</p> : (
+              <div className="list">
+                {expiring.slice(0, 5).map((t) => (
+                  <div key={t.id} className="list-item">
+                    <span>{t.name} · ends {fmtDate(t.leaseEnd)}</span>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Leases'); }}>
+                      Review →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="modal-section">
+            <h4>Open Maintenance ({openMaint.length})</h4>
+            {openMaint.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Queue is clear.</p> : (
+              <div className="list">
+                {openMaint.slice(0, 5).map((m) => (
+                  <div key={m.id} className="list-item">
+                    <span>{m.title}</span>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Maintenance'); }}>
+                      Review →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

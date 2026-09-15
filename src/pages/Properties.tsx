@@ -3,6 +3,7 @@ import { formatMoney } from '../data/mock';
 import type { Property } from '../data/mock';
 import { Badge, Card, Icon, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
+import PropertyDetailsModal from './Properties/PropertyDetailsModal';
 import { useStore } from '../state/useStore';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
@@ -206,21 +207,7 @@ export default function Properties({ query }: { query: string }) {
       )}
 
       {selected && (
-        <Card>
-          <div className="row" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div>
-              <strong>{selected.name}</strong>
-              <div className="small muted">{selected.address} · {selected.type} · Built {selected.yearBuilt}</div>
-            </div>
-            <div className="row" style={{ gap: 16, flexWrap: 'wrap' }}>
-              <span className="small">Units <strong>{selected.units}</strong></span>
-              <span className="small">Occupied <strong>{selected.occupied}</strong></span>
-              <span className="small">Revenue <strong>{formatMoney(revenue(selected))}/mo</strong></span>
-              <Badge tone={tone(selected.status)}>{selected.status}</Badge>
-              <button className="btn btn-ghost btn-sm" type="button" onClick={() => setSelected(null)}>Close</button>
-            </div>
-          </div>
-        </Card>
+        <PropertyDetailsModal property={selected} onClose={() => setSelected(null)} />
       )}
     </div>
   );

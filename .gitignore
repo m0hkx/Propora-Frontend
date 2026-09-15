@@ -42,3 +42,6 @@ coverage/
 *.tmp.tsx
 *.tmp.cjs
 *.tmp.js
+
+# Other 
+docs/

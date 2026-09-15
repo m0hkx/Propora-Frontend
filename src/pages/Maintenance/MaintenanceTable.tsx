@@ -4,6 +4,37 @@ import type { MaintenanceRequest } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
 import { fmtMDate, priorityTone, statusTone } from './maintenanceUtils';
 
+type SortKey = 'title' | 'created' | 'priority' | 'cost';
+
+const PRIORITY_RANK: Record<MaintenanceRequest['priority'], number> = {
+  Urgent: 0, High: 1, Medium: 2, Low: 3,
+};
+
+function SortHeader({
+  label,
+  sortKey,
+  activeKey,
+  dir,
+  onSort,
+  className,
+}: {
+  label: string;
+  sortKey: SortKey;
+  activeKey: SortKey;
+  dir: 'asc' | 'desc';
+  onSort: (k: SortKey) => void;
+  className?: string;
+}) {
+  const active = activeKey === sortKey;
+  return (
+    <th className={className} aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" className="th-sort" onClick={() => onSort(sortKey)} aria-label={`Sort by ${label}`}>
+        {label} <span aria-hidden="true">{active ? (dir === 'asc' ? '▲' : '▼') : ''}</span>
+      </button>
+    </th>
+  );
+}
+
 export default function MaintenanceTable({
   rows,
   onSelect,
@@ -13,6 +44,8 @@ export default function MaintenanceTable({
 }) {
   const [visible, setVisible] = useState(20);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>('created');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     if (!openId) return;
@@ -21,8 +54,26 @@ export default function MaintenanceTable({
     return () => document.removeEventListener('click', close);
   }, [openId]);
 
+  const onSort = (k: SortKey) => {
+    if (k === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(k);
+      setSortDir(k === 'title' ? 'asc' : 'desc');
+    }
+  };
+
+  const sorted = [...rows].sort((a, b) => {
+    let cmp: number;
+    if (sortKey === 'title') cmp = a.title.localeCompare(b.title);
+    else if (sortKey === 'created') cmp = a.reported.localeCompare(b.reported);
+    else if (sortKey === 'priority') cmp = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+    else cmp = (a.actualCost ?? a.estimatedCost) - (b.actualCost ?? b.estimatedCost);
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
   // When filters change, clamping keeps the visible window valid without an effect.
-  const shown = rows.slice(0, Math.max(visible, 20));
+  const shown = sorted.slice(0, Math.max(visible, 20));
 
   return (
     <Card className="table-card">
@@ -31,14 +82,14 @@ export default function MaintenanceTable({
         <table className="tenant-table">
           <thead>
             <tr>
-              <th>Request</th>
+              <SortHeader label="Request" sortKey="title" activeKey={sortKey} dir={sortDir} onSort={onSort} />
               <th>Property / Unit</th>
               <th className="hide-tablet">Tenant</th>
-              <th>Priority</th>
+              <SortHeader label="Priority" sortKey="priority" activeKey={sortKey} dir={sortDir} onSort={onSort} />
               <th className="hide-tablet">Assigned To</th>
-              <th className="hide-tablet">Created</th>
+              <SortHeader label="Created" sortKey="created" activeKey={sortKey} dir={sortDir} onSort={onSort} className="hide-tablet" />
               <th>Status</th>
-              <th>Cost</th>
+              <SortHeader label="Cost" sortKey="cost" activeKey={sortKey} dir={sortDir} onSort={onSort} />
               <th><span className="sr-only">Actions</span></th>
             </tr>
           </thead>

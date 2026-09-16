@@ -1,7 +1,8 @@
 import { useStore } from '../state/useStore';
 
 export default function Toasts() {
-  const { toasts, dismissToast } = useStore();
+  const toasts = useStore((s) => s.toasts);
+  const dismissToast = useStore((s) => s.dismissToast);
   if (toasts.length === 0) return null;
   return (
     <div className="toasts" aria-live="polite">

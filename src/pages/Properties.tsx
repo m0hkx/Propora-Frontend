@@ -33,7 +33,7 @@ function revenue(p: Property): number {
 const tabs: StatusFilter[] = ['All', 'Active', 'Vacant', 'Maintenance'];
 
 export default function Properties({ query }: { query: string }) {
-  const { properties } = useStore();
+  const properties = useStore((s) => s.properties);
   const [status, setStatus] = useState<StatusFilter>('All');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All types');

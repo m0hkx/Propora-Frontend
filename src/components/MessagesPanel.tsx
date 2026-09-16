@@ -3,7 +3,9 @@ import { useStore } from '../state/useStore';
 import { TenantAvatar } from '../pages/Tenants/TenantRow';
 
 export default function MessagesPanel() {
-  const { conversations, markConversationRead, sendMessage } = useStore();
+  const markConversationRead = useStore((s) => s.markConversationRead);
+  const sendMessage = useStore((s) => s.sendMessage);
+  const conversations = useStore((s) => s.conversations);
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const open = openId ? conversations.find((c) => c.id === openId) ?? null : null;

@@ -22,7 +22,9 @@ export default function Leases({
   focusTenantId: string | null;
   onClearFocus: () => void;
 }) {
-  const { leases, tenants, properties } = useStore();
+  const leases = useStore((s) => s.leases);
+  const tenants = useStore((s) => s.tenants);
+  const properties = useStore((s) => s.properties);
   const [tab, setTab] = useState<LeaseTab>('All');
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState('all');

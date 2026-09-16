@@ -23,7 +23,6 @@ import { Icons } from './components/icons';
 import Toasts from './components/Toasts';
 import NotificationsPanel from './components/NotificationsPanel';
 import MessagesPanel from './components/MessagesPanel';
-import { StoreProvider } from './state/store';
 import { useStore } from './state/useStore';
 import type { Property } from './data/mock';
 
@@ -56,11 +55,21 @@ function headerAction(page: Page): string {
 }
 
 function AppShell() {
-  const {
-    properties, maintenance, tenants, leases, payments,
-    addProperty, addTenant, addLease, addPayment, addMaintenance, addDocument,
-    pushToast, pushNotification, notifications, conversations,
-  } = useStore();
+  const addProperty = useStore((s) => s.addProperty);
+  const addTenant = useStore((s) => s.addTenant);
+  const addLease = useStore((s) => s.addLease);
+  const addPayment = useStore((s) => s.addPayment);
+  const addMaintenance = useStore((s) => s.addMaintenance);
+  const addDocument = useStore((s) => s.addDocument);
+  const pushToast = useStore((s) => s.pushToast);
+  const pushNotification = useStore((s) => s.pushNotification);
+  const properties = useStore((s) => s.properties);
+  const maintenance = useStore((s) => s.maintenance);
+  const tenants = useStore((s) => s.tenants);
+  const leases = useStore((s) => s.leases);
+  const payments = useStore((s) => s.payments);
+  const notifications = useStore((s) => s.notifications);
+  const conversations = useStore((s) => s.conversations);
   const [page, setPage] = useState<Page>('Dashboard');
   const [query, setQuery] = useState('');
   const [tenantFocus, setTenantFocus] = useState<string | null>(null);
@@ -471,9 +480,5 @@ function AppShell() {
 }
 
 export default function App() {
-  return (
-    <StoreProvider>
-      <AppShell />
-    </StoreProvider>
-  );
+  return <AppShell />;
 }

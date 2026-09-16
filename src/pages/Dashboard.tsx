@@ -56,7 +56,10 @@ export default function Dashboard({
   const [range, setRange] = useState<Range>('Monthly');
   const [actionOpen, setActionOpen] = useState(false);
   const set = revenueSets[range];
-  const { properties, payments, maintenance, tenants } = useStore();
+  const properties = useStore((s) => s.properties);
+  const payments = useStore((s) => s.payments);
+  const maintenance = useStore((s) => s.maintenance);
+  const tenants = useStore((s) => s.tenants);
   // Portfolio-wide total: 18 managed + any created in this session.
   const totalProperties = 18 + Math.max(0, properties.length - 6);
 

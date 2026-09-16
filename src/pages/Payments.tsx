@@ -22,7 +22,9 @@ export default function Payments({
   focusTenantId: string | null;
   onClearFocus: () => void;
 }) {
-  const { payments, tenants, properties } = useStore();
+  const payments = useStore((s) => s.payments);
+  const tenants = useStore((s) => s.tenants);
+  const properties = useStore((s) => s.properties);
   const [tab, setTab] = useState<PayTab>('All');
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState('all');

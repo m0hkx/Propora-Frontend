@@ -13,7 +13,11 @@ import { EMPTY_FILTERS, docSearchText, docStatusTone, filtersActive, matchesDate
 import type { DocFilters } from './documentUtils';
 
 export default function Documents() {
-  const { documents, properties, updateDocument, deleteDocument, pushToast } = useStore();
+  const updateDocument = useStore((s) => s.updateDocument);
+  const deleteDocument = useStore((s) => s.deleteDocument);
+  const pushToast = useStore((s) => s.pushToast);
+  const documents = useStore((s) => s.documents);
+  const properties = useStore((s) => s.properties);
   const [filters, setFilters] = useState<DocFilters>(EMPTY_FILTERS);
   const [grouped, setGrouped] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);

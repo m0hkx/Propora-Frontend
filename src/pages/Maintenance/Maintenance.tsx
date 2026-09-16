@@ -11,7 +11,10 @@ import { EMPTY_MFILTERS } from './maintenanceUtils';
 import type { MaintenanceFilters as Filters, MaintenanceTab } from './maintenanceUtils';
 
 export default function Maintenance() {
-  const { maintenance, properties, updateMaintenance, pushToast } = useStore();
+  const updateMaintenance = useStore((s) => s.updateMaintenance);
+  const pushToast = useStore((s) => s.pushToast);
+  const maintenance = useStore((s) => s.maintenance);
+  const properties = useStore((s) => s.properties);
   const [tab, setTab] = useState<MaintenanceTab>('All');
   const [filters, setFilters] = useState<Filters>(EMPTY_MFILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);

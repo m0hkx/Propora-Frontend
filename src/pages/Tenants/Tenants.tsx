@@ -23,7 +23,11 @@ export default function Tenants({
   query: string;
   onNavigate: (page: 'Leases' | 'Payments', tenantId?: string) => void;
 }) {
-  const { tenants, properties, updateTenant, deleteTenant, pushToast } = useStore();
+  const updateTenant = useStore((s) => s.updateTenant);
+  const deleteTenant = useStore((s) => s.deleteTenant);
+  const pushToast = useStore((s) => s.pushToast);
+  const tenants = useStore((s) => s.tenants);
+  const properties = useStore((s) => s.properties);
   const [tab, setTab] = useState<TenantTab>('All');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<TenantSort>('featured');

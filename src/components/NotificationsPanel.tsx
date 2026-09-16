@@ -15,7 +15,9 @@ export default function NotificationsPanel({
   onNavigate: (page: 'Maintenance' | 'Payments' | 'Leases' | 'Tenants') => void;
   onClose: () => void;
 }) {
-  const { notifications, markNotificationRead, markAllNotificationsRead } = useStore();
+  const markNotificationRead = useStore((s) => s.markNotificationRead);
+  const markAllNotificationsRead = useStore((s) => s.markAllNotificationsRead);
+  const notifications = useStore((s) => s.notifications);
   const unread = notifications.filter((n) => !n.read).length;
 
   return (

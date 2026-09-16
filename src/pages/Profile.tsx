@@ -21,10 +21,10 @@ export default function Profile() {
       <Card>
         <strong>Preferences</strong>
         <div className="list">
-          <div className="list-item"><span>Email notifications</span><strong>On</strong></div>
-          <div className="list-item"><span>Rent reminders</span><strong>3 days before</strong></div>
-          <div className="list-item"><span>Currency</span><strong>USD</strong></div>
-          <div className="list-item"><span>Theme</span><strong>Teal light</strong></div>
+          <div className="list-row"><span>Email notifications</span><strong>On</strong></div>
+          <div className="list-row"><span>Rent reminders</span><strong>3 days before</strong></div>
+          <div className="list-row"><span>Currency</span><strong>USD</strong></div>
+          <div className="list-row"><span>Theme</span><strong>Teal light</strong></div>
         </div>
       </Card>
     </div>

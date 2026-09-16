@@ -130,7 +130,7 @@ export default function Documents() {
                 </div>
                 <div className="list">
                   {g.docs.slice(0, 6).map((d) => (
-                    <div key={d.id} className="list-item clickable" onClick={() => openDetails(d, false)}>
+                    <div key={d.id} className="list-row clickable" onClick={() => openDetails(d, false)}>
                       <span>{d.name}</span>
                       <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <Badge tone="neutral">{d.type}</Badge>

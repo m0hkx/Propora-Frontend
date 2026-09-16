@@ -63,14 +63,14 @@ export default function DocumentDetails({
             <Badge tone={docStatusTone(doc.status)}>{doc.status}</Badge>
           </div>
           <div className="list">
-            <div className="list-item"><span>Property</span><strong>{propertyName(doc.propertyId)}</strong></div>
-            {doc.unit ? <div className="list-item"><span>Unit</span><strong>{doc.unit}</strong></div> : null}
-            {doc.tenantId ? <div className="list-item"><span>Tenant</span><strong>{tenantName(doc.tenantId)}</strong></div> : null}
-            {doc.leaseId ? <div className="list-item"><span>Lease</span><strong>{doc.leaseId}</strong></div> : null}
-            <div className="list-item"><span>Uploaded By</span><strong>{doc.uploadedBy}</strong></div>
-            <div className="list-item"><span>Upload Date</span><strong>{fmtDocDate(doc.uploadDate)}</strong></div>
-            <div className="list-item"><span>Expiration Date</span><strong>{fmtDocDate(doc.expirationDate)}</strong></div>
-            <div className="list-item"><span>Size</span><strong>{doc.size}</strong></div>
+            <div className="list-row"><span>Property</span><strong>{propertyName(doc.propertyId)}</strong></div>
+            {doc.unit ? <div className="list-row"><span>Unit</span><strong>{doc.unit}</strong></div> : null}
+            {doc.tenantId ? <div className="list-row"><span>Tenant</span><strong>{tenantName(doc.tenantId)}</strong></div> : null}
+            {doc.leaseId ? <div className="list-row"><span>Lease</span><strong>{doc.leaseId}</strong></div> : null}
+            <div className="list-row"><span>Uploaded By</span><strong>{doc.uploadedBy}</strong></div>
+            <div className="list-row"><span>Upload Date</span><strong>{fmtDocDate(doc.uploadDate)}</strong></div>
+            <div className="list-row"><span>Expiration Date</span><strong>{fmtDocDate(doc.expirationDate)}</strong></div>
+            <div className="list-row"><span>Size</span><strong>{doc.size}</strong></div>
           </div>
           <p className="small muted" style={{ margin: 0 }}>{doc.description}</p>
           <div className="modal-foot">

@@ -29,11 +29,11 @@ export default function PropertyDetailsModal({
         <Progress value={occ} />
       </div>
       <div className="list">
-        <div className="list-item"><span>Total units</span><strong>{p.units}</strong></div>
-        <div className="list-item"><span>Occupied units</span><strong>{p.occupied}</strong></div>
-        <div className="list-item"><span>Available units</span><strong>{p.units - p.occupied}</strong></div>
-        <div className="list-item"><span>Base rent</span><strong>{formatMoney(p.rent)}/mo</strong></div>
-        <div className="list-item"><span>Est. monthly revenue</span><strong>{formatMoney(p.occupied * p.rent)}</strong></div>
+        <div className="list-row"><span>Total units</span><strong>{p.units}</strong></div>
+        <div className="list-row"><span>Occupied units</span><strong>{p.occupied}</strong></div>
+        <div className="list-row"><span>Available units</span><strong>{p.units - p.occupied}</strong></div>
+        <div className="list-row"><span>Base rent</span><strong>{formatMoney(p.rent)}/mo</strong></div>
+        <div className="list-row"><span>Est. monthly revenue</span><strong>{formatMoney(p.occupied * p.rent)}</strong></div>
       </div>
     </Modal>
   );

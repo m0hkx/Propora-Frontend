@@ -33,15 +33,15 @@ export default function TenantDetailsModal({
         <Badge tone={tenantTone(tenant.status)}>{tenant.status}</Badge>
       </div>
       <div className="list">
-        <div className="list-item"><span>Monthly rent</span><strong>${tenant.rent.toLocaleString('en-US')}</strong></div>
-        <div className="list-item">
+        <div className="list-row"><span>Monthly rent</span><strong>${tenant.rent.toLocaleString('en-US')}</strong></div>
+        <div className="list-row">
           <span>Lease</span>
           <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <Badge tone={leaseTone(tenant.leaseStatus)}>{tenant.leaseStatus}</Badge>
             <strong className="small">{fmtDate(tenant.leaseStart)} → {fmtDate(tenant.leaseEnd)}</strong>
           </span>
         </div>
-        <div className="list-item">
+        <div className="list-row">
           <span>Payment</span>
           <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <Badge tone={paymentTone(tenant.paymentStatus)}>{tenant.paymentStatus}</Badge>

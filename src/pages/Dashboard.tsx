@@ -117,8 +117,8 @@ export default function Dashboard({
           <div style={{ margin: '12px 0' }}><Progress value={90.1} /></div>
           <Donut percent={90} label="Occupied" />
           <div className="list">
-            <div className="list-item"><span>Occupied</span><strong>128</strong></div>
-            <div className="list-item"><span>Vacant</span><strong>14</strong></div>
+            <div className="list-row"><span>Occupied</span><strong>128</strong></div>
+            <div className="list-row"><span>Vacant</span><strong>14</strong></div>
           </div>
           <div className="small" style={{ color: '#047857', fontWeight: 700, marginTop: 8 }}>+2.4% vs last month</div>
         </Card>
@@ -162,15 +162,15 @@ export default function Dashboard({
         <Card className="tint">
           <strong>Action Required</strong>
           <div className="list">
-            <div className="list-item">
+            <div className="list-row">
               <span><span className="dot" style={{ background: '#DC2626' }} /> {overdue.length} Overdue Payments</span>
               <strong>${overdue.reduce((s, p) => s + p.amount, 0).toLocaleString('en-US')} outstanding</strong>
             </div>
-            <div className="list-item">
+            <div className="list-row">
               <span><span className="dot" style={{ background: '#EA580C' }} /> {expiring.length} Leases Expiring Soon</span>
               <strong>Within 30 days</strong>
             </div>
-            <div className="list-item">
+            <div className="list-row">
               <span><span className="dot" style={{ background: '#CA8A04' }} /> {openMaint.length} Maintenance Requests</span>
               <strong>Awaiting resolution</strong>
             </div>
@@ -203,7 +203,7 @@ export default function Dashboard({
           <div className="row"><strong>Maintenance Requests</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Maintenance')}>View All Requests →</button></div>
           <div className="list">
             {maintenanceItems.map((m) => (
-              <div key={m.title} className="list-item">
+              <div key={m.title} className="list-row">
                 <div><strong>{m.title}</strong><div className="small muted">{m.unit}</div><div className="small muted">{m.meta}</div></div>
                 <Badge tone={m.tone}>{m.meta.split('·')[1]?.trim() ?? 'Open'}</Badge>
               </div>
@@ -232,7 +232,7 @@ export default function Dashboard({
             {overdue.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Nothing overdue.</p> : (
               <div className="list">
                 {overdue.slice(0, 5).map((p) => (
-                  <div key={p.id} className="list-item">
+                  <div key={p.id} className="list-row">
                     <span>{tenantOf(p.tenantId)} · ${p.amount.toLocaleString('en-US')}</span>
                     <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Payments'); }}>
                       Review →
@@ -247,7 +247,7 @@ export default function Dashboard({
             {expiring.length === 0 ? <p className="small muted" style={{ margin: 0 }}>No upcoming expirations.</p> : (
               <div className="list">
                 {expiring.slice(0, 5).map((t) => (
-                  <div key={t.id} className="list-item">
+                  <div key={t.id} className="list-row">
                     <span>{t.name} · ends {fmtDate(t.leaseEnd)}</span>
                     <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Leases'); }}>
                       Review →
@@ -262,7 +262,7 @@ export default function Dashboard({
             {openMaint.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Queue is clear.</p> : (
               <div className="list">
                 {openMaint.slice(0, 5).map((m) => (
-                  <div key={m.id} className="list-item">
+                  <div key={m.id} className="list-row">
                     <span>{m.title}</span>
                     <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Maintenance'); }}>
                       Review →

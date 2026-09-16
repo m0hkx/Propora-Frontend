@@ -23,15 +23,15 @@ export default function MaintenanceDetails({
       </div>
       <p style={{ margin: 0 }}>{m.description}</p>
       <div className="list">
-        <div className="list-item"><span>Property</span><strong>{propertyName(m.propertyId)}</strong></div>
-        <div className="list-item"><span>Unit</span><strong>{m.unit}</strong></div>
-        <div className="list-item"><span>Tenant</span><strong>{m.tenantId ? tenantName(m.tenantId) : '—'}</strong></div>
-        <div className="list-item"><span>Assigned Technician</span><strong>{m.assignee}</strong></div>
-        <div className="list-item"><span>Created Date</span><strong>{fmtMDate(m.reported)}</strong></div>
-        <div className="list-item"><span>Scheduled Date</span><strong>{fmtMDate(m.scheduledDate)}</strong></div>
-        <div className="list-item"><span>Completed Date</span><strong>{fmtMDate(m.completedDate)}</strong></div>
-        <div className="list-item"><span>Estimated Cost</span><strong>{formatMoney(m.estimatedCost)}</strong></div>
-        <div className="list-item"><span>Actual Cost</span><strong>{m.actualCost !== undefined ? formatMoney(m.actualCost) : '—'}</strong></div>
+        <div className="list-row"><span>Property</span><strong>{propertyName(m.propertyId)}</strong></div>
+        <div className="list-row"><span>Unit</span><strong>{m.unit}</strong></div>
+        <div className="list-row"><span>Tenant</span><strong>{m.tenantId ? tenantName(m.tenantId) : '—'}</strong></div>
+        <div className="list-row"><span>Assigned Technician</span><strong>{m.assignee}</strong></div>
+        <div className="list-row"><span>Created Date</span><strong>{fmtMDate(m.reported)}</strong></div>
+        <div className="list-row"><span>Scheduled Date</span><strong>{fmtMDate(m.scheduledDate)}</strong></div>
+        <div className="list-row"><span>Completed Date</span><strong>{fmtMDate(m.completedDate)}</strong></div>
+        <div className="list-row"><span>Estimated Cost</span><strong>{formatMoney(m.estimatedCost)}</strong></div>
+        <div className="list-row"><span>Actual Cost</span><strong>{m.actualCost !== undefined ? formatMoney(m.actualCost) : '—'}</strong></div>
       </div>
       <div>
         <strong>Activity</strong>

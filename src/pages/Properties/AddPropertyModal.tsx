@@ -46,6 +46,7 @@ export default function AddPropertyModal({
     city: form.city.trim() === '' ? 'City is required.' : '',
     units: form.units.trim() === '' ? 'Number of units is required.' : !/^\d+$/.test(form.units.trim()) || Number(form.units) <= 0 ? 'Enter a valid number of units.' : '',
   };
+  
   const invalid = Object.values(errors).some((e) => e !== '');
 
   const readFile = (f: File | undefined) => {

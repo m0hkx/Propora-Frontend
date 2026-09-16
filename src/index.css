@@ -506,6 +506,34 @@ button {
   position: relative;
 }
 
+/* Keep the SVG's intrinsic aspect ratio at every width so the plot
+   geometry, hover mapping, and x-labels stay exact (no letterboxing). */
+.chart-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.x-labels {
+  position: relative;
+  height: 18px;
+  margin-top: 4px;
+}
+
+.x-label {
+  position: absolute;
+  top: 0;
+  font-size: 12px;
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .x-labels .x-label:not(:first-child):not(:last-child):nth-child(even) {
+    display: none;
+  }
+}
+
 .chart-tip {
   position: absolute;
   transform: translate(-50%, -115%);

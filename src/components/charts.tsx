@@ -1,13 +1,34 @@
 import { useId, useState } from 'react';
 
-function coords(values: number[], w: number, h: number, pad = 8): { x: number; y: number }[] {
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const range = max - min || 1;
+// Plot geometry (viewBox units). Left margin reserves room for the Y-axis,
+// right margin keeps the last point off the card edge.
+const CHART_W = 560;
+const CHART_H = 200;
+const MARGIN = { left: 48, right: 12, top: 12, bottom: 8 };
+
+function coords(values: number[], top: number): { x: number; y: number }[] {
+  const plotW = CHART_W - MARGIN.left - MARGIN.right;
+  const plotH = CHART_H - MARGIN.top - MARGIN.bottom;
   return values.map((v, i) => ({
-    x: pad + (i * (w - pad * 2)) / Math.max(1, values.length - 1),
-    y: h - pad - ((v - min) / range) * (h - pad * 2),
+    x: MARGIN.left + (i * plotW) / Math.max(1, values.length - 1),
+    y: MARGIN.top + plotH - (Math.max(0, v) / top) * plotH,
   }));
+}
+
+// Largest round step giving at most 4 intervals (≤5 ticks).
+function niceTicks(maxV: number): { ticks: number[]; top: number } {
+  const steps = [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
+  const step = steps.find((s) => maxV / s <= 4) ?? 5000;
+  const top = Math.ceil(maxV / step) * step;
+  const ticks: number[] = [];
+  for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
+  return { ticks, top };
+}
+
+function formatRevenueTick(v: number): string {
+  if (v === 0) return '$0';
+  if (v >= 1000) return `$${parseFloat((Math.round(v / 100) / 10).toFixed(1))}M`;
+  return `$${v}K`;
 }
 
 export function AreaChart({
@@ -21,20 +42,23 @@ export function AreaChart({
   counts?: number[];
   formatValue?: (v: number) => string;
 }) {
-  const w = 560;
-  const h = 180;
   const [active, setActive] = useState<number | null>(null);
   const gradientId = useId();
   if (values.length < 2) return null;
-  const pts = coords(values, w, h);
+  const maxV = Math.max(...values);
+  const { ticks, top } = niceTicks(maxV);
+  const plotBottom = CHART_H - MARGIN.bottom;
+  const pts = coords(values, top);
   const line = pts.map((p) => `${p.x},${p.y}`).join(' ');
-  const area = `${8},${h - 8} ${line} ${w - 8},${h - 8}`;
-  const step = (w - 16) / (values.length - 1);
-  const fmt = formatValue ?? ((v: number) => `$${v}k`);
+  const area = `${MARGIN.left},${plotBottom} ${line} ${CHART_W - MARGIN.right},${plotBottom}`;
+  const plotW = CHART_W - MARGIN.left - MARGIN.right;
+  const step = plotW / (values.length - 1);
+  const fmt = formatValue ?? formatRevenueTick;
+  const yOf = (v: number) => MARGIN.top + (plotBottom - MARGIN.top) - (v / top) * (plotBottom - MARGIN.top);
 
   const pick = (clientX: number, rectLeft: number, rectWidth: number) => {
-    const svgX = ((clientX - rectLeft) / rectWidth) * w;
-    const i = Math.round((svgX - 8) / step);
+    const svgX = ((clientX - rectLeft) / rectWidth) * CHART_W;
+    const i = Math.round((svgX - MARGIN.left) / step);
     setActive(Math.max(0, Math.min(values.length - 1, i)));
   };
 
@@ -44,11 +68,10 @@ export function AreaChart({
     <div className="chart-box">
       <div className="chart-wrap">
         <svg
-          viewBox={`0 0 ${w} ${h}`}
+          viewBox={`0 0 ${CHART_W} ${CHART_H}`}
           width="100%"
-          height="180"
           role="img"
-          aria-label={`Trend chart: ${labels.map((l, i) => `${l} ${fmt(values[i])}`).join(', ')}`}
+          aria-label={`Revenue trend, $0 to ${fmt(top)}: ${labels.map((l, i) => `${l} ${fmt(values[i])}`).join(', ')}`}
           onMouseMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             pick(e.clientX, r.left, r.width);
@@ -61,9 +84,36 @@ export function AreaChart({
               <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.25" />
             </linearGradient>
           </defs>
-          {[0.25, 0.5, 0.75].map((f) => (
-            <line key={f} x1="8" x2={w - 8} y1={h * f} y2={h * f} stroke="#F1F5F9" strokeWidth="1" />
+          {ticks.map((t) => (
+            <g key={t}>
+              <line
+                x1={MARGIN.left}
+                x2={CHART_W - MARGIN.right}
+                y1={yOf(t)}
+                y2={yOf(t)}
+                stroke="#F1F5F9"
+                strokeWidth="1"
+              />
+              <text
+                x={MARGIN.left - 8}
+                y={yOf(t)}
+                textAnchor="end"
+                dominantBaseline="middle"
+                fontSize="11"
+                fill="#475569"
+              >
+                {fmt(t)}
+              </text>
+            </g>
           ))}
+          <line
+            x1={MARGIN.left}
+            x2={MARGIN.left}
+            y1={MARGIN.top}
+            y2={plotBottom}
+            stroke="#E8F0F3"
+            strokeWidth="1.5"
+          />
           <polygon points={area} fill={`url(#${gradientId})`} />
           <polyline points={line} fill="none" stroke="#0F766E" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
           {pts.map((p, i) => (
@@ -87,7 +137,7 @@ export function AreaChart({
           <div
             className="chart-tip"
             role="status"
-            style={{ left: `${(tip.p.x / w) * 100}%`, top: `${(tip.p.y / h) * 100}%` }}
+            style={{ left: `${(tip.p.x / CHART_W) * 100}%`, top: `${(tip.p.y / CHART_H) * 100}%` }}
           >
             <strong>{labels[tip.i]}</strong>
             <div>Revenue <strong>{fmt(values[tip.i])}</strong></div>
@@ -95,9 +145,18 @@ export function AreaChart({
           </div>
         ) : null}
       </div>
-      <div className="row small muted" style={{ padding: '0 4px' }}>
-        {labels.map((l) => (
-          <span key={l}>{l}</span>
+      <div className="x-labels" aria-hidden="true">
+        {labels.map((l, i) => (
+          <span
+            key={l}
+            className="x-label"
+            style={{
+              left: `${(pts[i].x / CHART_W) * 100}%`,
+              transform: i === 0 ? 'translateX(0)' : i === labels.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
+            }}
+          >
+            {l}
+          </span>
         ))}
       </div>
     </div>

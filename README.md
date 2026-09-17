@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="public/slide.png" alt="Propora — property management, made legible" width="100%" />
-
 # Propora
 
 ### Property management, made legible.
@@ -21,7 +19,7 @@ priorities into one calm operating picture.
 *Product design / UI system / data visualization*
 
 </div>
-
+<img src="public/slide.png" alt="Propora — property management, made legible" width="100%" />
 ---
 
 ## The idea

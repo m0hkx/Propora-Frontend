@@ -47,9 +47,6 @@ export default function AddLeaseModal({
     onCreate({ propertyId, tenantId, rent, deposit, start, end });
   };
 
-  const tenantOptions = tenants;
-  void tenantOptions;
-
   return (
     <Modal title="Add Lease" onClose={onClose}>
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">

@@ -3,7 +3,8 @@ import type { Tenant } from '../../data/mock';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { TenantAvatar } from './TenantRow';
-import { fmtDate, leaseTone, paymentTone, tenantTone } from './tenantUtils';
+import { fmtDate } from '../../lib/format';
+import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
 
 export default function TenantDetailsModal({
   tenant,

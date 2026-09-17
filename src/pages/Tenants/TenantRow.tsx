@@ -1,7 +1,8 @@
 import { propertyCity, propertyName } from '../../data/mock';
 import type { Tenant } from '../../data/mock';
 import { Badge } from '../../components/ui';
-import { avatarBg, fmtDate, initials, leaseTone, paymentTone, tenantTone } from './tenantUtils';
+import { fmtDate } from '../../lib/format';
+import { avatarBg, initials, leaseTone, paymentTone, tenantTone } from './tenantUtils';
 import type { TenantAction } from './tenantUtils';
 
 export function TenantAvatar({ name }: { name: string }) {

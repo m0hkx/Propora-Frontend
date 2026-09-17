@@ -3,7 +3,8 @@ import { propertyName, tenantName, tenants } from '../../data/mock';
 import type { DocFile, DocumentStatus, DocumentType, Property } from '../../data/mock';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
-import { docStatusTone, fmtDocDate } from './documentUtils';
+import { fmtDate } from '../../lib/format';
+import { docStatusTone } from './documentUtils';
 
 const TYPES: DocumentType[] = ['Lease', 'Contract', 'Invoice', 'Property Document', 'Tenant Document', 'Maintenance', 'Insurance', 'Legal', 'Other'];
 const STATUSES: DocumentStatus[] = ['Active', 'Expiring Soon', 'Expired', 'Archived'];
@@ -68,8 +69,8 @@ export default function DocumentDetails({
             {doc.tenantId ? <div className="list-row"><span>Tenant</span><strong>{tenantName(doc.tenantId)}</strong></div> : null}
             {doc.leaseId ? <div className="list-row"><span>Lease</span><strong>{doc.leaseId}</strong></div> : null}
             <div className="list-row"><span>Uploaded By</span><strong>{doc.uploadedBy}</strong></div>
-            <div className="list-row"><span>Upload Date</span><strong>{fmtDocDate(doc.uploadDate)}</strong></div>
-            <div className="list-row"><span>Expiration Date</span><strong>{fmtDocDate(doc.expirationDate)}</strong></div>
+            <div className="list-row"><span>Upload Date</span><strong>{fmtDate(doc.uploadDate)}</strong></div>
+            <div className="list-row"><span>Expiration Date</span><strong>{fmtDate(doc.expirationDate)}</strong></div>
             <div className="list-row"><span>Size</span><strong>{doc.size}</strong></div>
           </div>
           <p className="small muted m-0">{doc.description}</p>

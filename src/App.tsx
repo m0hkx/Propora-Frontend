@@ -89,13 +89,20 @@ function AppShell() {
   const msgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && headerPanel === null) return;
 
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (headerPanel !== null) {
+        const ref = headerPanel === 'notif' ? notifRef : msgRef;
+        if (ref.current && !ref.current.contains(e.target as Node)) setHeaderPanel(null);
+      }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        setHeaderPanel(null);
+      }
     };
 
     document.addEventListener('mousedown', onClick);
@@ -105,24 +112,7 @@ function AppShell() {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (!headerPanel) return;
-    const ref = headerPanel === 'notif' ? notifRef : msgRef;
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setHeaderPanel(null);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setHeaderPanel(null);
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [headerPanel]);
+  }, [menuOpen, headerPanel]);
 
   const unreadNotifications = notifications.filter((n) => !n.read).length;
   const unreadMessages = conversations.reduce((s, c) => s + c.unread, 0);

@@ -4,7 +4,7 @@ import type { Payment } from '../data/mock';
 import { Badge, Card, Icon, Stat } from '../components/ui';
 import { Icons } from '../components/icons';
 import { useStore } from '../state/useStore';
-import { fmtDate } from './Tenants/tenantUtils';
+import { fmtDate } from '../lib/format';
 
 type PayTab = 'All' | 'Paid' | 'Pending' | 'Overdue';
 type PaySort = 'date' | 'amount';

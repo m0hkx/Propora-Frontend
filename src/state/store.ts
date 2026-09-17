@@ -56,9 +56,6 @@ export interface StoreState {
   dismissToast: (id: number) => void;
 }
 
-/** Kept as an alias so existing `StoreValue` imports keep compiling. */
-export type StoreValue = StoreState;
-
 let toastSeq = 1;
 let notificationSeq = 100;
 let messageSeq = 100;

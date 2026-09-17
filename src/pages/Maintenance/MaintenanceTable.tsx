@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { formatMoney, propertyName, tenantName } from '../../data/mock';
 import type { MaintenanceRequest } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
-import { fmtMDate, priorityTone, statusTone } from './maintenanceUtils';
+import { fmtDate } from '../../lib/format';
+import { priorityTone, statusTone } from './maintenanceUtils';
 
 type SortKey = 'title' | 'created' | 'priority' | 'cost';
 
@@ -101,7 +102,7 @@ export default function MaintenanceTable({
                 <td className="max-compact:hidden small">{m.tenantId ? tenantName(m.tenantId) : '—'}</td>
                 <td><Badge tone={priorityTone(m.priority)}>{m.priority}</Badge></td>
                 <td className="max-compact:hidden small">{m.assignee}</td>
-                <td className="max-compact:hidden small">{fmtMDate(m.reported)}</td>
+                <td className="max-compact:hidden small">{fmtDate(m.reported, { year: false })}</td>
                 <td><Badge tone={statusTone(m.status)}>{m.status}</Badge></td>
                 <td><strong>{formatMoney(m.actualCost ?? m.estimatedCost)}</strong></td>
                 <td onClick={(e) => e.stopPropagation()}>
@@ -139,7 +140,7 @@ export default function MaintenanceTable({
               <Badge tone={priorityTone(m.priority)}>{m.priority}</Badge>
             </div>
             <div className="row small mt-2">
-              <span className="muted">{m.assignee} · {fmtMDate(m.reported)}</span>
+              <span className="muted">{m.assignee} · {fmtDate(m.reported, { year: false })}</span>
               <Badge tone={statusTone(m.status)}>{m.status}</Badge>
             </div>
           </div>

@@ -1,2 +1,2 @@
 export { useStore } from './store';
-export type { StoreValue, StoreState, Toast } from './store';
+export type { StoreState, Toast } from './store';

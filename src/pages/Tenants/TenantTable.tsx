@@ -3,7 +3,8 @@ import { propertyCity, propertyName } from '../../data/mock';
 import type { Tenant } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
 import TenantRow, { TenantAvatar } from './TenantRow';
-import { fmtDate, leaseTone, paymentTone, tenantTone } from './tenantUtils';
+import { fmtDate } from '../../lib/format';
+import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
 import type { TenantAction } from './tenantUtils';
 
 export default function TenantTable({

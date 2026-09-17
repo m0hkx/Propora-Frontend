@@ -43,13 +43,6 @@ export function matchesDateFilter(uploadDate: string, f: DateFilter, now: Date):
   return d.getFullYear() === today.getFullYear();
 }
 
-export function fmtDocDate(iso?: string): string {
-  if (!iso) return '—';
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 export function docSearchText(d: DocFile, property: string, tenant: string): string {
   return `${d.name} ${property} ${d.unit ?? ''} ${tenant} ${d.type} ${d.leaseId ?? ''}`.toLowerCase();
 }

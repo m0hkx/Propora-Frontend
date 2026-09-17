@@ -3,7 +3,7 @@ import { AreaChart, Donut } from '../components/charts';
 import { Badge, Card, Progress } from '../components/ui';
 import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
-import { fmtDate } from './Tenants/tenantUtils';
+import { fmtDate } from '../lib/format';
 
 type Range = 'Monthly' | 'Quarterly' | 'Yearly';
 

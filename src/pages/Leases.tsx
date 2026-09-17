@@ -4,7 +4,7 @@ import type { Lease } from '../data/mock';
 import { Badge, Card, Icon } from '../components/ui';
 import { Icons } from '../components/icons';
 import { useStore } from '../state/useStore';
-import { fmtDate } from './Tenants/tenantUtils';
+import { fmtDate } from '../lib/format';
 
 type LeaseTab = 'All' | 'Active' | 'Expiring' | 'Expired';
 type LeaseSort = 'endDate' | 'rent' | 'tenant';

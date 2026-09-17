@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { propertyName, tenantName } from '../../data/mock';
 import type { DocFile } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
-import { docStatusTone, fmtDocDate } from './documentUtils';
+import { fmtDate } from '../../lib/format';
+import { docStatusTone } from './documentUtils';
 
 export type DocAction = 'view' | 'download' | 'edit' | 'move' | 'archive' | 'delete';
 
@@ -53,7 +54,7 @@ export default function DocumentTable({
                   {d.tenantId ? <div className="small muted">{tenantName(d.tenantId)}</div> : null}
                 </td>
                 <td><Badge tone="neutral">{d.type}</Badge></td>
-                <td className="max-compact:hidden small">{fmtDocDate(d.uploadDate)}</td>
+                <td className="max-compact:hidden small">{fmtDate(d.uploadDate)}</td>
                 <td><Badge tone={docStatusTone(d.status)}>{d.status}</Badge></td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="row-menu-wrap">
@@ -110,7 +111,7 @@ export default function DocumentTable({
             </div>
             <div className="row small mt-2">
               <Badge tone="neutral">{d.type}</Badge>
-              <span className="muted">{fmtDocDate(d.uploadDate)}</span>
+              <span className="muted">{fmtDate(d.uploadDate)}</span>
             </div>
             <div className="row mt-2" onClick={(e) => e.stopPropagation()}>
               <span className="small muted">{d.tenantId ? tenantName(d.tenantId) : 'No tenant'}</span>

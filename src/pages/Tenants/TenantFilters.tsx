@@ -23,7 +23,7 @@ export default function TenantFilters({
 }) {
   return (
     <Card>
-      <div className="controls-row">
+      <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
         <div className="tabs" role="tablist" aria-label="Filter tenants">
           {tabs.map((t) => (
             <button
@@ -38,7 +38,7 @@ export default function TenantFilters({
             </button>
           ))}
         </div>
-        <div className="controls-side">
+        <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
           <label className="search search-sm">
             <Icon d={Icons.search} />
             <input
@@ -48,7 +48,7 @@ export default function TenantFilters({
               aria-label="Search tenants by name, email, phone, property or unit"
             />
           </label>
-          <select value={sort} onChange={(e) => onSort(e.target.value as TenantSort)} aria-label="Sort tenants">
+          <select value={sort} onChange={(e) => onSort(e.target.value as TenantSort)} aria-label="Sort tenants" className="max-md:flex-1">
             <option value="featured">Sort</option>
             <option value="name">Name A–Z</option>
             <option value="rent">Rent high–low</option>

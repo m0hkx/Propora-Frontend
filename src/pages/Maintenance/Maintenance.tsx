@@ -67,7 +67,7 @@ export default function Maintenance() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       <MaintenanceStats
         open={counts.Open}
         inProgress={counts['In Progress']}

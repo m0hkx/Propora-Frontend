@@ -2,11 +2,56 @@
    Layer order: legacy sits above Preflight (off until Phase 4) and below
    utilities, so new utilities always win over legacy rules. See
    docs/tailwind-migration-plan.md §3 D1. */
-@layer theme, base, legacy, components, utilities;
+@layer theme, base, components, utilities;
 
 /* All @import rules must be contiguous and follow only the @layer statement. */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss/theme.css" layer(theme);
-/* @import "tailwindcss/preflight.css" layer(base);   ← enabled in Phase 4 (D7) */
+@import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
-@import "./styles/legacy.css" layer(legacy);
+@import "./styles/components.css" layer(components);
+@import "./styles/base.css";
+
+/* Project tokens: the single source of truth (D4). The legacy :root block
+   was deleted in the same change so these variables resolve exactly once. */
+@theme {
+  --color-primary: #0F766E;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #14B8A6;
+  --color-on-secondary: #0F172A;
+  --color-accent: #0369A1;
+  --color-on-accent: #FFFFFF;
+  --color-background: #F0FDFA;
+  --color-foreground: #134E4A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #134E4A;
+  --color-muted: #E8F0F3;
+  --color-muted-foreground: #475569;
+  --color-border: #99F6E4;
+  --color-destructive: #DC2626;
+  --color-on-destructive: #FFFFFF;
+  --color-ring: #0F766E;
+  --color-warn: #B45309;
+  --color-warn-bg: #FEF3C7;
+  --color-success: #047857;
+  --color-success-bg: #D1FAE5;
+  --color-info: #0369A1;
+  --color-info-bg: #E0F2FE;
+
+  --radius-card: 18px;      /* was var(--radius) */
+  --radius-chip: 12px;      /* was var(--radius-sm) — NOT Tailwind's --radius-sm */
+  --shadow-card: 0 10px 30px rgb(15 118 110 / 0.08);
+
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --breakpoint-compact: 1100px;
+}
+
+/* Temporary non-color variables still referenced by the legacy sheet.
+   Deleted once Phases 2–6 replace their usages (see D4). */
+:root {
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 10px 30px rgb(15 118 110 / 0.08);
+}

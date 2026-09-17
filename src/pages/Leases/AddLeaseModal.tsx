@@ -52,7 +52,7 @@ export default function AddLeaseModal({
 
   return (
     <Modal title="Add Lease" onClose={onClose}>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="al-prop">Property *</label>
           <select id="al-prop" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={cls(errs.property !== '')}>

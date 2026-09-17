@@ -1,0 +1,589 @@
+/* Propora @apply composites (migration plan Phase 2, D5).
+   Imported in the `components` layer from src/index.css — these classes
+   always beat the legacy sheet and lose to utilities, so replacing a
+   legacy block here is safe. One family per section; delete the matching
+   legacy block in src/styles/legacy.css when a family lands. */
+
+/* --- Card --- */
+.card {
+  @apply bg-card border border-border/60 rounded-card p-[18px] shadow-card backdrop-blur-[10px];
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.card.tint {
+  @apply bg-gradient-to-br from-white via-[#ECFDF5_60%] to-[#FEF9C3];
+}
+
+/* --- Buttons (base first: .btn-ghost overrides border) --- */
+.btn {
+  @apply border-0 rounded-full px-4 py-2.5 font-bold inline-flex items-center gap-2 transition-[transform,box-shadow,background-color] duration-[180ms];
+}
+
+.btn-primary {
+  @apply bg-foreground text-white hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(19,78,74,0.25)];
+}
+
+.btn-teal {
+  @apply bg-primary text-white hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(15,118,110,0.3)];
+}
+
+.btn-ghost {
+  @apply bg-white border border-border text-foreground hover:bg-muted hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(15,118,110,0.12)];
+}
+
+.btn-sm {
+  @apply px-3 py-[7px] text-[13px];
+}
+
+.icon-btn-sm {
+  @apply size-[30px];
+}
+
+.link-btn {
+  @apply border-0 bg-transparent text-accent font-bold p-0 text-left hover:underline;
+}
+
+.table-head-row {
+  @apply px-3 pt-2.5;
+}
+
+/* --- Badges (tone classes stay composites; no Badge.tsx change needed) --- */
+.badge {
+  @apply inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-[5px] rounded-full border border-transparent whitespace-nowrap;
+}
+
+.badge.success {
+  @apply bg-success-bg text-success;
+}
+
+.badge.warn {
+  @apply bg-warn-bg text-warn;
+}
+
+.badge.info {
+  @apply bg-info-bg text-info;
+}
+
+.badge.danger {
+  @apply bg-[#FEE2E2] text-[#B91C1C];
+}
+
+.badge.neutral {
+  @apply bg-muted text-foreground;
+}
+
+/* --- Type helpers, KPI, rows, lists, progress --- */
+.small {
+  @apply text-[13px] mb-[5px];
+}
+
+.muted {
+  @apply text-muted-foreground;
+}
+.small {
+  @apply text-[13px] mb-[5px];
+}
+
+.muted {
+  @apply text-muted-foreground;
+}
+
+.kpi {
+  @apply font-display text-[34px] my-1.5;
+}
+
+.kpi-icon {
+  @apply grid size-[34px] place-items-center rounded-[10px] bg-muted text-primary shrink-0;
+}
+
+.kpi-block .label {
+  @apply text-[13px] text-muted-foreground;
+}
+
+.kpi-block .value {
+  @apply font-display text-[30px];
+}
+
+.dot {
+  @apply inline-block size-2 rounded-full;
+}
+
+.row {
+  @apply flex items-center justify-between gap-2.5;
+}
+
+.list {
+  @apply flex flex-col gap-2.5 mt-3;
+}
+
+.list-row {
+  @apply flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-chip bg-white border border-[#F1F5F9];
+}
+
+.progress {
+  @apply h-2 rounded-full overflow-hidden bg-[#F1F5F9];
+}
+
+.progress>div {
+  @apply h-full rounded-full bg-gradient-to-r from-secondary to-primary;
+}
+
+.clickable {
+  @apply cursor-pointer;
+}
+
+.link-btn {
+  @apply border-0 bg-transparent text-accent font-bold p-0 text-left hover:underline;
+}
+
+.th-sort {
+  @apply border-0 bg-transparent p-0 font-semibold text-inherit text-[inherit] font-[inherit] inline-flex items-center gap-1 rounded-md hover:text-accent;
+}
+
+/* Tailwind's built-in sr-only replaces the legacy copy (equivalent). */
+
+/* --- Forms --- */
+.field {
+  @apply flex flex-col gap-1.5;
+}
+
+.field label {
+  @apply text-[13px] font-semibold text-muted-foreground;
+}
+
+.field input,
+.field select {
+  @apply px-3 py-2.5 rounded-chip border border-border bg-white text-inherit;
+}
+
+.field textarea {
+  @apply px-3 py-2.5 rounded-chip border border-border bg-white text-inherit font-[inherit] resize-y min-h-[76px];
+}
+
+.field-error {
+  @apply text-destructive text-[13px] font-semibold;
+}
+
+.field input.invalid,
+.field select.invalid,
+.field textarea.invalid {
+  @apply border-destructive;
+}
+
+/* --- Tabs --- */
+.tabs {
+  @apply flex gap-1.5 flex-wrap;
+}
+
+.tab {
+  @apply border border-transparent bg-muted text-muted-foreground px-3.5 py-2 rounded-full font-bold text-[13px] transition-all duration-[150ms] hover:bg-white hover:border-border hover:text-foreground;
+}
+
+.tab.active {
+  @apply bg-foreground text-white;
+}
+
+/* --- Search --- */
+.search {
+  @apply flex items-center gap-2 bg-white border border-border rounded-full px-3.5 py-2 min-w-[220px];
+}
+
+.search input {
+  @apply border-0 bg-transparent w-full text-inherit;
+  outline: 0;
+}
+
+.search-sm {
+  @apply min-w-[180px] px-3 py-[7px];
+}
+
+.search-grow {
+  @apply flex-1 min-w-[220px];
+}
+
+/* .controls-row / .controls-side stay in the legacy sheet until Phase 3
+   converts them to JSX utilities (their search-width fix lives there). */
+
+/* --- Row menus --- */
+.row-menu-wrap {
+  @apply relative inline-block;
+}
+
+.row-menu {
+  @apply absolute right-0 top-9 min-w-[170px] z-30 bg-white border border-border rounded-chip shadow-[0_14px_34px_rgba(15,118,110,0.16)] p-1.5 flex flex-col;
+}
+
+.row-menu-item {
+  @apply border-0 bg-transparent text-left px-2.5 py-[9px] rounded-lg text-sm text-foreground hover:bg-muted;
+}
+
+.row-menu-item.danger {
+  @apply text-destructive;
+}
+
+/* --- Avatars, badges on icons --- */
+.avatar {
+  @apply size-9 rounded-full grid place-items-center font-bold text-white border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] bg-gradient-to-br from-[#F59E0B] to-[#0F766E];
+}
+
+.avatar-lg {
+  @apply size-12 text-[18px];
+}
+
+.avatar-sm {
+  @apply size-[34px] rounded-full shrink-0 text-white grid place-items-center font-bold text-[13px];
+}
+
+.avatar-wrap,
+.badge-wrap {
+  @apply relative;
+}
+
+.count-badge {
+  @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-destructive text-white text-[11px] font-extrabold grid place-items-center px-1 border-2 border-white;
+}
+
+.unread-dot {
+  @apply size-[9px] rounded-full bg-primary shrink-0 mt-1.5;
+}
+
+/* --- Modals --- */
+.modal-overlay {
+  @apply fixed inset-0 z-100 flex items-start justify-center px-4 py-8 overflow-y-auto bg-[rgba(19,78,74,0.45)];
+}
+
+.modal {
+  @apply bg-white rounded-[20px] w-full max-w-[560px] shadow-[0_24px_60px_rgba(0,0,0,0.22)] border border-border;
+}
+
+.modal-wide {
+  @apply max-w-[760px];
+}
+
+.modal-head {
+  @apply px-[18px] pt-4;
+}
+
+.modal-body {
+  @apply px-[18px] pt-4 pb-[18px] flex flex-col gap-3.5;
+}
+
+.modal-section {
+  @apply flex flex-col gap-2.5;
+}
+
+.modal-section>h4 {
+  @apply m-0 text-muted-foreground uppercase tracking-[0.5px] text-xs;
+}
+
+.modal-foot {
+  @apply flex gap-2.5 justify-end flex-wrap;
+}
+
+.upload-zone {
+  @apply border-2 border-dashed border-border rounded-[14px] px-4 py-[26px] text-center bg-[#F8FAFC] cursor-pointer flex flex-col gap-1.5 items-center hover:border-primary hover:bg-[#F0FDFA];
+}
+
+.upload-preview {
+  @apply w-full max-h-[220px] object-cover rounded-chip;
+}
+
+/* --- Toasts --- */
+.toasts {
+  @apply fixed right-[18px] bottom-[18px] z-[200] flex flex-col gap-2.5;
+}
+
+.toast {
+  @apply flex items-center gap-2.5 bg-foreground text-white rounded-[14px] px-3.5 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.25)] font-semibold max-w-[340px];
+}
+
+.toast-check {
+  @apply grid place-items-center rounded-full bg-secondary text-[13px] shrink-0 text-[#0F172A] size-[22px];
+}
+
+.toast-close {
+  @apply border-0 bg-transparent text-white opacity-70 cursor-pointer;
+}
+
+/* --- Tables --- */
+.table-card {
+  @apply p-2;
+}
+
+.table-wrap {
+  @apply overflow-x-auto rounded-chip border border-[#F1F5F9] mt-3;
+}
+
+.table-flush {
+  @apply mt-0 border-0;
+}
+
+.table-head-row {
+  @apply px-3 pt-2.5;
+}
+
+.tenant-table th,
+.tenant-table td {
+  @apply px-3 py-2.5 align-middle;
+}
+
+.tenant-cell {
+  @apply flex items-center gap-2.5;
+}
+
+/* Table element styling lives on .tenant-table (all 5 tables carry it),
+   so no global element selectors remain. */
+.tenant-table {
+  @apply w-full border-collapse text-sm bg-white;
+}
+
+.tenant-table th {
+  @apply text-left text-muted-foreground font-semibold bg-[#F8FAFC] border-b border-[#F1F5F9] whitespace-nowrap;
+}
+
+.tenant-table td {
+  @apply text-left border-b border-[#F1F5F9] whitespace-nowrap;
+}
+
+.tenant-table tr:last-child td {
+  @apply border-b-0;
+}
+
+/* --- Pagination --- */
+.pagination {
+  @apply flex items-center justify-between gap-3 flex-wrap p-1;
+}
+
+.page-btns {
+  @apply flex gap-1.5 items-center flex-wrap;
+}
+
+.page-btn {
+  @apply min-w-8 h-8 rounded-[10px] border border-border bg-white font-bold text-[13px] px-2 hover:bg-muted disabled:opacity-40 disabled:cursor-default disabled:hover:bg-white;
+}
+
+.page-btn.active {
+  @apply bg-foreground text-white border-transparent;
+}
+
+.page-ellipsis {
+  @apply text-muted-foreground px-0.5;
+}
+
+/* --- Dropdowns, settings, switches --- */
+.dropdown {
+  @apply absolute right-0 top-[46px] w-[320px] bg-white border border-border rounded-[18px] shadow-[0_20px_50px_rgba(15,118,110,0.18)] p-3.5 z-50;
+}
+
+.dropdown-wide {
+  @apply w-[340px] max-h-[70vh] overflow-y-auto;
+}
+
+.dropdown-head {
+  @apply flex gap-3 items-center pb-3 border-b border-[#F1F5F9];
+}
+
+.dropdown-full {
+  @apply w-full justify-center mt-3;
+}
+
+.dropdown-section {
+  @apply mt-3 pt-2.5 border-t border-[#F1F5F9] flex flex-col gap-2.5;
+}
+
+.dropdown-title {
+  @apply text-xs font-extrabold tracking-[0.6px] uppercase text-muted-foreground;
+}
+
+.setting-row {
+  @apply flex items-center justify-between gap-2.5 text-sm;
+}
+
+.setting-row select {
+  @apply px-2.5 py-1.5 rounded-[10px] border border-border bg-white;
+}
+
+.switch {
+  @apply w-10 h-[22px] rounded-full border-0 bg-[#E2E8F0] relative transition-colors duration-[180ms];
+}
+
+.switch.on {
+  @apply bg-primary;
+}
+
+.switch .knob {
+  @apply absolute top-[3px] left-[3px] size-4 rounded-full bg-white transition-[left] duration-[180ms];
+}
+
+.switch.on .knob {
+  @apply left-[21px];
+}
+
+.dropdown-foot {
+  @apply flex gap-2 mt-3;
+}
+
+.dropdown-foot .btn {
+  @apply flex-1 justify-center;
+}
+
+/* --- Charts (Phase 6) --- */
+.chart-box {
+  @apply bg-white border border-[#F1F5F9] rounded-chip p-3 mt-3;
+}
+
+.chart-wrap {
+  @apply relative;
+}
+
+/* Keep the SVG's intrinsic aspect ratio at every width so the plot
+   geometry, hover mapping, and x-labels stay exact (no letterboxing). */
+.chart-wrap svg {
+  @apply block w-full h-auto;
+}
+
+.chart-tip {
+  @apply absolute bg-foreground text-white rounded-xl px-3 py-2 text-[13px] whitespace-nowrap shadow-[0_10px_24px_rgba(0,0,0,0.22)] pointer-events-none z-[5];
+  transform: translate(-50%, -115%);
+}
+
+.chart-tip .small {
+  @apply text-[#99F6E4];
+}
+
+.x-labels {
+  @apply relative h-[18px] mt-1;
+}
+
+.x-label {
+  @apply absolute top-0 text-xs text-muted-foreground whitespace-nowrap;
+}
+
+@media (max-width: 480px) {
+  .x-labels .x-label:not(:first-child):not(:last-child):nth-child(even) {
+    display: none;
+  }
+}
+
+/* --- Shell / chrome (Phase 5) --- */
+.topbar {
+  @apply flex items-center justify-between gap-4 bg-[rgba(255,255,255,0.82)] backdrop-blur-[14px] border border-[rgba(153,246,228,0.7)] rounded-[22px] px-3.5 py-2.5 shadow-card sticky top-3 z-20;
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.brand {
+  @apply flex items-center gap-2.5 font-bold;
+}
+
+.brand-mark {
+  @apply size-[34px] rounded-[11px] grid place-items-center font-display text-white bg-gradient-to-br from-primary to-secondary;
+}
+
+.brand-name {
+  @apply font-display tracking-[0.2px];
+}
+
+.nav-pills {
+  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto max-w-[62vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
+.nav-pill {
+  @apply border-0 bg-transparent px-3.5 py-2 rounded-full text-muted-foreground font-semibold whitespace-nowrap transition-all duration-[180ms] hover:bg-white hover:text-foreground;
+}
+
+.nav-pill.active {
+  @apply bg-white text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.06)];
+}
+
+.icon-btn {
+  @apply size-9 rounded-full border border-border bg-white grid place-items-center text-foreground transition-[transform,background-color] duration-[180ms] hover:bg-muted hover:-translate-y-px;
+}
+
+.icon-btn-sm {
+  @apply size-[30px];
+}
+
+/* --- Notifications / chat (Phase 5) --- */
+.notif-item {
+  @apply border-0 bg-transparent text-left flex gap-2.5 w-full px-2 py-2.5 rounded-chip text-foreground hover:bg-muted;
+}
+
+.notif-item.unread {
+  @apply bg-[#F0FDFA];
+}
+
+.chat-thread {
+  @apply flex flex-col gap-2 mt-2.5 max-h-[260px] overflow-y-auto;
+}
+
+.chat-bubble {
+  @apply max-w-[85%] px-3 py-2 rounded-[14px] text-sm bg-muted;
+}
+
+.chat-bubble.me {
+  @apply self-end bg-primary text-white;
+}
+
+.chat-bubble.them {
+  @apply self-start;
+}
+
+.chat-time {
+  @apply opacity-70 mt-0.5;
+}
+
+.chat-reply {
+  @apply flex gap-2 mt-2.5;
+}
+
+.chat-reply input {
+  @apply flex-1 min-w-0 px-3 py-[9px] rounded-chip border border-border;
+}
+
+/* --- Timeline (Phase 5) --- */
+.timeline {
+  @apply flex flex-col gap-0 mt-3;
+}
+
+.timeline-item {
+  @apply flex gap-3 px-1 py-2.5 border-l-2 border-border ml-1.5 pl-4 relative;
+}
+
+.timeline-dot {
+  @apply size-2.5 rounded-full bg-primary absolute -left-1.5 top-3.5 border-2 border-white shadow-[0_0_0_2px_var(--color-border)];
+}
+
+/* --- Property cards (Phase 5; ::after stays raw CSS) --- */
+.prop-card {
+  @apply overflow-hidden p-0 flex flex-col;
+}
+
+.prop-card.selected {
+  @apply outline outline-[3px] outline-ring;
+}
+
+.prop-image {
+  @apply h-[170px] flex items-end justify-between p-3 text-white relative overflow-hidden;
+}
+
+.prop-image img {
+  @apply absolute inset-0 w-full h-full object-cover z-0;
+}
+
+.prop-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.prop-initials {
+  @apply text-[44px] font-extrabold tracking-[-1px] opacity-95 relative z-[2] [text-shadow:0_2px_10px_rgba(0,0,0,0.35)];
+}
+
+.prop-body {
+  @apply px-4 pt-[14px] pb-4 flex flex-col gap-2;
+}
+

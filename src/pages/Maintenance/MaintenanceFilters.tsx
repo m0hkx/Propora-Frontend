@@ -25,7 +25,7 @@ export default function MaintenanceFilters({
   const set = (patch: Partial<MaintenanceFilters>) => onChange({ ...filters, ...patch });
   return (
     <Card>
-      <div className="tabs" role="tablist" aria-label="Filter by status" style={{ marginBottom: 10 }}>
+      <div className="tabs mb-2.5" role="tablist" aria-label="Filter by status">
         {tabs.map((t) => (
           <button
             key={t}
@@ -39,7 +39,7 @@ export default function MaintenanceFilters({
           </button>
         ))}
       </div>
-      <div className="controls-row">
+      <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
         <label className="search search-grow">
           <Icon d={Icons.search} />
           <input
@@ -50,7 +50,7 @@ export default function MaintenanceFilters({
           />
         </label>
       </div>
-      <div className="filter-grid">
+      <div className="grid grid-cols-5 gap-2 mt-2.5 max-md:grid-cols-2">
         <select value={filters.status} onChange={(e) => set({ status: e.target.value as MaintenanceFilters['status'] })} aria-label="Filter by status">
           <option value="All">Status</option>
           <option value="Open">Open</option>

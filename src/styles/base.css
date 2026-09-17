@@ -1,0 +1,55 @@
+/* Propora global base rules (migration plan D8).
+   Unlayered import ON PURPOSE: element-level concerns that cannot be
+   utilities (box model, page background, inherited fonts, focus ring,
+   reduced-motion kill-switch, native select styling). Keep this file tiny —
+   anything added here needs a stated reason it cannot be a utility. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(180deg, #F0FDFA 0%, #ECFEFF 40%, #F8FAFC 100%);
+  color: var(--color-foreground);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: inherit;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

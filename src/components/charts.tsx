@@ -168,7 +168,7 @@ export function Donut({ percent, label }: { percent: number; label: string }) {
   const c = 2 * Math.PI * r;
   const off = c - (percent / 100) * c;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className="flex items-center gap-3">
       <svg width="110" height="110" viewBox="0 0 110 110" role="img" aria-label={`${label} ${percent}%`}>
         <circle cx="55" cy="55" r={r} fill="none" stroke="#F1F5F9" strokeWidth="12" />
         <circle
@@ -177,7 +177,7 @@ export function Donut({ percent, label }: { percent: number; label: string }) {
         />
         <text x="55" y="60" textAnchor="middle" fontWeight="700" fontSize="18" fill="#134E4A">{percent}%</text>
       </svg>
-      <div><div style={{ fontWeight: 700 }}>{label}</div><div className="small muted">Portfolio occupancy</div></div>
+      <div><div className="font-bold">{label}</div><div className="small muted">Portfolio occupancy</div></div>
     </div>
   );
 }

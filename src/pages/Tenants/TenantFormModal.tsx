@@ -53,7 +53,7 @@ export default function TenantFormModal({
 
   return (
     <Modal title={title} onClose={onClose} wide>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="tf-name">Full name *</label>
           <input id="tf-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={cls(errs.name !== '')} />

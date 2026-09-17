@@ -26,9 +26,9 @@ export default function TenantPagination({
   }
 
   return (
-    <div className="pagination">
+    <div className="pagination max-md:flex-col max-md:items-stretch">
       <span className="small muted">Showing {from}–{to} of {total} tenants</span>
-      <div className="page-btns">
+      <div className="page-btns max-md:justify-center">
         <button type="button" className="page-btn" disabled={page === 1} onClick={() => onPage(page - 1)} aria-label="Previous page">←</button>
         {numbers.map((n, i) =>
           n === '…' ? (

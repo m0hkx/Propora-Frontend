@@ -74,7 +74,7 @@ export default function NewMaintenanceModal({
 
   return (
     <Modal title="New Maintenance Request" onClose={onClose} wide>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="nm-title">Title *</label>
           <input id="nm-title" value={title} onChange={(e) => setTitle(e.target.value)} className={submitted && errs.title !== '' ? 'invalid' : ''} placeholder="AC not cooling" />
@@ -91,7 +91,7 @@ export default function NewMaintenanceModal({
         <textarea id="nm-desc" value={description} onChange={(e) => setDescription(e.target.value)} className={submitted && errs.description !== '' ? 'invalid' : ''} placeholder="Describe the issue in detail..." />
         {err(errs.description)}
       </div>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="nm-prop">Property *</label>
           <select id="nm-prop" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={submitted && errs.property !== '' ? 'invalid' : ''}>

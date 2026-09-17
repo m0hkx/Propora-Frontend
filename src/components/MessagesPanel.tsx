@@ -22,8 +22,8 @@ export default function MessagesPanel() {
         <div className="row">
           <button className="link-btn small" type="button" onClick={() => setOpenId(null)}>← All messages</button>
         </div>
-        <div className="row" style={{ marginTop: 8 }}>
-          <div className="tenant-cell">
+          <div className="row mt-2">
+          <div className="flex items-center gap-2.5">
             <TenantAvatar name={open.name} />
             <div><strong>{open.name}</strong><div className="small muted">{open.context}</div></div>
           </div>
@@ -54,7 +54,7 @@ export default function MessagesPanel() {
     <div className="dropdown dropdown-wide" role="menu" aria-label="Messages">
       <div className="row"><strong>Messages</strong></div>
       {conversations.length === 0 ? (
-        <p className="small muted" style={{ margin: '12px 0 4px' }}>No conversations yet.</p>
+        <p className="small muted mt-3 mb-1">No conversations yet.</p>
       ) : (
         <div className="list">
           {conversations.map((c) => {
@@ -68,10 +68,10 @@ export default function MessagesPanel() {
                 onClick={() => { markConversationRead(c.id); setOpenId(c.id); }}
               >
                 <TenantAvatar name={c.name} />
-                <span style={{ flex: 1 }}>
+                <span className="flex-1">
                   <strong>{c.name}</strong>
-                  <span className="small muted" style={{ display: 'block' }}>{c.context}</span>
-                  <span className="small muted" style={{ display: 'block' }}>{last ? `${last.from === 'me' ? 'You: ' : ''}${last.text}` : ''}</span>
+                  <span className="small muted block">{c.context}</span>
+                  <span className="small muted block">{last ? `${last.from === 'me' ? 'You: ' : ''}${last.text}` : ''}</span>
                 </span>
                 {c.unread > 0 ? <span className="badge danger">{c.unread}</span> : null}
               </button>

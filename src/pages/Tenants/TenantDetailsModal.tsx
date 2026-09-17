@@ -20,8 +20,8 @@ export default function TenantDetailsModal({
 }) {
   return (
     <Modal title={tenant.name} onClose={onClose}>
-      <div className="row" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div className="tenant-cell">
+      <div className="row flex-wrap items-start">
+        <div className="flex items-center gap-2.5">
           <TenantAvatar name={tenant.name} />
           <div>
             <div className="small muted">{tenant.email} · {tenant.phone}</div>
@@ -36,14 +36,14 @@ export default function TenantDetailsModal({
         <div className="list-row"><span>Monthly rent</span><strong>${tenant.rent.toLocaleString('en-US')}</strong></div>
         <div className="list-row">
           <span>Lease</span>
-          <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span className="flex gap-1.5 items-center">
             <Badge tone={leaseTone(tenant.leaseStatus)}>{tenant.leaseStatus}</Badge>
             <strong className="small">{fmtDate(tenant.leaseStart)} → {fmtDate(tenant.leaseEnd)}</strong>
           </span>
         </div>
         <div className="list-row">
           <span>Payment</span>
-          <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span className="flex gap-1.5 items-center">
             <Badge tone={paymentTone(tenant.paymentStatus)}>{tenant.paymentStatus}</Badge>
             <strong className="small">{tenant.paymentDate}</strong>
           </span>
@@ -52,7 +52,7 @@ export default function TenantDetailsModal({
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onViewLease}>View Lease</button>
         <button className="btn btn-ghost" type="button" onClick={onViewPayments}>View Payments</button>
-        <span style={{ flex: 1 }} />
+        <span className="flex-1" />
         <button className="btn btn-teal" type="button" onClick={onEdit}>Edit</button>
       </div>
     </Modal>

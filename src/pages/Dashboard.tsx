@@ -69,25 +69,25 @@ export default function Dashboard({
   const tenantOf = (id: string) => tenants.find((t) => t.id === id)?.name ?? id;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* Row 1 — Core KPIs */}
-      <div className="grid-4">
+      <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <Card>
           <div className="small muted">Total Properties</div>
-          <div className="kpi">{totalProperties} <span className="small muted" style={{ fontFamily: 'inherit', fontSize: 14 }}>Properties</span></div>
+          <div className="kpi">{totalProperties} <span className="small muted text-sm font-[inherit]">Properties</span></div>
           <div className="small">17 Active</div>
           <div className="small muted"><span className="badge success">+2 this month</span></div>
         </Card>
         <Card>
           <div className="small muted">Total Units</div>
-          <div className="kpi">142 <span className="small muted" style={{ fontSize: 14 }}>Units</span></div>
+          <div className="kpi">142 <span className="small muted text-sm">Units</span></div>
           <div className="small">128 Occupied</div>
           <div className="small muted">Occupancy: 90.1%</div>
         </Card>
         <Card>
           <div className="small muted">Monthly Revenue</div>
           <div className="kpi">$124,850</div>
-          <div className="small" style={{ color: '#047857', fontWeight: 700 }}>▲ +$8,420 vs last month</div>
+          <div className="small text-success font-bold">▲ +$8,420 vs last month</div>
           <div className="small muted">Small upward trend</div>
         </Card>
         <Card>
@@ -99,10 +99,10 @@ export default function Dashboard({
       </div>
 
       {/* Row 2 — Revenue + Occupancy */}
-      <div className="split-21">
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <Card>
           <div className="row">
-            <div><strong>Revenue Overview</strong><div className="kpi" style={{ margin: '4px 0' }}>$124,850</div><div className="small" style={{ color: '#047857', fontWeight: 700 }}>+7.2% vs last month</div></div>
+            <div><strong>Revenue Overview</strong><div className="kpi my-1">$124,850</div><div className="small text-success font-bold">+7.2% vs last month</div></div>
             <label className="small muted">Range&nbsp;
               <select value={range} onChange={(e) => setRange(e.target.value as Range)} aria-label="Revenue range">
                 <option value="Monthly">Monthly</option>
@@ -117,23 +117,23 @@ export default function Dashboard({
           <div className="small muted">Occupancy</div>
           <div className="kpi">90.1%</div>
           <div className="small muted">128 / 142 units occupied</div>
-          <div style={{ margin: '12px 0' }}><Progress value={90.1} /></div>
+          <div className="my-3"><Progress value={90.1} /></div>
           <Donut percent={90} label="Occupied" />
           <div className="list">
             <div className="list-row"><span>Occupied</span><strong>128</strong></div>
             <div className="list-row"><span>Vacant</span><strong>14</strong></div>
           </div>
-          <div className="small" style={{ color: '#047857', fontWeight: 700, marginTop: 8 }}>+2.4% vs last month</div>
+          <div className="small text-success font-bold mt-2">+2.4% vs last month</div>
         </Card>
       </div>
 
       {/* Row 3 — Performance + Action */}
-      <div className="split-21">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
+        <div className="flex flex-col gap-4">
           <Card>
             <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Properties')}>View All Properties →</button></div>
             <div className="table-wrap">
-              <table>
+              <table className="tenant-table">
                 <thead><tr><th>Property</th><th>Occupancy</th><th>Revenue</th><th>Status</th></tr></thead>
                 <tbody>
                   {propertyRows.map((r) => (
@@ -178,16 +178,16 @@ export default function Dashboard({
               <strong>Awaiting resolution</strong>
             </div>
           </div>
-          <button className="btn btn-teal" type="button" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }} onClick={() => setActionOpen(true)}>View All →</button>
+          <button className="btn btn-teal mt-3 w-full justify-center" type="button" onClick={() => setActionOpen(true)}>View All →</button>
         </Card>
       </div>
 
       {/* Row 4 — Operations */}
-      <div className="grid-2">
+      <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
         <Card>
           <div className="row"><strong>Recent Payments</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Payments')}>View All Payments →</button></div>
           <div className="table-wrap">
-            <table>
+            <table className="tenant-table">
               <thead><tr><th>Tenant</th><th>Property</th><th>Amount</th><th>Status</th></tr></thead>
               <tbody>
                 {recentPayments.map((p) => (
@@ -232,7 +232,7 @@ export default function Dashboard({
         <Modal title="Action Required" onClose={() => setActionOpen(false)} wide>
           <div className="modal-section">
             <h4>Overdue Payments ({overdue.length})</h4>
-            {overdue.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Nothing overdue.</p> : (
+            {overdue.length === 0 ? <p className="small muted m-0">Nothing overdue.</p> : (
               <div className="list">
                 {overdue.slice(0, 5).map((p) => (
                   <div key={p.id} className="list-row">
@@ -247,7 +247,7 @@ export default function Dashboard({
           </div>
           <div className="modal-section">
             <h4>Leases Expiring Soon ({expiring.length})</h4>
-            {expiring.length === 0 ? <p className="small muted" style={{ margin: 0 }}>No upcoming expirations.</p> : (
+            {expiring.length === 0 ? <p className="small muted m-0">No upcoming expirations.</p> : (
               <div className="list">
                 {expiring.slice(0, 5).map((t) => (
                   <div key={t.id} className="list-row">
@@ -262,7 +262,7 @@ export default function Dashboard({
           </div>
           <div className="modal-section">
             <h4>Open Maintenance ({openMaint.length})</h4>
-            {openMaint.length === 0 ? <p className="small muted" style={{ margin: 0 }}>Queue is clear.</p> : (
+            {openMaint.length === 0 ? <p className="small muted m-0">Queue is clear.</p> : (
               <div className="list">
                 {openMaint.slice(0, 5).map((m) => (
                   <div key={m.id} className="list-row">

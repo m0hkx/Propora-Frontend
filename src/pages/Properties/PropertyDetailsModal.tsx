@@ -18,10 +18,10 @@ export default function PropertyDetailsModal({
   const occ = p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
   return (
     <Modal title={p.name} onClose={onClose} wide>
-      <div className="prop-image" style={{ borderRadius: 12, background: 'linear-gradient(135deg,#0F766E,#14B8A6)' }}>
+      <div className="prop-image rounded-chip" style={{ background: 'linear-gradient(135deg,#0F766E,#14B8A6)' }}>
         <img src={p.imageUrl} alt={`${p.name} photo`} loading="lazy" />
         <span className="prop-initials">{p.image}</span>
-        <span style={{ zIndex: 2 }}><Badge tone={tone(p.status)}>{p.status}</Badge></span>
+        <span className="z-[2]"><Badge tone={tone(p.status)}>{p.status}</Badge></span>
       </div>
       <div className="small muted">{p.address} · {p.type} · Built {p.yearBuilt}</div>
       <div>

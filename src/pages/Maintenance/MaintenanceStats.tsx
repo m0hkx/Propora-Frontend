@@ -16,7 +16,7 @@ export default function MaintenanceStats({
   cost: number;
 }) {
   return (
-    <div className="grid-4">
+    <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
       <Card>
         <div className="row">
           <span className="small muted">Open Requests</span>

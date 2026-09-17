@@ -58,7 +58,7 @@ export default function DocumentDetails({
     <Modal title={editing ? 'Edit Document' : doc.name} onClose={onClose} wide>
       {!editing ? (
         <>
-          <div className="row" style={{ flexWrap: 'wrap' }}>
+          <div className="row flex-wrap">
             <Badge tone="neutral">{doc.type}</Badge>
             <Badge tone={docStatusTone(doc.status)}>{doc.status}</Badge>
           </div>
@@ -72,7 +72,7 @@ export default function DocumentDetails({
             <div className="list-row"><span>Expiration Date</span><strong>{fmtDocDate(doc.expirationDate)}</strong></div>
             <div className="list-row"><span>Size</span><strong>{doc.size}</strong></div>
           </div>
-          <p className="small muted" style={{ margin: 0 }}>{doc.description}</p>
+          <p className="small muted m-0">{doc.description}</p>
           <div className="modal-foot">
             <button className="btn btn-ghost" type="button" onClick={onDownload}>View Document</button>
             <button className="btn btn-ghost" type="button" onClick={onDownload}>Download</button>
@@ -81,7 +81,7 @@ export default function DocumentDetails({
         </>
       ) : (
         <>
-          <div className="form-grid">
+          <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
             <div className="field">
               <label htmlFor="dd-name">Document Name *</label>
               <input id="dd-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={form.name.trim() === '' ? 'invalid' : ''} />
@@ -124,7 +124,7 @@ export default function DocumentDetails({
           <div className="modal-foot">
             <button className="btn btn-ghost" type="button" onClick={onArchive}>Archive</button>
             <button className="btn btn-ghost" type="button" onClick={onDelete}>Delete</button>
-            <span style={{ flex: 1 }} />
+            <span className="flex-1" />
             <button className="btn btn-ghost" type="button" onClick={() => setEditing(false)}>Cancel</button>
             <button className="btn btn-teal" type="button" onClick={save}>Save changes</button>
           </div>

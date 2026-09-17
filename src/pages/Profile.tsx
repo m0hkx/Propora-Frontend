@@ -2,18 +2,18 @@ import { Card } from '../components/ui';
 
 export default function Profile() {
   return (
-    <div className="detail-grid">
+    <div className="grid grid-cols-[1fr_360px] gap-4 max-compact:grid-cols-1">
       <Card>
         <div className="row"><div className="avatar">PM</div><span className="badge success">Property Manager</span></div>
-        <h3>Jordan Miller</h3>
+        <h3 className="font-display text-xl font-bold">Jordan Miller</h3>
         <div className="small muted">jordan@propora.io · (415) 555-0199</div>
-        <div className="form-grid" style={{ marginTop: 16 }}>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1 mt-4">
           <div className="field"><label htmlFor="fn">Full name</label><input id="fn" defaultValue="Jordan Miller" /></div>
           <div className="field"><label htmlFor="em">Email</label><input id="em" defaultValue="jordan@propora.io" /></div>
           <div className="field"><label htmlFor="ph">Phone</label><input id="ph" defaultValue="(415) 555-0199" /></div>
           <div className="field"><label htmlFor="co">Company</label><input id="co" defaultValue="Propora Management" /></div>
         </div>
-        <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
+        <div className="mt-3.5 flex gap-2.5">
           <button className="btn btn-teal" type="button">Save changes</button>
           <button className="btn btn-ghost" type="button">Change password</button>
         </div>

@@ -62,7 +62,7 @@ export default function UploadDocumentModal({
           }}
         />
       </label>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="up-name">Document Name *</label>
           <input id="up-name" value={name} onChange={(e) => setName(e.target.value)} className={nameInvalid ? 'invalid' : ''} placeholder="Lease Agreement - Unit 204" />

@@ -73,9 +73,9 @@ export default function Properties({ query }: { query: string }) {
   }, [query, search, status, typeFilter, sort, properties]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* 2. Summary cards */}
-      <div className="grid-4">
+      <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <Card>
           <div className="row">
             <span className="small muted">Total Properties</span>
@@ -112,7 +112,7 @@ export default function Properties({ query }: { query: string }) {
 
       {/* 3. Filters / controls */}
       <Card>
-        <div className="controls-row">
+        <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
           <div className="tabs" role="tablist" aria-label="Filter by status">
             {tabs.map((t) => (
               <button
@@ -127,7 +127,7 @@ export default function Properties({ query }: { query: string }) {
               </button>
             ))}
           </div>
-          <div className="controls-side">
+          <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
             <label className="search search-sm">
               <Icon d={Icons.search} />
               <input
@@ -137,12 +137,12 @@ export default function Properties({ query }: { query: string }) {
                 aria-label="Search properties by name, location, or type"
               />
             </label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label="Filter by property type">
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label="Filter by property type" className="max-md:flex-1">
               {types.map((t) => (
                 <option key={t} value={t}>{t === 'All types' ? 'Filter' : t}</option>
               ))}
             </select>
-            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort properties">
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort properties" className="max-md:flex-1">
               <option value="featured">Sort</option>
               <option value="name">Name A–Z</option>
               <option value="revenue">Revenue high–low</option>
@@ -159,7 +159,7 @@ export default function Properties({ query }: { query: string }) {
       {list.length === 0 ? (
         <Card><p className="muted">No properties match your filters.</p></Card>
       ) : (
-        <div className="prop-grid">
+        <div className="grid grid-cols-3 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
           {list.map((p, i) => {
             const occ = occupancy(p);
             const avail = p.units - p.occupied;
@@ -175,7 +175,7 @@ export default function Properties({ query }: { query: string }) {
                     />
                   )}
                   <span className="prop-initials">{p.image}</span>
-                  <span style={{ zIndex: 2 }}><Badge tone={tone(p.status)}>{p.status}</Badge></span>
+                  <span className="z-[2]"><Badge tone={tone(p.status)}>{p.status}</Badge></span>
                 </div>
                 <div className="prop-body">
                   <div>

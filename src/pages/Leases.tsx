@@ -63,10 +63,10 @@ export default function Leases({
   const filtersOn = tab !== 'All' || search.trim() !== '' || property !== 'all';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {focusTenant ? (
         <Card>
-          <div className="row" style={{ flexWrap: 'wrap' }}>
+          <div className="row flex-wrap">
             <div>
               <strong>Leases for {focusTenant.name}</strong>
               <div className="small muted">{focusTenant.email} · Unit {focusTenant.unit}</div>
@@ -77,7 +77,7 @@ export default function Leases({
       ) : null}
 
       <Card>
-        <div className="tabs" role="tablist" aria-label="Filter leases by status" style={{ marginBottom: 10 }}>
+        <div className="tabs mb-2.5" role="tablist" aria-label="Filter leases by status">
           {tabs.map((t) => (
             <button
               key={t}
@@ -91,7 +91,7 @@ export default function Leases({
             </button>
           ))}
         </div>
-        <div className="controls-row">
+        <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
           <label className="search search-grow">
             <Icon d={Icons.search} />
             <input
@@ -101,12 +101,12 @@ export default function Leases({
               aria-label="Search leases"
             />
           </label>
-          <div className="controls-side">
-            <select value={property} onChange={(e) => setProperty(e.target.value)} aria-label="Filter by property">
+          <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
+            <select value={property} onChange={(e) => setProperty(e.target.value)} aria-label="Filter by property" className="max-md:flex-1">
               <option value="all">All Properties</option>
               {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <select value={sort} onChange={(e) => setSort(e.target.value as LeaseSort)} aria-label="Sort leases">
+            <select value={sort} onChange={(e) => setSort(e.target.value as LeaseSort)} aria-label="Sort leases" className="max-md:flex-1">
               <option value="endDate">Ending soon</option>
               <option value="rent">Rent high–low</option>
               <option value="tenant">Tenant A–Z</option>
@@ -123,7 +123,7 @@ export default function Leases({
       <Card className="table-card">
         <div className="row table-head-row"><strong>Leases</strong><span className="small muted">({filtered.length})</span></div>
         {filtered.length === 0 ? (
-          <p className="muted" style={{ padding: '0 12px 12px' }}>No leases match your filters.</p>
+          <p className="muted px-3 pb-3">No leases match your filters.</p>
         ) : (
           <div className="table-wrap table-flush">
             <table className="tenant-table">

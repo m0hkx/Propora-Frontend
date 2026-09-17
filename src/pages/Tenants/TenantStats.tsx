@@ -16,7 +16,7 @@ export default function TenantStats({
 }) {
   const pct = total === 0 ? 0 : ((active / total) * 100).toFixed(1);
   return (
-    <div className="grid-4">
+    <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
       <Card>
         <div className="row">
           <span className="small muted">Total Tenants</span>

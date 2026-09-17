@@ -31,15 +31,15 @@ export default function TenantTable({
 
   return (
     <Card className="table-card">
-      <div className="table-wrap table-flush">
+      <div className="table-wrap table-flush max-md:hidden">
         <table className="tenant-table">
           <thead>
             <tr>
               <th>Tenant</th>
               <th>Property</th>
-              <th className="hide-tablet">Unit</th>
+              <th className="max-compact:hidden">Unit</th>
               <th>Monthly Rent</th>
-              <th className="hide-tablet">Lease</th>
+              <th className="max-compact:hidden">Lease</th>
               <th>Payment</th>
               <th>Status</th>
               <th><span className="sr-only">Actions</span></th>
@@ -61,30 +61,30 @@ export default function TenantTable({
       </div>
 
       {/* Mobile cards */}
-      <div className="tenant-cards">
+      <div className="hidden max-md:flex flex-col gap-2.5 p-2">
         {rows.map((t) => (
-          <div key={t.id} className="tenant-card clickable" onClick={() => onSelect(t)}>
+          <div key={t.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => onSelect(t)}>
             <div className="row">
-              <div className="tenant-cell">
+              <div className="flex items-center gap-2.5">
                 <TenantAvatar name={t.name} />
                 <div><strong>{t.name}</strong><div className="small muted">{t.email}</div></div>
               </div>
               <Badge tone={tenantTone(t.status)}>{t.status}</Badge>
             </div>
-            <div className="row small" style={{ marginTop: 8 }}>
+            <div className="row small mt-2">
               <span>{propertyName(t.propertyId)} · Unit {t.unit}</span>
               <strong>${t.rent.toLocaleString('en-US')}<span className="muted">/mo</span></strong>
             </div>
-            <div className="row small" style={{ marginTop: 6 }}>
+            <div className="row small mt-1.5">
               <span className="muted">{propertyCity(t.propertyId)} · Lease {fmtDate(t.leaseEnd)}</span>
-              <span style={{ display: 'flex', gap: 6 }}>
+              <span className="flex gap-1.5">
                 <Badge tone={leaseTone(t.leaseStatus)}>{t.leaseStatus}</Badge>
                 <Badge tone={paymentTone(t.paymentStatus)}>{t.paymentStatus}</Badge>
               </span>
             </div>
-            <div className="row" style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
+            <div className="row mt-2" onClick={(e) => e.stopPropagation()}>
               <span className="small muted">{t.phone}</span>
-              <span style={{ display: 'flex', gap: 6 }}>
+              <span className="flex gap-1.5">
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => onAction('view', t)}>View</button>
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => onAction('edit', t)}>Edit</button>
               </span>

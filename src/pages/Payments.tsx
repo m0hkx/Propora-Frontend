@@ -71,10 +71,10 @@ export default function Payments({
   const filtersOn = tab !== 'All' || search.trim() !== '' || property !== 'all' || method !== 'all';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {focusTenant ? (
         <Card>
-          <div className="row" style={{ flexWrap: 'wrap' }}>
+          <div className="row flex-wrap">
             <div>
               <strong>Payments for {focusTenant.name}</strong>
               <div className="small muted">{focusTenant.email} · Unit {focusTenant.unit}</div>
@@ -84,7 +84,7 @@ export default function Payments({
         </Card>
       ) : null}
 
-      <div className="grid-4">
+      <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <Card><Stat label="Collected" value={formatMoney(sums.Paid)} sub="This period" /></Card>
         <Card><Stat label="Pending" value={formatMoney(sums.Pending)} sub="Awaiting clearance" /></Card>
         <Card><Stat label="Overdue" value={formatMoney(sums.Overdue)} sub="Needs follow-up" /></Card>
@@ -92,7 +92,7 @@ export default function Payments({
       </div>
 
       <Card>
-        <div className="tabs" role="tablist" aria-label="Filter payments by status" style={{ marginBottom: 10 }}>
+        <div className="tabs mb-2.5" role="tablist" aria-label="Filter payments by status">
           {tabs.map((t) => (
             <button
               key={t}
@@ -106,7 +106,7 @@ export default function Payments({
             </button>
           ))}
         </div>
-        <div className="controls-row">
+        <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
           <label className="search search-grow">
             <Icon d={Icons.search} />
             <input
@@ -116,18 +116,18 @@ export default function Payments({
               aria-label="Search payments"
             />
           </label>
-          <div className="controls-side">
-            <select value={property} onChange={(e) => setProperty(e.target.value)} aria-label="Filter by property">
+          <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
+            <select value={property} onChange={(e) => setProperty(e.target.value)} aria-label="Filter by property" className="max-md:flex-1">
               <option value="all">All Properties</option>
               {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <select value={method} onChange={(e) => setMethod(e.target.value)} aria-label="Filter by method">
+            <select value={method} onChange={(e) => setMethod(e.target.value)} aria-label="Filter by method" className="max-md:flex-1">
               <option value="all">All Methods</option>
               <option value="Bank">Bank</option>
               <option value="Card">Card</option>
               <option value="Cash">Cash</option>
             </select>
-            <select value={sort} onChange={(e) => setSort(e.target.value as PaySort)} aria-label="Sort payments">
+            <select value={sort} onChange={(e) => setSort(e.target.value as PaySort)} aria-label="Sort payments" className="max-md:flex-1">
               <option value="date">Newest first</option>
               <option value="amount">Amount high–low</option>
             </select>
@@ -143,7 +143,7 @@ export default function Payments({
       <Card className="table-card">
         <div className="row table-head-row"><strong>Payment history</strong><span className="small muted">({filtered.length} records)</span></div>
         {filtered.length === 0 ? (
-          <p className="muted" style={{ padding: '0 12px 12px' }}>No payments match your filters.</p>
+          <p className="muted px-3 pb-3">No payments match your filters.</p>
         ) : (
           <div className="table-wrap table-flush">
             <table className="tenant-table">

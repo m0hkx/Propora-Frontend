@@ -48,7 +48,7 @@ export default function RecordPaymentModal({
 
   return (
     <Modal title="Record Payment" onClose={onClose}>
-      <div className="form-grid">
+      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="rp-tenant">Tenant *</label>
           <select

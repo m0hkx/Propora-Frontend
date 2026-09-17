@@ -15,7 +15,7 @@ export default function ConfirmDialog({
 }) {
   return (
     <Modal title={title} onClose={onCancel}>
-      <p style={{ margin: 0 }}>{message}</p>
+      <p className="m-0">{message}</p>
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onCancel}>Cancel</button>
         <button className="btn btn-primary" type="button" onClick={onConfirm}>{confirmLabel}</button>

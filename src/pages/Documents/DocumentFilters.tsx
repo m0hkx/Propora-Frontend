@@ -26,7 +26,7 @@ export default function DocumentFilters({
   const set = (patch: Partial<DocFilters>) => onChange({ ...filters, ...patch });
   return (
     <Card>
-      <div className="controls-row">
+      <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
         <label className="search search-grow">
           <Icon d={Icons.search} />
           <input
@@ -40,7 +40,7 @@ export default function DocumentFilters({
           <button className="btn btn-ghost btn-sm" type="button" onClick={onClear}>Clear Filters</button>
         )}
       </div>
-      <div className="filter-grid">
+      <div className="grid grid-cols-5 gap-2 mt-2.5 max-md:grid-cols-2">
         <select value={filters.property} onChange={(e) => set({ property: e.target.value })} aria-label="Filter by property">
           <option value="all">All Properties</option>
           {properties.map((p) => (

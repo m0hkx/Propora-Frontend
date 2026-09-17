@@ -82,7 +82,7 @@ export default function Documents() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       <DocumentStats
         total={documents.length}
         propertyDocs={documents.filter((d) => d.type === 'Property Document').length}
@@ -117,7 +117,7 @@ export default function Documents() {
           <DocumentTable rows={filtered} onAction={onAction} />
         )
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="flex flex-col gap-4">
           {groups.length === 0 ? (
             <Card><p className="muted">No documents match your filters.</p></Card>
           ) : (
@@ -134,9 +134,9 @@ export default function Documents() {
                 </div>
                 <div className="list">
                   {g.docs.slice(0, 6).map((d) => (
-                    <div key={d.id} className="list-row clickable" onClick={() => openDetails(d, false)}>
+                    <div key={d.id} className="list-row cursor-pointer" onClick={() => openDetails(d, false)}>
                       <span>{d.name}</span>
-                      <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span className="flex gap-1.5 items-center">
                         <Badge tone="neutral">{d.type}</Badge>
                         <Badge tone={docStatusTone(d.status)}>{d.status}</Badge>
                       </span>
@@ -144,7 +144,7 @@ export default function Documents() {
                   ))}
                 </div>
                 {g.docs.length > 6 ? (
-                  <button type="button" className="link-btn" style={{ marginTop: 8 }} onClick={() => { setFilters({ ...filters, property: g.property.id }); setGrouped(false); }}>
+                    <button type="button" className="link-btn mt-2" onClick={() => { setFilters({ ...filters, property: g.property.id }); setGrouped(false); }}>
                     View all {g.docs.length} →
                   </button>
                 ) : null}

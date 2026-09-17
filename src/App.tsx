@@ -269,13 +269,13 @@ function AppShell() {
   };
 
   return (
-    <div className="app-shell">
+    <div className="mx-auto w-full max-w-[1440px] px-[22px] pt-[18px] pb-12 max-md:px-3 max-md:pb-10">
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">P</div>
           <span className="brand-name">Propora</span>
         </div>
-        <nav className="nav-pills" aria-label="Primary">
+        <nav className="nav-pills max-compact:max-w-[46vw] max-md:order-3 max-md:w-full max-md:max-w-full" aria-label="Primary">
           {navPages.map((p) => (
             <button
               key={p}
@@ -288,10 +288,10 @@ function AppShell() {
             </button>
           ))}
         </nav>
-        <div className="top-actions">
-          <div className="avatar-wrap" ref={notifRef}>
+        <div className="flex items-center gap-2.5">
+          <div className="relative" ref={notifRef}>
             <button
-              className="icon-btn badge-wrap"
+              className="icon-btn relative"
               type="button"
               aria-label={`Notifications${unreadNotifications > 0 ? `, ${unreadNotifications} unread` : ''}`}
               aria-haspopup="menu"
@@ -305,9 +305,9 @@ function AppShell() {
               <NotificationsPanel onNavigate={(p) => go(p)} onClose={() => setHeaderPanel(null)} />
             ) : null}
           </div>
-          <div className="avatar-wrap" ref={msgRef}>
+          <div className="relative" ref={msgRef}>
             <button
-              className="icon-btn badge-wrap"
+              className="icon-btn relative"
               type="button"
               aria-label={`Messages${unreadMessages > 0 ? `, ${unreadMessages} unread` : ''}`}
               aria-haspopup="menu"
@@ -319,7 +319,7 @@ function AppShell() {
             </button>
             {headerPanel === 'msg' ? <MessagesPanel /> : null}
           </div>
-          <div className="avatar-wrap" ref={menuRef}>
+          <div className="relative" ref={menuRef}>
             <button
               className="avatar"
               type="button"
@@ -328,7 +328,6 @@ function AppShell() {
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
-              style={{ border: '2px solid #fff', cursor: 'pointer' }}
             >
               JM
             </button>
@@ -339,7 +338,7 @@ function AppShell() {
                   <div>
                     <strong>Jordan Miller</strong>
                     <div className="small muted">jordan@propora.io</div>
-                    <span className="badge success" style={{ marginTop: 4 }}>Property Manager</span>
+                    <span className="badge success mt-1">Property Manager</span>
                   </div>
                 </div>
                 <button className="btn btn-teal dropdown-full" type="button" onClick={openFullProfile}>
@@ -395,14 +394,14 @@ function AppShell() {
       </header>
 
       {/* Page header -> Title, Description */}
-      <div className="page-head">
+      <div className="flex items-center justify-between gap-3 flex-wrap mx-1 mt-[22px] mb-4">
         <div>
-          <h1 className="page-title">{page === 'Dashboard' ? 'Property Management Overview' : page}</h1>
-          <p className="page-sub">{subtitles[page]}</p>
+          <h1 className="font-display text-[26px] m-0 max-md:text-[22px]">{page === 'Dashboard' ? 'Property Management Overview' : page}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{subtitles[page]}</p>
         </div>
-        <div className="head-actions">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {DEDICATED_SEARCH.includes(page) ? null : (
-            <label className="search">
+            <label className="search max-md:min-w-full">
               <Icon d={Icons.search} />
               <input
                 placeholder={`Search ${page.toLowerCase()}...`}

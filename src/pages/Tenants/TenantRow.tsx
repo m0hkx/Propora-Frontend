@@ -27,9 +27,9 @@ export default function TenantRow({
 }) {
   const t = tenant;
   return (
-    <tr className="clickable" onClick={() => onSelect(t)}>
+    <tr className="cursor-pointer" onClick={() => onSelect(t)}>
       <td>
-        <div className="tenant-cell">
+        <div className="flex items-center gap-2.5">
           <TenantAvatar name={t.name} />
           <div><strong>{t.name}</strong><div className="small muted">{t.email}</div></div>
         </div>
@@ -38,20 +38,20 @@ export default function TenantRow({
         <div><strong>{propertyName(t.propertyId)}</strong></div>
         <div className="small muted">{propertyCity(t.propertyId)}</div>
       </td>
-      <td className="hide-tablet">
+      <td className="max-compact:hidden">
         <div>Unit {t.unit}</div>
         <div className="small muted">{t.beds}</div>
       </td>
       <td>
         <strong>${t.rent.toLocaleString('en-US')}</strong> <span className="small muted">/month</span>
       </td>
-      <td className="hide-tablet">
+      <td className="max-compact:hidden">
         <Badge tone={leaseTone(t.leaseStatus)}>{t.leaseStatus}</Badge>
-        <div className="small muted" style={{ marginTop: 4 }}>{fmtDate(t.leaseEnd)}</div>
+        <div className="small muted mt-1">{fmtDate(t.leaseEnd)}</div>
       </td>
       <td>
         <Badge tone={paymentTone(t.paymentStatus)}>{t.paymentStatus}</Badge>
-        <div className="small muted" style={{ marginTop: 4 }}>{t.paymentDate}</div>
+        <div className="small muted mt-1">{t.paymentDate}</div>
       </td>
       <td><Badge tone={tenantTone(t.status)}>{t.status}</Badge></td>
       <td onClick={(e) => e.stopPropagation()}>

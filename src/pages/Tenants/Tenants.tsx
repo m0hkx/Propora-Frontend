@@ -102,7 +102,7 @@ export default function Tenants({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       <TenantStats
         total={tenants.length}
         active={counts.Active}

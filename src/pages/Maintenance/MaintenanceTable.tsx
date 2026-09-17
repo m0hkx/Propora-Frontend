@@ -78,16 +78,16 @@ export default function MaintenanceTable({
   return (
     <Card className="table-card">
       <div className="row table-head-row"><strong>Requests</strong><span className="small muted">({rows.length})</span></div>
-      <div className="table-wrap table-flush">
+      <div className="table-wrap table-flush max-md:hidden">
         <table className="tenant-table">
           <thead>
             <tr>
               <SortHeader label="Request" sortKey="title" activeKey={sortKey} dir={sortDir} onSort={onSort} />
               <th>Property / Unit</th>
-              <th className="hide-tablet">Tenant</th>
+              <th className="max-compact:hidden">Tenant</th>
               <SortHeader label="Priority" sortKey="priority" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <th className="hide-tablet">Assigned To</th>
-              <SortHeader label="Created" sortKey="created" activeKey={sortKey} dir={sortDir} onSort={onSort} className="hide-tablet" />
+              <th className="max-compact:hidden">Assigned To</th>
+              <SortHeader label="Created" sortKey="created" activeKey={sortKey} dir={sortDir} onSort={onSort} className="max-compact:hidden" />
               <th>Status</th>
               <SortHeader label="Cost" sortKey="cost" activeKey={sortKey} dir={sortDir} onSort={onSort} />
               <th><span className="sr-only">Actions</span></th>
@@ -95,13 +95,13 @@ export default function MaintenanceTable({
           </thead>
           <tbody>
             {shown.map((m) => (
-              <tr key={m.id} className="clickable" onClick={() => onSelect(m)}>
+              <tr key={m.id} className="cursor-pointer" onClick={() => onSelect(m)}>
                 <td><strong>{m.title}</strong><div className="small muted">{m.category} · {m.id}</div></td>
                 <td>{propertyName(m.propertyId)}<div className="small muted">Unit {m.unit}</div></td>
-                <td className="hide-tablet small">{m.tenantId ? tenantName(m.tenantId) : '—'}</td>
+                <td className="max-compact:hidden small">{m.tenantId ? tenantName(m.tenantId) : '—'}</td>
                 <td><Badge tone={priorityTone(m.priority)}>{m.priority}</Badge></td>
-                <td className="hide-tablet small">{m.assignee}</td>
-                <td className="hide-tablet small">{fmtMDate(m.reported)}</td>
+                <td className="max-compact:hidden small">{m.assignee}</td>
+                <td className="max-compact:hidden small">{fmtMDate(m.reported)}</td>
                 <td><Badge tone={statusTone(m.status)}>{m.status}</Badge></td>
                 <td><strong>{formatMoney(m.actualCost ?? m.estimatedCost)}</strong></td>
                 <td onClick={(e) => e.stopPropagation()}>
@@ -131,14 +131,14 @@ export default function MaintenanceTable({
         </table>
       </div>
 
-      <div className="tenant-cards">
+      <div className="hidden max-md:flex flex-col gap-2.5 p-2">
         {shown.map((m) => (
-          <div key={m.id} className="tenant-card clickable" onClick={() => onSelect(m)}>
+          <div key={m.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => onSelect(m)}>
             <div className="row">
               <div><strong>{m.title}</strong><div className="small muted">{propertyName(m.propertyId)} · Unit {m.unit}</div></div>
               <Badge tone={priorityTone(m.priority)}>{m.priority}</Badge>
             </div>
-            <div className="row small" style={{ marginTop: 8 }}>
+            <div className="row small mt-2">
               <span className="muted">{m.assignee} · {fmtMDate(m.reported)}</span>
               <Badge tone={statusTone(m.status)}>{m.status}</Badge>
             </div>
@@ -147,7 +147,7 @@ export default function MaintenanceTable({
       </div>
 
       {visible < rows.length ? (
-        <div style={{ padding: 12, textAlign: 'center' }}>
+        <div className="p-3 text-center">
           <button className="btn btn-ghost" type="button" onClick={() => setVisible((v) => v + 20)}>
             Show more ({rows.length - visible} remaining)
           </button>

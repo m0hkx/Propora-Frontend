@@ -16,12 +16,12 @@ export default function MaintenanceDetails({
   const m = request;
   return (
     <Modal title={m.title} onClose={onClose} wide>
-      <div className="row" style={{ flexWrap: 'wrap' }}>
+      <div className="row flex-wrap">
         <Badge tone={priorityTone(m.priority)}>{m.priority} Priority</Badge>
         <Badge tone={statusTone(m.status)}>{m.status}</Badge>
         <Badge tone="neutral">{m.category}</Badge>
       </div>
-      <p style={{ margin: 0 }}>{m.description}</p>
+      <p className="m-0">{m.description}</p>
       <div className="list">
         <div className="list-row"><span>Property</span><strong>{propertyName(m.propertyId)}</strong></div>
         <div className="list-row"><span>Unit</span><strong>{m.unit}</strong></div>

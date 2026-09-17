@@ -29,7 +29,7 @@ export default function NotificationsPanel({
         ) : null}
       </div>
       {notifications.length === 0 ? (
-        <p className="small muted" style={{ margin: '12px 0 4px' }}>You're all caught up. New activity will appear here.</p>
+        <p className="small muted mt-3 mb-1">You're all caught up. New activity will appear here.</p>
       ) : (
         <div className="list">
           {notifications.map((n) => (
@@ -44,10 +44,10 @@ export default function NotificationsPanel({
                 onNavigate(n.link);
               }}
             >
-              <span className="dot" style={{ background: KIND_DOT[n.kind], marginTop: 6 }} />
-              <span style={{ flex: 1 }}>
+              <span className="dot mt-1.5" style={{ background: KIND_DOT[n.kind] }} />
+              <span className="flex-1">
                 <strong>{n.title}</strong>
-                <span className="small muted" style={{ display: 'block' }}>{n.detail}</span>
+                <span className="small muted block">{n.detail}</span>
                 <span className="small muted">{n.time}</span>
               </span>
               {n.read ? null : <span className="unread-dot" aria-label="Unread" />}

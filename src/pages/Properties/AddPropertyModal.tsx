@@ -94,7 +94,7 @@ export default function AddPropertyModal({
     <Modal title="Add Property" onClose={onClose} wide>
       <div className="modal-section">
         <h4>Basic Information</h4>
-        <div className="form-grid">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           {field('name', 'Property Name', 'Sunset Apartments')}
           <div className="field">
             <label htmlFor="ap-type">Property Type *</label>
@@ -113,7 +113,7 @@ export default function AddPropertyModal({
 
       <div className="modal-section">
         <h4>Location</h4>
-        <div className="form-grid">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           {field('address', 'Address', '123 Main St')}
           {field('city', 'City', 'Amman')}
           <div className="field">
@@ -129,7 +129,7 @@ export default function AddPropertyModal({
 
       <div className="modal-section">
         <h4>Property Details</h4>
-        <div className="form-grid">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           {field('units', 'Total Units', '24')}
           <div className="field">
             <label htmlFor="ap-year">Year Built</label>
@@ -148,7 +148,7 @@ export default function AddPropertyModal({
 
       <div className="modal-section">
         <h4>Financial Information</h4>
-        <div className="form-grid">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <div className="field">
             <label htmlFor="ap-price">Purchase Price</label>
             <input id="ap-price" inputMode="decimal" value={form.purchasePrice} onChange={(e) => set({ purchasePrice: e.target.value })} placeholder="850000" />
@@ -169,7 +169,7 @@ export default function AddPropertyModal({
         {imageUrl !== '' ? (
           <div>
             <img src={imageUrl} alt="Property preview" className="upload-preview" />
-            <button className="btn btn-ghost btn-sm" type="button" style={{ marginTop: 8 }} onClick={() => setImageUrl('')}>Remove image</button>
+            <button className="btn btn-ghost btn-sm mt-2" type="button" onClick={() => setImageUrl('')}>Remove image</button>
           </div>
         ) : (
           <label

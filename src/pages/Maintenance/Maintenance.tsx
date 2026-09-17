@@ -74,6 +74,8 @@ export default function Maintenance() {
         highPriority={highPriority}
         completed={counts.Completed}
         cost={cost}
+        maintenance={maintenance}
+        properties={properties}
       />
 
       <MaintenanceFilters

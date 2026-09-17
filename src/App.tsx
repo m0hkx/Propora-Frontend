@@ -89,6 +89,7 @@ function AppShell() {
 
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [headerPanel, setHeaderPanel] = useState<'notif' | 'msg' | null>(null);
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(false);
@@ -102,9 +103,10 @@ function AppShell() {
   const menuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const msgRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!menuOpen && headerPanel === null) return;
+    if (!menuOpen && headerPanel === null && !navOpen) return;
 
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
@@ -112,11 +114,13 @@ function AppShell() {
         const ref = headerPanel === 'notif' ? notifRef : msgRef;
         if (ref.current && !ref.current.contains(e.target as Node)) setHeaderPanel(null);
       }
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setNavOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setMenuOpen(false);
         setHeaderPanel(null);
+        setNavOpen(false);
       }
     };
 
@@ -127,7 +131,7 @@ function AppShell() {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, [menuOpen, headerPanel]);
+  }, [menuOpen, headerPanel, navOpen]);
 
   const unreadNotifications = notifications.filter((n) => !n.read).length;
   const unreadMessages = conversations.reduce((s, c) => s + c.unread, 0);
@@ -270,11 +274,25 @@ function AppShell() {
   return (
     <div className="mx-auto w-full max-w-[1440px] px-[22px] pt-[18px] pb-12 max-md:px-3 max-md:pb-10">
       <header className="topbar">
+        <div ref={navRef} className="contents md:hidden">
+          <button
+            className={`icon-btn nav-toggle ${navOpen ? 'open' : ''}`}
+            type="button"
+            aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={navOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+          </button>
+        </div>
         <div className="brand">
           <div className="brand-mark">P</div>
-          <span className="brand-name">Propora</span>
+          <span className="brand-name max-sm:hidden">Propora</span>
         </div>
-        <nav className="nav-pills max-compact:max-w-[46vw] max-md:order-3 max-md:w-full max-md:max-w-full" aria-label="Primary">
+        <nav className="nav-pills max-compact:max-w-[46vw] max-md:hidden" aria-label="Primary">
           {navPages.map((p) => (
             <NavLink
               key={p}
@@ -285,6 +303,29 @@ function AppShell() {
             </NavLink>
           ))}
         </nav>
+        {navOpen ? (
+          <nav id="mobile-nav" className="mobile-nav md:hidden" aria-label="Primary">
+            {navPages.map((p) => (
+              <NavLink
+                key={p}
+                to={`/${p}`}
+                onClick={() => setNavOpen(false)}
+                className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+              >
+                {routeToLabel[p]}
+                <span className="mobile-nav-go" aria-hidden="true">→</span>
+              </NavLink>
+            ))}
+            <NavLink
+              to="/profile"
+              onClick={() => setNavOpen(false)}
+              className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+            >
+              Profile
+              <span className="mobile-nav-go" aria-hidden="true">→</span>
+            </NavLink>
+          </nav>
+        ) : null}
         <div className="flex items-center gap-2.5">
           <div className="relative" ref={notifRef}>
             <button

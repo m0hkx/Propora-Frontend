@@ -654,6 +654,7 @@
 .delta.up { @apply bg-success-bg text-success; }
 .delta.down { @apply bg-[#FEE2E2] text-[#B91C1C]; }
 .delta.flat { @apply bg-muted text-muted-foreground; }
+.delta.warn { @apply bg-warn-bg text-warn; }
 
 /* Section headers — eyebrow + title, no extra chrome */
 .section-head {
@@ -792,6 +793,72 @@
 /* Sparklines — tiny trend glyphs for KPI cards */
 .spark {
   @apply block overflow-visible;
+}
+
+/* --- Mobile navigation: hamburger + dropdown panel (md and below) --- */
+.nav-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 0.2s var(--ease-feedback), opacity 0.15s var(--ease-feedback);
+}
+
+.nav-toggle.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.mobile-nav {
+  @apply absolute left-0 right-0 top-[calc(100%+8px)] z-40 bg-white border border-border rounded-[18px] shadow-[0_20px_50px_rgba(15,118,110,0.18)] p-2 flex flex-col gap-0.5;
+  animation: drop-in 0.18s var(--ease-feedback) both;
+  transform-origin: top center;
+}
+
+.mobile-nav-link {
+  @apply flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-chip text-[15px] font-semibold text-foreground no-underline;
+  transition: background-color 0.15s var(--ease-feedback), color 0.15s var(--ease-feedback);
+}
+
+.mobile-nav-link:hover {
+  @apply bg-muted;
+}
+
+.mobile-nav-link.active {
+  @apply bg-foreground text-white;
+}
+
+.mobile-nav-link .mobile-nav-go {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s var(--ease-feedback), transform 0.15s var(--ease-feedback);
+}
+
+.mobile-nav-link.active .mobile-nav-go {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Dropdowns must never overflow narrow viewports */
+.dropdown,
+.dropdown-wide {
+  max-width: calc(100vw - 24px);
 }
 
 /* Live dot — one pulsing accent for the single most urgent signal.

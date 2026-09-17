@@ -3,6 +3,7 @@ import { formatMoney } from '../data/mock';
 import type { Property } from '../data/mock';
 import { Badge, Card, Icon, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
+import KpiCard from '../components/KpiCard';
 import PropertyDetailsModal from './Properties/PropertyDetailsModal';
 import { useStore } from '../state/useStore';
 
@@ -74,40 +75,36 @@ export default function Properties({ query }: { query: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 2. Summary cards */}
+      {/* 2. Summary cards (unified KpiCard system) */}
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
-        <Card>
-          <div className="row">
-            <span className="small muted">Total Properties</span>
-            <span className="kpi-icon"><Icon d={Icons.building} /></span>
-          </div>
-          <div className="kpi">{totalProperties}</div>
-          <div className="small"><span className="badge success">+2.4% vs last month</span></div>
-        </Card>
-        <Card>
-          <div className="row">
-            <span className="small muted">Occupied Units</span>
-            <span className="kpi-icon"><Icon d={Icons.home} /></span>
-          </div>
-          <div className="kpi">128</div>
-          <div className="small muted">90.1% occupancy</div>
-        </Card>
-        <Card>
-          <div className="row">
-            <span className="small muted">Available Units</span>
-            <span className="kpi-icon"><Icon d={Icons.key} /></span>
-          </div>
-          <div className="kpi">14</div>
-          <div className="small"><span className="badge danger">-3.2% vs last month</span></div>
-        </Card>
-        <Card>
-          <div className="row">
-            <span className="small muted">Monthly Revenue</span>
-            <span className="kpi-icon"><Icon d={Icons.card} /></span>
-          </div>
-          <div className="kpi">$124,850</div>
-          <div className="small"><span className="badge success">+8.4% vs last month</span></div>
-        </Card>
+        <KpiCard
+          icon={Icons.building} tint="teal"
+          delta={{ text: '+2.4% vs last month', tone: 'up' }}
+          value={totalProperties} format={(n) => Math.round(n).toLocaleString('en-US')}
+          label="Total Properties"
+          spark={properties.map((p) => p.units)} stagger="sd-1"
+        />
+        <KpiCard
+          icon={Icons.home} tint="blue"
+          delta={{ text: '90.1% occupancy', tone: 'flat' }}
+          value={128} format={(n) => Math.round(n).toLocaleString('en-US')}
+          label="Occupied Units"
+          spark={properties.map((p) => p.occupied)} stagger="sd-2"
+        />
+        <KpiCard
+          icon={Icons.key} tint="amber"
+          delta={{ text: '-3.2% vs last month', tone: 'down' }}
+          value={14} format={(n) => Math.round(n).toLocaleString('en-US')}
+          label="Available Units"
+          spark={properties.map((p) => p.units - p.occupied)} stagger="sd-3"
+        />
+        <KpiCard
+          icon={Icons.card} tint="amber"
+          delta={{ text: '+8.4% vs last month', tone: 'up' }}
+          value={124850} format={(n) => '$' + Math.round(n).toLocaleString('en-US')}
+          label="Monthly Revenue"
+          spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-4"
+        />
       </div>
 
       {/* 3. Filters / controls */}

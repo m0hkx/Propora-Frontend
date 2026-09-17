@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { formatMoney } from '../data/mock';
 import type { Payment } from '../data/mock';
-import { Badge, Card, Icon, Stat } from '../components/ui';
+import { Badge, Card, Icon } from '../components/ui';
 import { Icons } from '../components/icons';
+import KpiCard from '../components/KpiCard';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
+import { spreadByProperty } from '../lib/stats';
 
 type PayTab = 'All' | 'Paid' | 'Pending' | 'Overdue';
 type PaySort = 'date' | 'amount';
@@ -67,6 +69,21 @@ export default function Payments() {
 
   const filtersOn = tab !== 'All' || search.trim() !== '' || property !== 'all' || method !== 'all';
 
+  const sumsByProp = (status: Payment['status']) =>
+    spreadByProperty(
+      properties,
+      payments.filter((p) => p.status === status),
+      (p) => p.propertyId,
+      (p) => p.amount
+    );
+  const rateSpread = properties.map((p) => {
+    const mine = payments.filter((pp) => pp.propertyId === p.id);
+    const paid = mine.filter((pp) => pp.status === 'Paid').reduce((s, pp) => s + pp.amount, 0);
+    const total = mine.reduce((s, pp) => s + pp.amount, 0);
+    return total === 0 ? 0 : Math.round((paid / total) * 100);
+  });
+  const fmtMoney = (n: number) => formatMoney(Math.round(n));
+
   return (
     <div className="flex flex-col gap-4">
       {focusTenant ? (
@@ -82,10 +99,30 @@ export default function Payments() {
       ) : null}
 
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
-        <Card><Stat label="Collected" value={formatMoney(sums.Paid)} sub="This period" /></Card>
-        <Card><Stat label="Pending" value={formatMoney(sums.Pending)} sub="Awaiting clearance" /></Card>
-        <Card><Stat label="Overdue" value={formatMoney(sums.Overdue)} sub="Needs follow-up" /></Card>
-        <Card><Stat label="Collection rate" value={`${sums.rate}%`} sub="Paid share of total" /></Card>
+        <KpiCard
+          icon={Icons.card} tint="teal"
+          delta={{ text: 'This period', tone: 'flat' }}
+          value={sums.Paid} format={fmtMoney}
+          label="Collected" spark={sumsByProp('Paid')} stagger="sd-1"
+        />
+        <KpiCard
+          icon={Icons.folder} tint="amber"
+          delta={{ text: 'Awaiting clearance', tone: 'flat' }}
+          value={sums.Pending} format={fmtMoney}
+          label="Pending" spark={sumsByProp('Pending')} stagger="sd-2"
+        />
+        <KpiCard
+          icon={Icons.bell} tint="rose"
+          delta={{ text: 'Needs follow-up', tone: 'down' }}
+          value={sums.Overdue} format={fmtMoney}
+          label="Overdue" spark={sumsByProp('Overdue')} stagger="sd-3"
+        />
+        <KpiCard
+          icon={Icons.chart} tint="blue"
+          delta={{ text: 'Paid share of total', tone: 'flat' }}
+          value={sums.rate} format={(n) => `${Math.round(n)}%`}
+          label="Collection rate" spark={rateSpread} stagger="sd-4"
+        />
       </div>
 
       <Card>

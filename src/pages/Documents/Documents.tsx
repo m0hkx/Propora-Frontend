@@ -88,6 +88,8 @@ export default function Documents() {
         propertyDocs={documents.filter((d) => d.type === 'Property Document').length}
         leases={documents.filter((d) => d.type === 'Lease').length}
         expiring={documents.filter((d) => d.status === 'Expiring Soon').length}
+        documents={documents}
+        properties={properties}
       />
 
       <DocumentFilters

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AreaChart, Donut, Spark } from '../components/charts';
-import { Badge, Card, Icon, Progress } from '../components/ui';
+import { AreaChart, Donut } from '../components/charts';
+import { Badge, Card, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
+import KpiCard from '../components/KpiCard';
 import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
-import { useCountUp } from '../lib/useCountUp';
+import { spreadByProperty } from '../lib/stats';
 
 type Range = 'Monthly' | 'Quarterly' | 'Yearly';
 
@@ -63,13 +64,14 @@ export default function Dashboard() {
   // Portfolio-wide total: 18 managed + any created in this session.
   const totalProperties = 18 + Math.max(0, properties.length - 6);
 
-  // Hero metrics ease in on mount (instant under reduced motion).
-  const propsCount = useCountUp(totalProperties);
-  const unitsCount = useCountUp(142);
-  const revenueCount = useCountUp(124850);
-  const outstandingCount = useCountUp(12450);
   const fmtInt = (n: number) => Math.round(n).toLocaleString('en-US');
   const fmtMoney = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+  const overdueSums = spreadByProperty(
+    properties,
+    payments.filter((p) => p.status === 'Overdue'),
+    (p) => p.propertyId,
+    (p) => p.amount
+  );
 
   const overdue = payments.filter((p) => p.status === 'Overdue');
   const openMaint = maintenance.filter((m) => m.status === 'Open');
@@ -78,52 +80,36 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Row 1 — Core KPIs: chip + delta, hero numeral, label + sparkline */}
+      {/* Row 1 — Core KPIs (unified KpiCard system; sparks are live portfolio spreads) */}
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
-        <Card className="card-lift rise sd-1">
-          <div className="row">
-            <span className="kpi-chip tint-teal"><Icon d={Icons.building} /></span>
-            <span className="delta up">▲ +2 this month</span>
-          </div>
-          <div className="kpi tnum">{fmtInt(propsCount)}</div>
-          <div className="row items-end">
-            <div><div className="small muted">Total Properties</div><div className="small font-semibold">17 Active</div></div>
-            <Spark values={[14, 15, 15, 16, 16, 17, 18]} />
-          </div>
-        </Card>
-        <Card className="card-lift rise sd-2">
-          <div className="row">
-            <span className="kpi-chip tint-blue"><Icon d={Icons.home} /></span>
-            <span className="delta flat">90.1% occupied</span>
-          </div>
-          <div className="kpi tnum">{fmtInt(unitsCount)} <span className="small muted text-sm font-[inherit]">Units</span></div>
-          <div className="row items-end">
-            <div><div className="small muted">Total Units</div><div className="small font-semibold">128 Occupied</div></div>
-            <Spark values={[118, 121, 122, 124, 126, 127, 128]} stroke="#0369A1" />
-          </div>
-        </Card>
-        <Card className="card-lift rise sd-3">
-          <div className="row">
-            <span className="kpi-chip tint-amber"><Icon d={Icons.card} /></span>
-            <span className="delta up">▲ +$8,420</span>
-          </div>
-          <div className="kpi tnum">{fmtMoney(revenueCount)}</div>
-          <div className="row items-end">
-            <div><div className="small muted">Monthly Revenue</div><div className="small font-semibold">vs last month</div></div>
-            <Spark values={[82, 88, 84, 92, 95, 102, 108, 115, 124]} stroke="#B45309" />
-          </div>
-        </Card>
-        <Card className="card-lift rise sd-4">
-          <div className="row">
-            <span className="kpi-chip tint-rose"><Icon d={Icons.bell} /></span>
-            <span className="delta down"><span className="dot" style={{ background: 'currentColor' }} /> 3 overdue</span>
-          </div>
-          <div className="kpi tnum">{fmtMoney(outstandingCount)}</div>
-          <div className="row items-end">
-            <div><div className="small muted">Outstanding</div><div className="small font-semibold">8 Payments</div></div>
-            <Spark values={[9.8, 10.4, 11.2, 10.8, 11.9, 12.1, 12.45]} stroke="#DC2626" />
-          </div>
-        </Card>
+        <KpiCard
+          icon={Icons.building} tint="teal"
+          delta={{ text: '▲ +2 this month', tone: 'up' }}
+          value={totalProperties} format={fmtInt}
+          label="Total Properties" sub="17 Active"
+          spark={properties.map((p) => p.units)} stagger="sd-1"
+        />
+        <KpiCard
+          icon={Icons.home} tint="blue"
+          delta={{ text: '90.1% occupied', tone: 'flat' }}
+          value={142} format={(n) => `${fmtInt(n)} Units`}
+          label="Total Units" sub="128 Occupied"
+          spark={properties.map((p) => p.occupied)} stagger="sd-2"
+        />
+        <KpiCard
+          icon={Icons.card} tint="amber"
+          delta={{ text: '▲ +$8,420', tone: 'up' }}
+          value={124850} format={fmtMoney}
+          label="Monthly Revenue" sub="vs last month"
+          spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-3"
+        />
+        <KpiCard
+          icon={Icons.bell} tint="rose"
+          delta={{ text: (<><span className="dot" style={{ background: 'currentColor' }} /> 3 overdue</>), tone: 'down' }}
+          value={12450} format={fmtMoney}
+          label="Outstanding" sub="8 Payments"
+          spark={overdueSums} stagger="sd-4"
+        />
       </div>
 
       {/* Row 2 — Revenue + Occupancy */}

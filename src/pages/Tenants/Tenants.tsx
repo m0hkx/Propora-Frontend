@@ -109,6 +109,8 @@ export default function Tenants({
         expiring={counts.Expiring}
         overdue={counts.Overdue}
         overdueAmount={formatMoney(overdueSum)}
+        tenants={tenants}
+        properties={properties}
       />
 
       <TenantFilters

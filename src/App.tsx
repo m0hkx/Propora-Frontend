@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import Tenants from './pages/Tenants/Tenants';
@@ -26,15 +27,23 @@ import MessagesPanel from './components/MessagesPanel';
 import { useStore } from './state/useStore';
 import type { Property } from './data/mock';
 
-type Page = 'Dashboard' | 'Properties' | 'Tenants' | 'Leases' | 'Payments' | 'Maintenance' | 'Documents' | 'Profile';
+const navPages = ['dashboard', 'properties', 'tenants', 'leases', 'payments', 'maintenance', 'documents'] as const;
+type NavPage = (typeof navPages)[number];
 
-const navPages: Page[] = ['Dashboard', 'Properties', 'Tenants', 'Leases', 'Payments', 'Maintenance', 'Documents'];
+const routeToLabel: Record<NavPage, string> = {
+  dashboard: 'Dashboard',
+  properties: 'Properties',
+  tenants: 'Tenants',
+  leases: 'Leases',
+  payments: 'Payments',
+  maintenance: 'Maintenance',
+  documents: 'Documents',
+};
 
 // Pages with their own dedicated search field; the global topbar search stays hidden there
-// so there is exactly one primary search per page.
-const DEDICATED_SEARCH: Page[] = ['Properties', 'Tenants', 'Documents', 'Maintenance'];
+const DEDICATED_SEARCH: NavPage[] = ['properties', 'tenants', 'documents', 'maintenance'];
 
-const subtitles: Record<Page, string> = {
+const subtitles: Record<string, string> = {
   Dashboard: 'Portfolio overview, rent pulse and activity',
   Properties: 'Manage and monitor all properties in your portfolio.',
   Tenants: 'Tenant roster with lease linkage',
@@ -45,7 +54,7 @@ const subtitles: Record<Page, string> = {
   Profile: 'Manager profile and preferences',
 };
 
-function headerAction(page: Page): string {
+function headerAction(page: string): string {
   if (page === 'Dashboard' || page === 'Properties') return 'Add Property';
   if (page === 'Maintenance') return 'New Request';
   if (page === 'Documents') return 'Upload Document';
@@ -70,9 +79,15 @@ function AppShell() {
   const payments = useStore((s) => s.payments);
   const notifications = useStore((s) => s.notifications);
   const conversations = useStore((s) => s.conversations);
-  const [page, setPage] = useState<Page>('Dashboard');
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const segments = location.pathname.split('/').filter(Boolean);
+  const currentRoute: NavPage = (segments[0] ?? 'dashboard') as NavPage;
+  const currentPage = routeToLabel[currentRoute] ?? 'Dashboard';
+
   const [query, setQuery] = useState('');
-  const [tenantFocus, setTenantFocus] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerPanel, setHeaderPanel] = useState<'notif' | 'msg' | null>(null);
   const [emailNotif, setEmailNotif] = useState(true);
@@ -107,7 +122,7 @@ function AppShell() {
 
     document.addEventListener('mousedown', onClick);
     document.addEventListener('keydown', onKey);
-    
+
     return () => {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
@@ -117,31 +132,25 @@ function AppShell() {
   const unreadNotifications = notifications.filter((n) => !n.read).length;
   const unreadMessages = conversations.reduce((s, c) => s + c.unread, 0);
 
-  const go = (p: Page, focus: string | null = null) => {
-    setTenantFocus(focus);
-    setPage(p);
-    setHeaderPanel(null);
-  };
-
   const openFullProfile = () => {
-    setPage('Profile');
+    navigate('/profile');
     setMenuOpen(false);
   };
 
   const onHeaderAction = () => {
-    if (page === 'Dashboard' || page === 'Properties') setAddPropOpen(true);
-    else if (page === 'Tenants') setAddTenantOpen(true);
-    else if (page === 'Leases') setAddLeaseOpen(true);
-    else if (page === 'Payments') setRecordPayOpen(true);
-    else if (page === 'Maintenance') setNewMaintOpen(true);
-    else if (page === 'Documents') setUploadOpen(true);
+    if (currentRoute === 'dashboard' || currentRoute === 'properties') setAddPropOpen(true);
+    else if (currentRoute === 'tenants') setAddTenantOpen(true);
+    else if (currentRoute === 'leases') setAddLeaseOpen(true);
+    else if (currentRoute === 'payments') setRecordPayOpen(true);
+    else if (currentRoute === 'maintenance') setNewMaintOpen(true);
+    else if (currentRoute === 'documents') setUploadOpen(true);
   };
 
   const createProperty = (p: Property) => {
     addProperty(p);
     setAddPropOpen(false);
     pushToast('Property created successfully');
-    setPage('Properties');
+    navigate('/properties');
   };
 
   const createTenant = (d: TenantDraft) => {
@@ -164,7 +173,7 @@ function AppShell() {
     });
     setAddTenantOpen(false);
     pushToast(`Tenant ${d.name} added`);
-    setPage('Tenants');
+    navigate('/tenants');
   };
 
   const createLease = (d: LeaseDraft) => {
@@ -267,15 +276,13 @@ function AppShell() {
         </div>
         <nav className="nav-pills max-compact:max-w-[46vw] max-md:order-3 max-md:w-full max-md:max-w-full" aria-label="Primary">
           {navPages.map((p) => (
-            <button
+            <NavLink
               key={p}
-              type="button"
-              onClick={() => go(p)}
-              className={`nav-pill ${page === p ? 'active' : ''}`}
-              aria-current={page === p ? 'page' : undefined}
+              to={`/${p}`}
+              className={({ isActive }: { isActive: boolean }) => `nav-pill ${isActive ? 'active' : ''}`}
             >
-              {p}
-            </button>
+              {routeToLabel[p]}
+            </NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-2.5">
@@ -292,7 +299,7 @@ function AppShell() {
               {unreadNotifications > 0 ? <span className="count-badge">{unreadNotifications}</span> : null}
             </button>
             {headerPanel === 'notif' ? (
-              <NotificationsPanel onNavigate={(p) => go(p)} onClose={() => setHeaderPanel(null)} />
+              <NotificationsPanel onClose={() => setHeaderPanel(null)} />
             ) : null}
           </div>
           <div className="relative" ref={msgRef}>
@@ -386,36 +393,41 @@ function AppShell() {
       {/* Page header -> Title, Description */}
       <div className="flex items-center justify-between gap-3 flex-wrap mx-1 mt-[22px] mb-4">
         <div>
-          <h1 className="font-display text-[26px] m-0 max-md:text-[22px]">{page === 'Dashboard' ? 'Property Management Overview' : page}</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">{subtitles[page]}</p>
+          <h1 className="font-display text-[26px] m-0 max-md:text-[22px]">{currentRoute === 'dashboard' ? 'Property Management Overview' : currentPage}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{subtitles[currentPage]}</p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
-          {DEDICATED_SEARCH.includes(page) ? null : (
+          {DEDICATED_SEARCH.includes(currentRoute) ? null : (
             <label className="search max-md:min-w-full">
               <Icon d={Icons.search} />
               <input
-                placeholder={`Search ${page.toLowerCase()}...`}
+                placeholder={`Search ${currentPage.toLowerCase()}...`}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                aria-label={`Search ${page}`}
+                aria-label={`Search ${currentPage}`}
               />
             </label>
           )}
-          {page === 'Profile' ? null : (
-            <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon d={Icons.plus} /> {headerAction(page)}</button>
+          {segments[0] === 'profile' ? null : (
+            <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon d={Icons.plus} /> {headerAction(currentPage)}</button>
           )}
         </div>
       </div>
 
       <main>
-        {page === 'Dashboard' && <Dashboard onNavigate={(p) => go(p)} />}
-        {page === 'Properties' && <Properties query={query} />}
-        {page === 'Tenants' && <Tenants query={query} onNavigate={(p, tenantId) => go(p, tenantId ?? null)} />}
-        {page === 'Leases' && <Leases focusTenantId={tenantFocus} onClearFocus={() => setTenantFocus(null)} />}
-        {page === 'Payments' && <Payments focusTenantId={tenantFocus} onClearFocus={() => setTenantFocus(null)} />}
-        {page === 'Maintenance' && <Maintenance />}
-        {page === 'Documents' && <Documents />}
-        {page === 'Profile' && <Profile />}
+        <div key={location.pathname} className="page-enter">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/properties" element={<Properties query={query} />} />
+            <Route path="/tenants" element={<Tenants query={query} />} />
+            <Route path="/leases" element={<Leases />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/profile" element={<Profile />} />
+          </Routes>
+        </div>
       </main>
 
       {addPropOpen && <AddPropertyModal onClose={() => setAddPropOpen(false)} onCreate={createProperty} />}
@@ -469,5 +481,9 @@ function AppShell() {
 }
 
 export default function App() {
-  return <AppShell />;
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
+  );
 }

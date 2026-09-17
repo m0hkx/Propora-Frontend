@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { AreaChart, Donut } from '../components/charts';
-import { Badge, Card, Progress } from '../components/ui';
+import { useNavigate } from 'react-router-dom';
+import { AreaChart, Donut, Spark } from '../components/charts';
+import { Badge, Card, Icon, Progress } from '../components/ui';
+import { Icons } from '../components/icons';
 import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
+import { useCountUp } from '../lib/useCountUp';
 
 type Range = 'Monthly' | 'Quarterly' | 'Yearly';
 
@@ -48,11 +51,8 @@ const timeline = [
   { text: 'Property "Harbor Point" added', time: 'Yesterday' },
 ];
 
-export default function Dashboard({
-  onNavigate,
-}: {
-  onNavigate: (page: 'Properties' | 'Maintenance' | 'Payments' | 'Leases') => void;
-}) {
+export default function Dashboard() {
+  const navigate = useNavigate();
   const [range, setRange] = useState<Range>('Monthly');
   const [actionOpen, setActionOpen] = useState(false);
   const set = revenueSets[range];
@@ -63,6 +63,14 @@ export default function Dashboard({
   // Portfolio-wide total: 18 managed + any created in this session.
   const totalProperties = 18 + Math.max(0, properties.length - 6);
 
+  // Hero metrics ease in on mount (instant under reduced motion).
+  const propsCount = useCountUp(totalProperties);
+  const unitsCount = useCountUp(142);
+  const revenueCount = useCountUp(124850);
+  const outstandingCount = useCountUp(12450);
+  const fmtInt = (n: number) => Math.round(n).toLocaleString('en-US');
+  const fmtMoney = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+
   const overdue = payments.filter((p) => p.status === 'Overdue');
   const openMaint = maintenance.filter((m) => m.status === 'Open');
   const expiring = tenants.filter((t) => t.leaseStatus === 'Expiring Soon');
@@ -70,36 +78,56 @@ export default function Dashboard({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Row 1 — Core KPIs */}
+      {/* Row 1 — Core KPIs: chip + delta, hero numeral, label + sparkline */}
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
-        <Card>
-          <div className="small muted">Total Properties</div>
-          <div className="kpi">{totalProperties} <span className="small muted text-sm font-[inherit]">Properties</span></div>
-          <div className="small">17 Active</div>
-          <div className="small muted"><span className="badge success">+2 this month</span></div>
+        <Card className="card-lift rise sd-1">
+          <div className="row">
+            <span className="kpi-chip tint-teal"><Icon d={Icons.building} /></span>
+            <span className="delta up">▲ +2 this month</span>
+          </div>
+          <div className="kpi tnum">{fmtInt(propsCount)}</div>
+          <div className="row items-end">
+            <div><div className="small muted">Total Properties</div><div className="small font-semibold">17 Active</div></div>
+            <Spark values={[14, 15, 15, 16, 16, 17, 18]} />
+          </div>
         </Card>
-        <Card>
-          <div className="small muted">Total Units</div>
-          <div className="kpi">142 <span className="small muted text-sm">Units</span></div>
-          <div className="small">128 Occupied</div>
-          <div className="small muted">Occupancy: 90.1%</div>
+        <Card className="card-lift rise sd-2">
+          <div className="row">
+            <span className="kpi-chip tint-blue"><Icon d={Icons.home} /></span>
+            <span className="delta flat">90.1% occupied</span>
+          </div>
+          <div className="kpi tnum">{fmtInt(unitsCount)} <span className="small muted text-sm font-[inherit]">Units</span></div>
+          <div className="row items-end">
+            <div><div className="small muted">Total Units</div><div className="small font-semibold">128 Occupied</div></div>
+            <Spark values={[118, 121, 122, 124, 126, 127, 128]} stroke="#0369A1" />
+          </div>
         </Card>
-        <Card>
-          <div className="small muted">Monthly Revenue</div>
-          <div className="kpi">$124,850</div>
-          <div className="small text-success font-bold">▲ +$8,420 vs last month</div>
-          <div className="small muted">Small upward trend</div>
+        <Card className="card-lift rise sd-3">
+          <div className="row">
+            <span className="kpi-chip tint-amber"><Icon d={Icons.card} /></span>
+            <span className="delta up">▲ +$8,420</span>
+          </div>
+          <div className="kpi tnum">{fmtMoney(revenueCount)}</div>
+          <div className="row items-end">
+            <div><div className="small muted">Monthly Revenue</div><div className="small font-semibold">vs last month</div></div>
+            <Spark values={[82, 88, 84, 92, 95, 102, 108, 115, 124]} stroke="#B45309" />
+          </div>
         </Card>
-        <Card>
-          <div className="small muted">Outstanding Payments</div>
-          <div className="kpi">$12,450</div>
-          <div className="small">8 Payments</div>
-          <div className="small"><span className="badge danger">3 Overdue</span></div>
+        <Card className="card-lift rise sd-4">
+          <div className="row">
+            <span className="kpi-chip tint-rose"><Icon d={Icons.bell} /></span>
+            <span className="delta down"><span className="dot" style={{ background: 'currentColor' }} /> 3 overdue</span>
+          </div>
+          <div className="kpi tnum">{fmtMoney(outstandingCount)}</div>
+          <div className="row items-end">
+            <div><div className="small muted">Outstanding</div><div className="small font-semibold">8 Payments</div></div>
+            <Spark values={[9.8, 10.4, 11.2, 10.8, 11.9, 12.1, 12.45]} stroke="#DC2626" />
+          </div>
         </Card>
       </div>
 
       {/* Row 2 — Revenue + Occupancy */}
-      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1 rise sd-3">
         <Card>
           <div className="row">
             <div><strong>Revenue Overview</strong><div className="kpi my-1">$124,850</div><div className="small text-success font-bold">+7.2% vs last month</div></div>
@@ -128,10 +156,10 @@ export default function Dashboard({
       </div>
 
       {/* Row 3 — Performance + Action */}
-      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1 rise sd-4">
         <div className="flex flex-col gap-4">
           <Card>
-            <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Properties')}>View All Properties →</button></div>
+            <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button" onClick={() => navigate('/properties')}>View All Properties →</button></div>
             <div className="table-wrap">
               <table className="tenant-table">
                 <thead><tr><th>Property</th><th>Occupancy</th><th>Revenue</th><th>Status</th></tr></thead>
@@ -166,7 +194,7 @@ export default function Dashboard({
           <strong>Action Required</strong>
           <div className="list">
             <div className="list-row">
-              <span><span className="dot" style={{ background: '#DC2626' }} /> {overdue.length} Overdue Payments</span>
+              <span><span className="dot dot-live" style={{ background: '#DC2626' }} /> {overdue.length} Overdue Payments</span>
               <strong>${overdue.reduce((s, p) => s + p.amount, 0).toLocaleString('en-US')} outstanding</strong>
             </div>
             <div className="list-row">
@@ -183,9 +211,9 @@ export default function Dashboard({
       </div>
 
       {/* Row 4 — Operations */}
-      <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+      <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1 rise sd-5">
         <Card>
-          <div className="row"><strong>Recent Payments</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Payments')}>View All Payments →</button></div>
+          <div className="row"><strong>Recent Payments</strong><button className="btn btn-ghost" type="button" onClick={() => navigate('/payments')}>View All Payments →</button></div>
           <div className="table-wrap">
             <table className="tenant-table">
               <thead><tr><th>Tenant</th><th>Property</th><th>Amount</th><th>Status</th></tr></thead>
@@ -203,7 +231,7 @@ export default function Dashboard({
           </div>
         </Card>
         <Card>
-          <div className="row"><strong>Maintenance Requests</strong><button className="btn btn-ghost" type="button" onClick={() => onNavigate('Maintenance')}>View All Requests →</button></div>
+          <div className="row"><strong>Maintenance Requests</strong><button className="btn btn-ghost" type="button" onClick={() => navigate('/maintenance')}>View All Requests →</button></div>
           <div className="list">
             {maintenanceItems.map((m) => (
               <div key={m.title} className="list-row">
@@ -216,7 +244,7 @@ export default function Dashboard({
       </div>
 
       {/* Row 5 — Activity */}
-      <Card>
+      <Card className="rise sd-6">
         <strong>Recent Activity</strong>
         <div className="timeline">
           {timeline.map((t) => (
@@ -237,7 +265,7 @@ export default function Dashboard({
                 {overdue.slice(0, 5).map((p) => (
                   <div key={p.id} className="list-row">
                     <span>{tenantOf(p.tenantId)} · ${p.amount.toLocaleString('en-US')}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Payments'); }}>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/payments'); }}>
                       Review →
                     </button>
                   </div>
@@ -252,7 +280,7 @@ export default function Dashboard({
                 {expiring.slice(0, 5).map((t) => (
                   <div key={t.id} className="list-row">
                     <span>{t.name} · ends {fmtDate(t.leaseEnd)}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Leases'); }}>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/leases'); }}>
                       Review →
                     </button>
                   </div>
@@ -267,7 +295,7 @@ export default function Dashboard({
                 {openMaint.slice(0, 5).map((m) => (
                   <div key={m.id} className="list-row">
                     <span>{m.title}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); onNavigate('Maintenance'); }}>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/maintenance'); }}>
                       Review →
                     </button>
                   </div>

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
 import type { AppNotification } from '../data/mock';
 
@@ -9,12 +10,11 @@ const KIND_DOT: Record<AppNotification['kind'], string> = {
 };
 
 export default function NotificationsPanel({
-  onNavigate,
   onClose,
 }: {
-  onNavigate: (page: 'Maintenance' | 'Payments' | 'Leases' | 'Tenants') => void;
   onClose: () => void;
 }) {
+  const navigate = useNavigate();
   const markNotificationRead = useStore((s) => s.markNotificationRead);
   const markAllNotificationsRead = useStore((s) => s.markAllNotificationsRead);
   const notifications = useStore((s) => s.notifications);
@@ -41,7 +41,7 @@ export default function NotificationsPanel({
               onClick={() => {
                 markNotificationRead(n.id);
                 onClose();
-                onNavigate(n.link);
+                navigate(`/${n.link.toLowerCase()}`);
               }}
             >
               <span className="dot mt-1.5" style={{ background: KIND_DOT[n.kind] }} />

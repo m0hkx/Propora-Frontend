@@ -15,10 +15,36 @@ body {
 
 body {
   font-family: var(--font-body);
-  background: linear-gradient(180deg, #F0FDFA 0%, #ECFEFF 40%, #F8FAFC 100%);
+  /* Layered ambient background: soft teal/blue/amber glows over the
+     signature mint wash. Kept whisper-quiet so data stays primary. */
+  background:
+    radial-gradient(640px 320px at 12% -4%, rgb(20 184 166 / 0.14), transparent 62%),
+    radial-gradient(720px 360px at 88% -2%, rgb(3 105 161 / 0.1), transparent 60%),
+    radial-gradient(560px 480px at 50% 112%, rgb(245 158 11 / 0.05), transparent 62%),
+    linear-gradient(180deg, #F0FDFA 0%, #ECFEFF 40%, #F8FAFC 100%);
+  background-attachment: fixed;
   color: var(--color-foreground);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Faint architectural grid, visible only near the top of the viewport.
+   Pure atmosphere — masked out before it can compete with content. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(15 118 110 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 118 110 / 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 440px at 50% -90px, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 440px at 50% -90px, black, transparent 72%);
+}
+
+#root {
+  isolation: isolate;
 }
 
 button,

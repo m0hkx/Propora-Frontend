@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatMoney, propertyName } from '../../data/mock';
 import type { Tenant } from '../../data/mock';
 import { Card } from '../../components/ui';
@@ -18,11 +19,10 @@ const PAGE_SIZE = 10;
 
 export default function Tenants({
   query,
-  onNavigate,
 }: {
   query: string;
-  onNavigate: (page: 'Leases' | 'Payments', tenantId?: string) => void;
 }) {
+  const navigate = useNavigate();
   const updateTenant = useStore((s) => s.updateTenant);
   const deleteTenant = useStore((s) => s.deleteTenant);
   const pushToast = useStore((s) => s.pushToast);
@@ -96,8 +96,8 @@ export default function Tenants({
   const onAction = (a: TenantAction, t: Tenant) => {
     if (a === 'view') setViewId(t.id);
     else if (a === 'edit') setEditId(t.id);
-    else if (a === 'lease') onNavigate('Leases', t.id);
-    else if (a === 'payments') onNavigate('Payments', t.id);
+    else if (a === 'lease') navigate(`/leases?tenantId=${t.id}`);
+    else if (a === 'payments') navigate(`/payments?tenantId=${t.id}`);
     else setDeleteId(t.id);
   };
 
@@ -138,8 +138,8 @@ export default function Tenants({
           tenant={viewed}
           onClose={() => setViewId(null)}
           onEdit={() => { setViewId(null); setEditId(viewed.id); }}
-          onViewLease={() => { setViewId(null); onNavigate('Leases', viewed.id); }}
-          onViewPayments={() => { setViewId(null); onNavigate('Payments', viewed.id); }}
+          onViewLease={() => { setViewId(null); navigate(`/leases?tenantId=${viewed.id}`); }}
+          onViewPayments={() => { setViewId(null); navigate(`/payments?tenantId=${viewed.id}`); }}
         />
       )}
 

@@ -41,6 +41,15 @@
   --radius-card: 18px;      /* was var(--radius) */
   --radius-chip: 12px;      /* was var(--radius-sm) — NOT Tailwind's --radius-sm */
   --shadow-card: 0 10px 30px rgb(15 118 110 / 0.08);
+  --shadow-card-hover: 0 16px 40px rgb(15 118 110 / 0.14);
+  --shadow-lift: 0 8px 20px rgb(15 118 110 / 0.12);
+  --shadow-glow-teal: 0 0 0 4px rgb(20 184 166 / 0.12);
+
+  /* Motion: one spring for entrances, one crisp ease for feedback.
+     Durations live with the components; keep entrances ≤500ms,
+     feedback ≤200ms. Reduced motion is killed globally in base.css. */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-feedback: cubic-bezier(0.3, 0.7, 0.4, 1);
 
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;

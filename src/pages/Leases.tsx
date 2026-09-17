@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { formatMoney } from '../data/mock';
 import type { Lease } from '../data/mock';
 import { Badge, Card, Icon } from '../components/ui';
@@ -15,13 +16,9 @@ function tone(s: Lease['status']): 'success' | 'warn' | 'danger' {
   return s === 'Active' ? 'success' : s === 'Expiring' ? 'warn' : 'danger';
 }
 
-export default function Leases({
-  focusTenantId,
-  onClearFocus,
-}: {
-  focusTenantId: string | null;
-  onClearFocus: () => void;
-}) {
+export default function Leases() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusTenantId = searchParams.get('tenantId');
   const leases = useStore((s) => s.leases);
   const tenants = useStore((s) => s.tenants);
   const properties = useStore((s) => s.properties);
@@ -71,7 +68,7 @@ export default function Leases({
               <strong>Leases for {focusTenant.name}</strong>
               <div className="small muted">{focusTenant.email} · Unit {focusTenant.unit}</div>
             </div>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={onClearFocus}>Clear filter · show all leases</button>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { const next = new URLSearchParams(searchParams); next.delete('tenantId'); setSearchParams(next); }}>Clear filter · show all leases</button>
           </div>
         </Card>
       ) : null}

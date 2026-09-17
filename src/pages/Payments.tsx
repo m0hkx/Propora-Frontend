@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { formatMoney } from '../data/mock';
 import type { Payment } from '../data/mock';
 import { Badge, Card, Icon, Stat } from '../components/ui';
@@ -15,13 +16,9 @@ function tone(s: Payment['status']): 'success' | 'warn' | 'danger' {
   return s === 'Paid' ? 'success' : s === 'Pending' ? 'warn' : 'danger';
 }
 
-export default function Payments({
-  focusTenantId,
-  onClearFocus,
-}: {
-  focusTenantId: string | null;
-  onClearFocus: () => void;
-}) {
+export default function Payments() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusTenantId = searchParams.get('tenantId');
   const payments = useStore((s) => s.payments);
   const tenants = useStore((s) => s.tenants);
   const properties = useStore((s) => s.properties);
@@ -79,7 +76,7 @@ export default function Payments({
               <strong>Payments for {focusTenant.name}</strong>
               <div className="small muted">{focusTenant.email} · Unit {focusTenant.unit}</div>
             </div>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={onClearFocus}>Clear filter · show all payments</button>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { const next = new URLSearchParams(searchParams); next.delete('tenantId'); setSearchParams(next); }}>Clear filter · show all payments</button>
           </div>
         </Card>
       ) : null}

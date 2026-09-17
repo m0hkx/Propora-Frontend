@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 // Plot geometry (viewBox units). Left margin reserves room for the Y-axis,
 // right margin keeps the last point off the card edge.
@@ -115,7 +116,7 @@ export function AreaChart({
             strokeWidth="1.5"
           />
           <polygon points={area} fill={`url(#${gradientId})`} />
-          <polyline points={line} fill="none" stroke="#0F766E" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          <polyline points={line} fill="none" stroke="#0F766E" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1} className="chart-draw" />
           {pts.map((p, i) => (
             <circle
               key={i}
@@ -125,6 +126,8 @@ export function AreaChart({
               fill="#fff"
               stroke="#0F766E"
               strokeWidth="2"
+              className="chart-dot"
+              style={{ animationDelay: `${0.55 + i * 0.06}s` }}
               tabIndex={0}
               aria-label={`${labels[i]}: ${fmt(values[i])}`}
               onFocus={() => setActive(i)}
@@ -174,10 +177,50 @@ export function Donut({ percent, label }: { percent: number; label: string }) {
         <circle
           cx="55" cy="55" r={r} fill="none" stroke="#0F766E" strokeWidth="12"
           strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 55 55)"
+          pathLength={c} className="donut-arc"
+          style={{ '--donut-from': c } as CSSProperties}
         />
         <text x="55" y="60" textAnchor="middle" fontWeight="700" fontSize="18" fill="#134E4A">{percent}%</text>
       </svg>
       <div><div className="font-bold">{label}</div><div className="small muted">Portfolio occupancy</div></div>
     </div>
+  );
+}
+
+/* Spark — tiny trend glyph for KPI cards. No axes, no interaction,
+   just shape + end dot. Decorative (aria-hidden); the card text carries meaning. */
+export function Spark({
+  values,
+  stroke = '#0F766E',
+  height = 36,
+}: {
+  values: number[];
+  stroke?: string;
+  height?: number;
+}) {
+  const gid = useId();
+  const w = 120;
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = Math.max(1e-9, max - min);
+  const coords = values.map(
+    (v, i) =>
+      [(i * w) / (values.length - 1), height - 4 - ((v - min) / span) * (height - 8)] as const
+  );
+  const line = coords.map(([x, y]) => `${x},${y}`).join(' ');
+  const [lx, ly] = coords[coords.length - 1];
+  return (
+    <svg className="spark" width={w} height={height} viewBox={`0 0 ${w} ${height}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={`${0},${height} ${line} ${w},${height}`} fill={`url(#${gid})`} />
+      <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lx} cy={ly} r="3" fill={stroke} stroke="#fff" strokeWidth="1.5" />
+    </svg>
   );
 }

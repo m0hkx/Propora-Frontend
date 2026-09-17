@@ -21,6 +21,7 @@ import RecordPaymentModal from './pages/Payments/RecordPaymentModal';
 import type { PaymentDraft } from './pages/Payments/RecordPaymentModal';
 import { Icon } from './components/ui';
 import { Icons } from './components/icons';
+import LogoMark from './components/Logo';
 import Toasts from './components/Toasts';
 import NotificationsPanel from './components/NotificationsPanel';
 import MessagesPanel from './components/MessagesPanel';
@@ -274,9 +275,9 @@ function AppShell() {
   return (
     <div className="mx-auto w-full max-w-[1440px] px-[22px] pt-[18px] pb-12 max-md:px-3 max-md:pb-10">
       <header className="topbar">
-        <div ref={navRef} className="contents md:hidden">
+        <div ref={navRef} className="flex items-center gap-3 md:contents">
           <button
-            className={`icon-btn nav-toggle ${navOpen ? 'open' : ''}`}
+            className={`icon-btn nav-toggle md:hidden ${navOpen ? 'open' : ''}`}
             type="button"
             aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
             aria-expanded={navOpen}
@@ -287,10 +288,33 @@ function AppShell() {
             <span aria-hidden="true" />
             <span aria-hidden="true" />
           </button>
-        </div>
         <div className="brand">
-          <div className="brand-mark">P</div>
+          <div className="brand-mark"><LogoMark /></div>
           <span className="brand-name max-sm:hidden">Propora</span>
+        </div>
+          {navOpen ? (
+            <nav id="mobile-nav" className="mobile-nav md:hidden" aria-label="Primary">
+              {navPages.map((p) => (
+                <NavLink
+                  key={p}
+                  to={`/${p}`}
+                  onClick={() => setNavOpen(false)}
+                  className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+                >
+                  {routeToLabel[p]}
+                  <span className="mobile-nav-go" aria-hidden="true">→</span>
+                </NavLink>
+              ))}
+              <NavLink
+                to="/profile"
+                onClick={() => setNavOpen(false)}
+                className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+              >
+                Profile
+                <span className="mobile-nav-go" aria-hidden="true">→</span>
+              </NavLink>
+            </nav>
+          ) : null}
         </div>
         <nav className="nav-pills max-compact:max-w-[46vw] max-md:hidden" aria-label="Primary">
           {navPages.map((p) => (
@@ -303,29 +327,6 @@ function AppShell() {
             </NavLink>
           ))}
         </nav>
-        {navOpen ? (
-          <nav id="mobile-nav" className="mobile-nav md:hidden" aria-label="Primary">
-            {navPages.map((p) => (
-              <NavLink
-                key={p}
-                to={`/${p}`}
-                onClick={() => setNavOpen(false)}
-                className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
-              >
-                {routeToLabel[p]}
-                <span className="mobile-nav-go" aria-hidden="true">→</span>
-              </NavLink>
-            ))}
-            <NavLink
-              to="/profile"
-              onClick={() => setNavOpen(false)}
-              className={({ isActive }: { isActive: boolean }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
-            >
-              Profile
-              <span className="mobile-nav-go" aria-hidden="true">→</span>
-            </NavLink>
-          </nav>
-        ) : null}
         <div className="flex items-center gap-2.5">
           <div className="relative" ref={notifRef}>
             <button

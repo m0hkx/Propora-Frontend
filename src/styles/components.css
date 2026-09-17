@@ -476,7 +476,14 @@
 }
 
 .brand-mark {
-  @apply size-[34px] rounded-[11px] grid place-items-center font-display text-white bg-gradient-to-br from-primary to-secondary;
+  @apply size-[34px] rounded-[11px] grid place-items-center bg-white border border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)];
+}
+
+.brand-mark .logo-img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-name {

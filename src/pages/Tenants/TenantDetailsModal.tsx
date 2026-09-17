@@ -1,5 +1,5 @@
 import { propertyCity, propertyName } from '../../data/mock';
-import type { Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../data/mock';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { TenantAvatar } from './TenantRow';
@@ -8,12 +8,14 @@ import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
 
 export default function TenantDetailsModal({
   tenant,
+  properties,
   onClose,
   onEdit,
   onViewLease,
   onViewPayments,
 }: {
   tenant: Tenant;
+  properties: Property[];
   onClose: () => void;
   onEdit: () => void;
   onViewLease: () => void;
@@ -27,7 +29,7 @@ export default function TenantDetailsModal({
           <div>
             <div className="small muted">{tenant.email} · {tenant.phone}</div>
             <div className="small muted">
-              {propertyName(tenant.propertyId)} ({propertyCity(tenant.propertyId)}) · Unit {tenant.unit} · {tenant.beds}
+              {propertyName(tenant.propertyId, properties)} ({propertyCity(tenant.propertyId, properties)}) · Unit {tenant.unit} · {tenant.beds}
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { propertyCity, propertyName } from '../../data/mock';
-import type { Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../data/mock';
 import { Badge } from '../../components/ui';
 import { fmtDate } from '../../lib/format';
 import { avatarBg, initials, leaseTone, paymentTone, tenantTone } from './tenantUtils';
@@ -15,12 +15,14 @@ export function TenantAvatar({ name }: { name: string }) {
 
 export default function TenantRow({
   tenant,
+  properties,
   menuOpen,
   onToggleMenu,
   onAction,
   onSelect,
 }: {
   tenant: Tenant;
+  properties: Property[];
   menuOpen: boolean;
   onToggleMenu: () => void;
   onAction: (a: TenantAction, t: Tenant) => void;
@@ -36,8 +38,8 @@ export default function TenantRow({
         </div>
       </td>
       <td>
-        <div><strong>{propertyName(t.propertyId)}</strong></div>
-        <div className="small muted">{propertyCity(t.propertyId)}</div>
+        <div><strong>{propertyName(t.propertyId, properties)}</strong></div>
+        <div className="small muted">{propertyCity(t.propertyId, properties)}</div>
       </td>
       <td className="max-compact:hidden">
         <div>Unit {t.unit}</div>

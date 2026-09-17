@@ -46,3 +46,6 @@ export function matchesDateFilter(uploadDate: string, f: DateFilter, now: Date):
 export function docSearchText(d: DocFile, property: string, tenant: string): string {
   return `${d.name} ${property} ${d.unit ?? ''} ${tenant} ${d.type} ${d.leaseId ?? ''}`.toLowerCase();
 }
+
+/** Lifecycle order for the status column. */
+export const DOC_STATUS_ORDER = ['Active', 'Expiring Soon', 'Expired', 'Archived'] as const satisfies readonly DocumentStatus[];

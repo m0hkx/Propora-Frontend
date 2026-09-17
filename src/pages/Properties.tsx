@@ -5,6 +5,9 @@ import { Badge, Card, Icon, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
 import KpiCard from '../components/KpiCard';
 import PropertyDetailsModal from './Properties/PropertyDetailsModal';
+import AddPropertyModal from './Properties/AddPropertyModal';
+import { propertyToDraft } from './Properties/propertyForm';
+import type { PropertyDraft } from './Properties/propertyForm';
 import { useStore } from '../state/useStore';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
@@ -35,11 +38,14 @@ const tabs: StatusFilter[] = ['All', 'Active', 'Vacant', 'Maintenance'];
 
 export default function Properties({ query }: { query: string }) {
   const properties = useStore((s) => s.properties);
+  const updateProperty = useStore((s) => s.updateProperty);
+  const pushToast = useStore((s) => s.pushToast);
   const [status, setStatus] = useState<StatusFilter>('All');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All types');
   const [sort, setSort] = useState<SortKey>('featured');
   const [selected, setSelected] = useState<Property | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
 
   // Portfolio-wide total: 18 managed + any created in this session.
@@ -72,6 +78,28 @@ export default function Properties({ query }: { query: string }) {
     if (sort === 'occupancy') out.sort((a, b) => occupancy(b) - occupancy(a));
     return out;
   }, [query, search, status, typeFilter, sort, properties]);
+
+  const editing = editId ? properties.find((p) => p.id === editId) ?? null : null;
+
+  const saveEdit = (id: string, d: PropertyDraft, imageUrl: string) => {
+    const existing = properties.find((p) => p.id === id);
+    if (!existing) return;
+    const seed = `custom-${Date.now()}`;
+    updateProperty(id, {
+      name: d.name,
+      address: `${d.address}, ${d.city}`,
+      country: d.country === '' ? undefined : d.country,
+      type: d.type,
+      units: Number(d.units),
+      // Base rent stays exactly what the user typed — never recalculated.
+      rent: Number(d.baseRent),
+      yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : existing.yearBuilt,
+      image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
+      imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
+    });
+    setEditId(null);
+    pushToast(`Saved changes for ${d.name}`);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -192,9 +220,14 @@ export default function Properties({ query }: { query: string }) {
                   </div>
                   <div className="row">
                     <Badge tone={tone(p.status)}>{p.status}</Badge>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => setSelected(p)}>
-                      View Details →
-                    </button>
+                    <span className="flex gap-1.5">
+                      <button className="btn btn-ghost btn-sm" type="button" onClick={() => setEditId(p.id)}>
+                        Edit
+                      </button>
+                      <button className="btn btn-ghost btn-sm" type="button" onClick={() => setSelected(p)}>
+                        View Details →
+                      </button>
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -204,7 +237,22 @@ export default function Properties({ query }: { query: string }) {
       )}
 
       {selected && (
-        <PropertyDetailsModal property={selected} onClose={() => setSelected(null)} />
+        <PropertyDetailsModal
+          property={selected}
+          onClose={() => setSelected(null)}
+          onEdit={() => { setEditId(selected.id); setSelected(null); }}
+        />
+      )}
+
+      {editing && (
+        <AddPropertyModal
+          mode="edit"
+          title={`Edit Property — ${editing.name}`}
+          initial={propertyToDraft(editing)}
+          initialImageUrl={editing.imageUrl}
+          onClose={() => setEditId(null)}
+          onSubmit={(d, img) => saveEdit(editing.id, d, img)}
+        />
       )}
     </div>
   );

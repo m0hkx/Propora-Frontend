@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { propertyName, tenantName } from '../../data/mock';
 import type { DocFile } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
 import { fmtDate } from '../../lib/format';
-import { docStatusTone } from './documentUtils';
+import { DOC_STATUS_ORDER, docStatusTone } from './documentUtils';
+import SortableTh from '../../components/SortableTh';
+import { byDate, byRank, byText, nextSort, sortRows } from '../../lib/sort';
+import type { SortState } from '../../lib/sort';
+
+type SortKey = 'name' | 'property' | 'unit' | 'type' | 'uploaded' | 'status';
 
 export type DocAction = 'view' | 'download' | 'edit' | 'move' | 'archive' | 'delete';
 
@@ -15,6 +20,7 @@ export default function DocumentTable({
   onAction: (a: DocAction, d: DocFile) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortState<SortKey>>({ key: 'uploaded', dir: 'desc' });
 
   useEffect(() => {
     if (!openId) return;
@@ -22,6 +28,22 @@ export default function DocumentTable({
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [openId]);
+
+  const onSort = (key: SortKey) => setSort((cur) => nextSort(cur, key));
+
+  // Documents with no unit/tenant sort last in both directions.
+  const sorted = useMemo(
+    () =>
+      sortRows(rows, sort, {
+        name: byText((d) => d.name),
+        property: byText((d) => propertyName(d.propertyId)),
+        unit: byText((d) => d.unit ?? (d.tenantId ? tenantName(d.tenantId) : undefined)),
+        type: byText((d) => d.type),
+        uploaded: byDate((d) => d.uploadDate),
+        status: byRank((d) => d.status, DOC_STATUS_ORDER),
+      }),
+    [rows, sort]
+  );
 
   const act = (a: DocAction, d: DocFile) => {
     setOpenId(null);
@@ -35,17 +57,17 @@ export default function DocumentTable({
         <table className="tenant-table">
           <thead>
             <tr>
-              <th>Document</th>
-              <th>Property</th>
-              <th className="max-compact:hidden">Unit / Tenant</th>
-              <th>Type</th>
-              <th className="max-compact:hidden">Uploaded</th>
-              <th>Status</th>
+              <SortableTh label="Document" sortKey="name" sort={sort} onSort={onSort} />
+              <SortableTh label="Property" sortKey="property" sort={sort} onSort={onSort} />
+              <SortableTh label="Unit / Tenant" sortKey="unit" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Type" sortKey="type" sort={sort} onSort={onSort} />
+              <SortableTh label="Uploaded" sortKey="uploaded" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Status" sortKey="status" sort={sort} onSort={onSort} />
               <th><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((d) => (
+            {sorted.map((d) => (
               <tr key={d.id} className="cursor-pointer" onClick={() => act('view', d)}>
                 <td><strong>{d.name}</strong><div className="small muted">{d.size}</div></td>
                 <td>{propertyName(d.propertyId)}</td>
@@ -103,7 +125,7 @@ export default function DocumentTable({
       </div>
 
       <div className="hidden max-md:flex flex-col gap-2.5 p-2">
-        {rows.map((d) => (
+        {sorted.map((d) => (
           <div key={d.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => act('view', d)}>
             <div className="row">
               <div><strong>{d.name}</strong><div className="small muted">{propertyName(d.propertyId)}{d.unit ? ` · Unit ${d.unit}` : ''}</div></div>

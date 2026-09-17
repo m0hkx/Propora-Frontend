@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { staffName } from './data/mock';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import Tenants from './pages/Tenants/Tenants';
@@ -13,6 +14,8 @@ import UploadDocumentModal from './pages/Documents/UploadDocumentModal';
 import type { NewDocDraft } from './pages/Documents/UploadDocumentModal';
 import Profile from './pages/Profile';
 import AddPropertyModal from './pages/Properties/AddPropertyModal';
+import { EMPTY_PROPERTY_DRAFT } from './pages/Properties/propertyForm';
+import type { PropertyDraft } from './pages/Properties/propertyForm';
 import TenantFormModal from './pages/Tenants/TenantFormModal';
 import type { TenantDraft } from './pages/Tenants/TenantFormModal';
 import AddLeaseModal from './pages/Leases/AddLeaseModal';
@@ -26,7 +29,6 @@ import Toasts from './components/Toasts';
 import NotificationsPanel from './components/NotificationsPanel';
 import MessagesPanel from './components/MessagesPanel';
 import { useStore } from './state/useStore';
-import type { Property } from './data/mock';
 
 const navPages = ['dashboard', 'properties', 'tenants', 'leases', 'payments', 'maintenance', 'documents'] as const;
 type NavPage = (typeof navPages)[number];
@@ -74,7 +76,9 @@ function AppShell() {
   const pushToast = useStore((s) => s.pushToast);
   const pushNotification = useStore((s) => s.pushNotification);
   const properties = useStore((s) => s.properties);
+  const units = useStore((s) => s.units);
   const maintenance = useStore((s) => s.maintenance);
+  const staff = useStore((s) => s.staff);
   const tenants = useStore((s) => s.tenants);
   const leases = useStore((s) => s.leases);
   const payments = useStore((s) => s.payments);
@@ -151,8 +155,24 @@ function AppShell() {
     else if (currentRoute === 'documents') setUploadOpen(true);
   };
 
-  const createProperty = (p: Property) => {
-    addProperty(p);
+  const createProperty = (d: PropertyDraft, imageUrl: string) => {
+    const units = Number(d.units);
+    const seed = `custom-${Date.now()}`;
+    addProperty({
+      id: `p-${Date.now()}`,
+      name: d.name,
+      address: `${d.address}, ${d.city}`,
+      country: d.country === '' ? undefined : d.country,
+      type: d.type,
+      units,
+      occupied: 0,
+      // Base rent is whatever the user typed — never derived.
+      rent: Number(d.baseRent),
+      status: 'Active',
+      image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
+      imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
+      yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : new Date().getFullYear(),
+    });
     setAddPropOpen(false);
     pushToast('Property created successfully');
     navigate('/properties');
@@ -167,6 +187,7 @@ function AppShell() {
       phone: d.phone === '' ? '—' : d.phone,
       propertyId: d.propertyId,
       unit: d.unit,
+      unitId: d.unitId,
       beds: d.beds,
       leaseStart: d.leaseStart === '' ? today : d.leaseStart,
       leaseEnd: d.leaseEnd,
@@ -190,6 +211,7 @@ function AppShell() {
       id: `L-${maxId + 1}`,
       propertyId: d.propertyId,
       tenantId: d.tenantId,
+      unitId: d.unitId,
       rent: d.rent,
       deposit: d.deposit,
       start: d.start,
@@ -224,11 +246,14 @@ function AppShell() {
       return Number.isNaN(n) ? m : Math.max(m, n);
     }, 200);
     const today = new Date().toISOString().slice(0, 10);
-    addMaintenance({
+    // Second gate: the store re-validates the property/unit/tenant relationship
+    // even if the form is bypassed.
+    const rejected = addMaintenance({
       id: `M-${maxId + 1}`,
       propertyId: d.propertyId,
-      unit: d.unit,
-      tenantId: d.tenantId,
+      scope: d.scope,
+      unitIds: d.unitIds,
+      tenantIds: d.tenantIds,
       title: d.title,
       description: d.description,
       category: d.category,
@@ -236,13 +261,17 @@ function AppShell() {
       status: 'Open',
       reported: today,
       scheduledDate: d.scheduledDate,
-      assignee: d.assignee,
+      assigneeId: d.assigneeId,
       estimatedCost: d.estimatedCost,
       history: [
         { date: today, text: 'Request created' },
-        ...(d.assignee !== 'Unassigned' ? [{ date: today, text: `Assigned to ${d.assignee}` }] : []),
+        ...(d.assigneeId ? [{ date: today, text: `Assigned to ${staffName(d.assigneeId, staff)}` }] : []),
       ],
     });
+    if (rejected) {
+      pushToast(rejected);
+      return;
+    }
     setNewMaintOpen(false);
     pushToast('Maintenance request created');
     pushNotification({
@@ -256,18 +285,26 @@ function AppShell() {
 
   const createDocument = (d: NewDocDraft) => {
     const today = new Date().toISOString().slice(0, 10);
-    addDocument({
-      id: `d-${Date.now()}`,
-      name: d.name,
-      propertyId: d.propertyId,
-      tenantId: d.tenantId,
-      type: d.type,
-      size: d.size,
-      uploadedBy: 'Jordan Miller',
-      uploadDate: today,
-      status: 'Active',
-      description: `${d.type} uploaded ${today}.`,
-    });
+    // Second gate: the storage layer re-validates even if the form is bypassed.
+    const rejected = addDocument(
+      {
+        id: `d-${Date.now()}`,
+        name: d.name,
+        propertyId: d.propertyId,
+        tenantId: d.tenantId,
+        type: d.type,
+        size: d.size,
+        uploadedBy: 'Jordan Miller',
+        uploadDate: today,
+        status: 'Active',
+        description: `${d.type} uploaded ${today}.`,
+      },
+      { sizeBytes: d.sizeBytes, mime: d.mime }
+    );
+    if (rejected) {
+      pushToast(rejected);
+      return;
+    }
     setUploadOpen(false);
     pushToast('Document uploaded successfully');
   };
@@ -472,16 +509,26 @@ function AppShell() {
         </div>
       </main>
 
-      {addPropOpen && <AddPropertyModal onClose={() => setAddPropOpen(false)} onCreate={createProperty} />}
+      {addPropOpen && (
+        <AddPropertyModal
+          mode="add"
+          title="Add Property"
+          initial={EMPTY_PROPERTY_DRAFT}
+          initialImageUrl=""
+          onClose={() => setAddPropOpen(false)}
+          onSubmit={createProperty}
+        />
+      )}
 
       {addTenantOpen && (
         <TenantFormModal
           title="Add Tenant"
           initial={{
             name: '', email: '', phone: '', propertyId: properties[0]?.id ?? '',
-            unit: '', beds: '2 BR', rent: 0, leaseStart: '', leaseEnd: '', status: 'Active',
+            unit: '', unitId: undefined, beds: '2 BR', rent: 0, leaseStart: '', leaseEnd: '', status: 'Active',
           }}
           properties={properties}
+          units={units}
           onClose={() => setAddTenantOpen(false)}
           onSubmit={createTenant}
         />
@@ -491,6 +538,7 @@ function AppShell() {
         <AddLeaseModal
           properties={properties}
           tenants={tenants}
+          units={units}
           onClose={() => setAddLeaseOpen(false)}
           onCreate={createLease}
         />
@@ -498,17 +546,25 @@ function AppShell() {
 
       {recordPayOpen && (
         <RecordPaymentModal
+          mode="add"
+          title="Record Payment"
+          initial={{
+            tenantId: '', propertyId: properties[0]?.id ?? '', amount: 0,
+            date: new Date().toISOString().slice(0, 10), method: 'Bank', status: 'Paid',
+          }}
           properties={properties}
           tenants={tenants}
           onClose={() => setRecordPayOpen(false)}
-          onCreate={createPayment}
+          onSubmit={createPayment}
         />
       )}
 
       {newMaintOpen && (
         <NewMaintenanceModal
           properties={properties}
-          assignees={[...new Set(maintenance.map((m) => m.assignee))].sort()}
+          units={units}
+          tenants={tenants}
+          staff={staff}
           onClose={() => setNewMaintOpen(false)}
           onCreate={createMaintenance}
         />

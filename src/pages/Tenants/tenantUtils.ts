@@ -1,7 +1,13 @@
 import type { Tenant } from '../../data/mock';
 
 export type TenantTab = 'All' | 'Active' | 'Pending' | 'Expiring' | 'Overdue';
-export type TenantSort = 'featured' | 'name' | 'rent' | 'leaseEnd';
+/** 'featured' keeps the store's own order — the default, unsorted view. */
+export type TenantSort = 'featured' | 'name' | 'property' | 'unit' | 'rent' | 'leaseEnd' | 'payment' | 'status';
+
+/** Lifecycle orders for the status columns. */
+export const LEASE_STATUS_ORDER = ['Active', 'Expiring Soon', 'Expired'] as const satisfies readonly Tenant['leaseStatus'][];
+export const PAYMENT_STATUS_ORDER = ['Paid', 'Pending', 'Overdue'] as const satisfies readonly Tenant['paymentStatus'][];
+export const TENANT_STATUS_ORDER = ['Active', 'Pending', 'Inactive'] as const satisfies readonly Tenant['status'][];
 export type TenantAction = 'view' | 'edit' | 'lease' | 'payments' | 'delete';
 
 export function initials(name: string): string {

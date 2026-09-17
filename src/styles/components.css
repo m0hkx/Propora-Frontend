@@ -137,7 +137,27 @@
 }
 
 .th-sort {
-  @apply border-0 bg-transparent p-0 font-semibold text-inherit text-[inherit] font-[inherit] inline-flex items-center gap-1 rounded-md hover:text-accent;
+  @apply border-0 bg-transparent p-0 font-semibold text-inherit text-[inherit] font-[inherit] inline-flex items-center gap-1 rounded-md cursor-pointer hover:text-accent;
+}
+
+.th-sort.is-sorted {
+  @apply text-accent;
+}
+
+/* Subtle until it matters: a faint ↕ marks the column as sortable, the active
+   column shows a solid ▲/▼. */
+.th-sort-arrow {
+  @apply text-[10px] leading-none opacity-30;
+  transition: opacity 0.15s var(--ease-feedback);
+}
+
+.th-sort:hover .th-sort-arrow,
+.th-sort:focus-visible .th-sort-arrow {
+  @apply opacity-70;
+}
+
+.th-sort.is-sorted .th-sort-arrow {
+  @apply opacity-100;
 }
 
 /* Tailwind's built-in sr-only replaces the legacy copy (equivalent). */
@@ -168,6 +188,118 @@
 .field select.invalid,
 .field textarea.invalid {
   @apply border-destructive;
+}
+
+/* --- Searchable select (SearchSelect) ---
+   Matches .field input/select metrics so a combo sits flush beside a plain
+   input in the same grid row. */
+.combo {
+  @apply relative;
+}
+
+.combo-trigger {
+  @apply w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-chip border border-border bg-white text-inherit text-left font-[inherit] cursor-pointer;
+}
+
+.combo-trigger.invalid {
+  @apply border-destructive;
+}
+
+.combo-placeholder {
+  @apply text-muted-foreground;
+}
+
+.combo-caret {
+  @apply text-muted-foreground shrink-0;
+}
+
+.combo-panel {
+  @apply absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white border border-border rounded-chip shadow-[0_20px_50px_rgba(15,118,110,0.18)] p-2 flex flex-col gap-2;
+  animation: drop-in 0.16s var(--ease-feedback) both;
+  transform-origin: top center;
+}
+
+.combo-search input {
+  @apply w-full px-3 py-2 rounded-chip border border-border bg-white text-inherit;
+}
+
+.combo-list {
+  @apply list-none m-0 p-0 max-h-[240px] overflow-y-auto flex flex-col;
+}
+
+.combo-option {
+  @apply w-full flex items-center gap-2 text-left px-3 py-2 rounded-chip border-0 bg-transparent text-inherit font-[inherit] cursor-pointer;
+}
+
+.combo-option.active {
+  @apply bg-muted;
+}
+
+.combo-option.selected {
+  @apply font-bold text-primary;
+}
+
+/* Two-line option rows (label + muted identifying detail, e.g. email/phone). */
+.combo-option-body {
+  @apply flex flex-col gap-0.5;
+}
+
+.combo-option-detail {
+  @apply text-xs font-normal text-muted-foreground;
+}
+
+.combo-option.selected .combo-option-detail {
+  @apply text-muted-foreground;
+}
+
+.combo-empty {
+  @apply px-3 py-2 text-muted-foreground text-sm;
+}
+
+.combo-foot {
+  @apply flex items-center justify-between gap-2 pt-1 border-t border-[#F1F5F9];
+}
+
+/* --- Multi-select (MultiSearchSelect) --- */
+.ms-check {
+  @apply grid place-items-center size-[18px] shrink-0 rounded-[5px] border border-border bg-white text-[11px] font-bold text-primary;
+}
+
+.combo-option.selected .ms-check {
+  @apply bg-primary border-primary text-white;
+}
+
+.chip-list {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.chip {
+  @apply inline-flex items-center gap-1.5 bg-muted text-foreground text-[13px] font-semibold pl-3 pr-1.5 py-1 rounded-full;
+}
+
+.chip-remove {
+  @apply grid place-items-center size-[18px] rounded-full border-0 bg-transparent text-muted-foreground leading-none cursor-pointer hover:bg-white hover:text-foreground;
+}
+
+/* --- Phone field (PhoneInput): dial-code SearchSelect + national number input --- */
+.phone-field {
+  @apply flex gap-2 items-start;
+}
+
+.phone-country {
+  @apply w-[136px] shrink-0;
+}
+
+.phone-country .combo-trigger span {
+  @apply truncate block;
+}
+
+.phone-country .combo-panel {
+  @apply w-[300px];
+}
+
+.phone-number {
+  @apply flex-1 min-w-0;
 }
 
 /* --- Tabs --- */
@@ -584,6 +716,12 @@
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.45) 100%);
   pointer-events: none;
   z-index: 1;
+}
+
+/* Details-modal header image: no legibility scrim — that treatment belongs
+   to cards carrying overlay text. Without it the photo renders clean. */
+.prop-image.no-scrim::after {
+  display: none;
 }
 
 .prop-initials {

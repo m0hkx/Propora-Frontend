@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react';
 import { propertyCity, propertyName } from '../../data/mock';
-import type { Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
 import TenantRow, { TenantAvatar } from './TenantRow';
 import { fmtDate } from '../../lib/format';
 import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
-import type { TenantAction } from './tenantUtils';
+import type { TenantAction, TenantSort } from './tenantUtils';
+import SortableTh from '../../components/SortableTh';
+import type { SortState } from '../../lib/sort';
 
 export default function TenantTable({
   rows,
+  properties,
+  sort,
+  onSort,
   onSelect,
   onAction,
 }: {
   rows: Tenant[];
+  properties: Property[];
+  sort: SortState<TenantSort>;
+  onSort: (key: TenantSort) => void;
   onSelect: (t: Tenant) => void;
   onAction: (a: TenantAction, t: Tenant) => void;
 }) {
@@ -36,13 +44,13 @@ export default function TenantTable({
         <table className="tenant-table">
           <thead>
             <tr>
-              <th>Tenant</th>
-              <th>Property</th>
-              <th className="max-compact:hidden">Unit</th>
-              <th>Monthly Rent</th>
-              <th className="max-compact:hidden">Lease</th>
-              <th>Payment</th>
-              <th>Status</th>
+              <SortableTh label="Tenant" sortKey="name" sort={sort} onSort={onSort} />
+              <SortableTh label="Property" sortKey="property" sort={sort} onSort={onSort} />
+              <SortableTh label="Unit" sortKey="unit" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Monthly Rent" sortKey="rent" sort={sort} onSort={onSort} />
+              <SortableTh label="Lease" sortKey="leaseEnd" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Payment" sortKey="payment" sort={sort} onSort={onSort} />
+              <SortableTh label="Status" sortKey="status" sort={sort} onSort={onSort} />
               <th><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -51,6 +59,7 @@ export default function TenantTable({
               <TenantRow
                 key={t.id}
                 tenant={t}
+                properties={properties}
                 menuOpen={openId === t.id}
                 onToggleMenu={() => setOpenId((id) => (id === t.id ? null : t.id))}
                 onAction={act}
@@ -73,11 +82,11 @@ export default function TenantTable({
               <Badge tone={tenantTone(t.status)}>{t.status}</Badge>
             </div>
             <div className="row small mt-2">
-              <span>{propertyName(t.propertyId)} · Unit {t.unit}</span>
+              <span>{propertyName(t.propertyId, properties)} · Unit {t.unit}</span>
               <strong>${t.rent.toLocaleString('en-US')}<span className="muted">/mo</span></strong>
             </div>
             <div className="row small mt-1.5">
-              <span className="muted">{propertyCity(t.propertyId)} · Lease {fmtDate(t.leaseEnd)}</span>
+              <span className="muted">{propertyCity(t.propertyId, properties)} · Lease {fmtDate(t.leaseEnd)}</span>
               <span className="flex gap-1.5">
                 <Badge tone={leaseTone(t.leaseStatus)}>{t.leaseStatus}</Badge>
                 <Badge tone={paymentTone(t.paymentStatus)}>{t.paymentStatus}</Badge>

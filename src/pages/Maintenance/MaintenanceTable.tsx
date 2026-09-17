@@ -1,52 +1,31 @@
-import { useEffect, useState } from 'react';
-import { formatMoney, propertyName, tenantName } from '../../data/mock';
-import type { MaintenanceRequest } from '../../data/mock';
+import { useEffect, useMemo, useState } from 'react';
+import { formatMoney, propertyName, staffName } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, Tenant, Unit } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
+import SortableTh from '../../components/SortableTh';
 import { fmtDate } from '../../lib/format';
-import { priorityTone, statusTone } from './maintenanceUtils';
+import { byDate, byNumber, byRank, byText, nextSort, sortRows } from '../../lib/sort';
+import type { SortState } from '../../lib/sort';
+import { MAINTENANCE_PRIORITY_ORDER, MAINTENANCE_STATUS_ORDER, priorityTone, scopeLabel, statusTone, tenantsLabel } from './maintenanceUtils';
 
-type SortKey = 'title' | 'created' | 'priority' | 'cost';
-
-const PRIORITY_RANK: Record<MaintenanceRequest['priority'], number> = {
-  Urgent: 0, High: 1, Medium: 2, Low: 3,
-};
-
-function SortHeader({
-  label,
-  sortKey,
-  activeKey,
-  dir,
-  onSort,
-  className,
-}: {
-  label: string;
-  sortKey: SortKey;
-  activeKey: SortKey;
-  dir: 'asc' | 'desc';
-  onSort: (k: SortKey) => void;
-  className?: string;
-}) {
-  const active = activeKey === sortKey;
-  return (
-    <th className={className} aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-      <button type="button" className="th-sort" onClick={() => onSort(sortKey)} aria-label={`Sort by ${label}`}>
-        {label} <span aria-hidden="true">{active ? (dir === 'asc' ? '▲' : '▼') : ''}</span>
-      </button>
-    </th>
-  );
-}
+type SortKey = 'title' | 'property' | 'tenant' | 'priority' | 'assignee' | 'created' | 'status' | 'cost';
 
 export default function MaintenanceTable({
   rows,
+  units,
+  tenants,
+  staff,
   onSelect,
 }: {
   rows: MaintenanceRequest[];
+  units: Unit[];
+  tenants: Tenant[];
+  staff: MaintenanceStaff[];
   onSelect: (m: MaintenanceRequest) => void;
 }) {
   const [visible, setVisible] = useState(20);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<SortKey>('created');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [sort, setSort] = useState<SortState<SortKey>>({ key: 'created', dir: 'desc' });
 
   useEffect(() => {
     if (!openId) return;
@@ -55,23 +34,27 @@ export default function MaintenanceTable({
     return () => document.removeEventListener('click', close);
   }, [openId]);
 
-  const onSort = (k: SortKey) => {
-    if (k === sortKey) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(k);
-      setSortDir(k === 'title' ? 'asc' : 'desc');
-    }
-  };
+  const onSort = (k: SortKey) => setSort((cur) => nextSort(cur, k));
 
-  const sorted = [...rows].sort((a, b) => {
-    let cmp: number;
-    if (sortKey === 'title') cmp = a.title.localeCompare(b.title);
-    else if (sortKey === 'created') cmp = a.reported.localeCompare(b.reported);
-    else if (sortKey === 'priority') cmp = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-    else cmp = (a.actualCost ?? a.estimatedCost) - (b.actualCost ?? b.estimatedCost);
-    return sortDir === 'asc' ? cmp : -cmp;
-  });
+  // Cost sorts on the raw number behind the formatted cell, dates chronologically,
+  // priority/status by their domain order.
+  const sorted = useMemo(
+    () =>
+      sortRows(rows, sort, {
+        title: byText((m) => m.title),
+        property: byText((m) => propertyName(m.propertyId)),
+        tenant: byText((m) => {
+          const label = tenantsLabel(m, tenants);
+          return label === '—' ? undefined : label;
+        }),
+        priority: byRank((m) => m.priority, MAINTENANCE_PRIORITY_ORDER),
+        assignee: byText((m) => (m.assigneeId ? staffName(m.assigneeId, staff) : undefined)),
+        created: byDate((m) => m.reported),
+        status: byRank((m) => m.status, MAINTENANCE_STATUS_ORDER),
+        cost: byNumber((m) => m.actualCost ?? m.estimatedCost),
+      }),
+    [rows, sort, tenants, staff]
+  );
 
   // When filters change, clamping keeps the visible window valid without an effect.
   const shown = sorted.slice(0, Math.max(visible, 20));
@@ -83,14 +66,14 @@ export default function MaintenanceTable({
         <table className="tenant-table">
           <thead>
             <tr>
-              <SortHeader label="Request" sortKey="title" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <th>Property / Unit</th>
-              <th className="max-compact:hidden">Tenant</th>
-              <SortHeader label="Priority" sortKey="priority" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <th className="max-compact:hidden">Assigned To</th>
-              <SortHeader label="Created" sortKey="created" activeKey={sortKey} dir={sortDir} onSort={onSort} className="max-compact:hidden" />
-              <th>Status</th>
-              <SortHeader label="Cost" sortKey="cost" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh label="Request" sortKey="title" sort={sort} onSort={onSort} />
+              <SortableTh label="Property / Target" sortKey="property" sort={sort} onSort={onSort} />
+              <SortableTh label="Tenant" sortKey="tenant" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Priority" sortKey="priority" sort={sort} onSort={onSort} />
+              <SortableTh label="Assigned To" sortKey="assignee" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Created" sortKey="created" sort={sort} onSort={onSort} className="max-compact:hidden" />
+              <SortableTh label="Status" sortKey="status" sort={sort} onSort={onSort} />
+              <SortableTh label="Cost" sortKey="cost" sort={sort} onSort={onSort} />
               <th><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -98,10 +81,10 @@ export default function MaintenanceTable({
             {shown.map((m) => (
               <tr key={m.id} className="cursor-pointer" onClick={() => onSelect(m)}>
                 <td><strong>{m.title}</strong><div className="small muted">{m.category} · {m.id}</div></td>
-                <td>{propertyName(m.propertyId)}<div className="small muted">Unit {m.unit}</div></td>
-                <td className="max-compact:hidden small">{m.tenantId ? tenantName(m.tenantId) : '—'}</td>
+                <td>{propertyName(m.propertyId)}<div className="small muted">{scopeLabel(m, units)}</div></td>
+                <td className="max-compact:hidden small">{tenantsLabel(m, tenants)}</td>
                 <td><Badge tone={priorityTone(m.priority)}>{m.priority}</Badge></td>
-                <td className="max-compact:hidden small">{m.assignee}</td>
+                <td className="max-compact:hidden small">{staffName(m.assigneeId, staff)}</td>
                 <td className="max-compact:hidden small">{fmtDate(m.reported, { year: false })}</td>
                 <td><Badge tone={statusTone(m.status)}>{m.status}</Badge></td>
                 <td><strong>{formatMoney(m.actualCost ?? m.estimatedCost)}</strong></td>
@@ -136,11 +119,11 @@ export default function MaintenanceTable({
         {shown.map((m) => (
           <div key={m.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => onSelect(m)}>
             <div className="row">
-              <div><strong>{m.title}</strong><div className="small muted">{propertyName(m.propertyId)} · Unit {m.unit}</div></div>
+              <div><strong>{m.title}</strong><div className="small muted">{propertyName(m.propertyId)} · {scopeLabel(m, units)}</div></div>
               <Badge tone={priorityTone(m.priority)}>{m.priority}</Badge>
             </div>
             <div className="row small mt-2">
-              <span className="muted">{m.assignee} · {fmtDate(m.reported, { year: false })}</span>
+              <span className="muted">{staffName(m.assigneeId, staff)} · {fmtDate(m.reported, { year: false })}</span>
               <Badge tone={statusTone(m.status)}>{m.status}</Badge>
             </div>
           </div>

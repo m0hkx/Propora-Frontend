@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Payment, Property, Tenant } from '../../data/mock';
+import { tenantById } from '../../data/mock';
 import Modal from '../../components/Modal';
+import SearchSelect from '../../components/SearchSelect';
+import { tenantOption } from '../Leases/leaseUtils';
 
 export interface PaymentDraft {
   tenantId: string;
@@ -12,26 +15,46 @@ export interface PaymentDraft {
 }
 
 export default function RecordPaymentModal({
+  mode,
+  title,
+  initial,
   properties,
   tenants,
   onClose,
-  onCreate,
+  onSubmit,
 }: {
+  mode: 'add' | 'edit';
+  title: string;
+  initial: PaymentDraft;
   properties: Property[];
   tenants: Tenant[];
   onClose: () => void;
-  onCreate: (d: PaymentDraft) => void;
+  onSubmit: (d: PaymentDraft) => void;
 }) {
-  const [tenantId, setTenantId] = useState('');
-  const [propertyId, setPropertyId] = useState(properties[0]?.id ?? '');
-  const [amount, setAmount] = useState(0);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [method, setMethod] = useState<Payment['method']>('Bank');
-  const [status, setStatus] = useState<Payment['status']>('Paid');
+  const [tenantId, setTenantId] = useState(initial.tenantId);
+  const [propertyId, setPropertyId] = useState(initial.propertyId);
+  const [amount, setAmount] = useState(initial.amount);
+  const [date, setDate] = useState(initial.date);
+  const [method, setMethod] = useState<Payment['method']>(initial.method);
+  const [status, setStatus] = useState<Payment['status']>(initial.status);
   const [submitted, setSubmitted] = useState(false);
 
+  // Same searchable options as the lease form — one builder, no duplicate
+  // tenant-search logic. Full list: the picker caps rendered rows itself.
+  const tenantOptions = useMemo(() => tenants.map(tenantOption), [tenants]);
+  const tenantMissing = tenantId !== '' && tenantById(tenantId, tenants) === undefined;
+
+  const selectTenant = (id: string) => {
+    setTenantId(id);
+    const t = id === '' ? undefined : tenantById(id, tenants);
+    if (t) {
+      setPropertyId(t.propertyId);
+      if (!(amount > 0)) setAmount(t.rent);
+    }
+  };
+
   const errs = {
-    tenant: tenantId === '' ? 'Tenant is required.' : '',
+    tenant: tenantId === '' ? 'Tenant is required.' : tenantMissing ? 'That tenant is no longer available. Pick another.' : '',
     property: propertyId === '' ? 'Property is required.' : '',
     amount: !(amount > 0) ? 'Enter an amount greater than 0.' : '',
     date: date === '' ? 'Date is required.' : '',
@@ -43,31 +66,24 @@ export default function RecordPaymentModal({
   const submit = () => {
     setSubmitted(true);
     if (invalid) return;
-    onCreate({ tenantId, propertyId, amount, date, method, status });
+    onSubmit({ tenantId, propertyId, amount, date, method, status });
   };
 
   return (
-    <Modal title="Record Payment" onClose={onClose}>
+    <Modal title={title} onClose={onClose}>
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         <div className="field">
           <label htmlFor="rp-tenant">Tenant *</label>
-          <select
+          <SearchSelect
             id="rp-tenant"
             value={tenantId}
-            onChange={(e) => {
-              const id = e.target.value;
-              setTenantId(id);
-              const t = tenants.find((x) => x.id === id);
-              if (t) {
-                setPropertyId(t.propertyId);
-                if (!(amount > 0)) setAmount(t.rent);
-              }
-            }}
-            className={cls(errs.tenant !== '')}
-          >
-            <option value="">Select tenant</option>
-            {tenants.slice(0, 40).map((t) => <option key={t.id} value={t.id}>{t.name} · Unit {t.unit}</option>)}
-          </select>
+            onChange={selectTenant}
+            options={tenantOptions}
+            placeholder="Select tenant"
+            searchPlaceholder="Search by name, email, phone or unit..."
+            emptyLabel="No tenant matches that search"
+            invalid={submitted && errs.tenant !== ''}
+          />
           {err(errs.tenant)}
         </div>
         <div className="field">
@@ -107,7 +123,9 @@ export default function RecordPaymentModal({
       </div>
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>
-        <button className="btn btn-teal" type="button" onClick={submit}>Save Payment</button>
+        <button className="btn btn-teal" type="button" onClick={submit}>
+          {mode === 'add' ? 'Save Payment' : 'Save Changes'}
+        </button>
       </div>
     </Modal>
   );

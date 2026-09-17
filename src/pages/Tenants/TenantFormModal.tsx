@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import type { Property, Tenant } from '../../data/mock';
+import type { Property, Tenant, Unit } from '../../data/mock';
+import { unitsForProperty } from '../../lib/units';
 import Modal from '../../components/Modal';
+import PhoneInput from '../../components/PhoneInput';
+import { DEFAULT_CALLING_COUNTRY, callingCountryForName, isPhoneValid } from '../../data/phone';
 
 export interface TenantDraft {
   name: string;
@@ -8,6 +11,8 @@ export interface TenantDraft {
   phone: string;
   propertyId: string;
   unit: string;
+  /** Link to a managed unit of the selected property; undefined for free-text units. */
+  unitId?: string;
   beds: string;
   rent: number;
   leaseStart: string;
@@ -17,25 +22,38 @@ export interface TenantDraft {
 
 const BED_OPTIONS = ['Studio', '1 BR', '2 BR', '3 BR', '4 BR'];
 
+const CUSTOM_UNIT = '__custom';
+
 export default function TenantFormModal({
   title,
   initial,
   properties,
+  units,
   onClose,
   onSubmit,
 }: {
   title: string;
   initial: TenantDraft;
   properties: Property[];
+  units: Unit[];
   onClose: () => void;
   onSubmit: (d: TenantDraft) => void;
 }) {
   const [form, setForm] = useState<TenantDraft>(initial);
   const [submitted, setSubmitted] = useState(false);
+  // Free-text mode only when editing a legacy tenant whose label has no unit record.
+  const [unitCustom, setUnitCustom] = useState(initial.unitId === undefined && initial.unit !== '');
+
+  const selectedProperty = properties.find((p) => p.id === form.propertyId);
+  const phoneCountry = callingCountryForName(selectedProperty?.country) ?? DEFAULT_CALLING_COUNTRY;
+  // Only units of the selected property are ever offered — never other properties'.
+  const propUnits = unitsForProperty(units, form.propertyId);
+  const useUnitSelect = propUnits.length > 0 && !unitCustom;
 
   const errs = {
     name: form.name.trim() === '' ? 'Full name is required.' : '',
     email: form.email.trim() === '' ? 'Email is required.' : !/^\S+@\S+\.\S+$/.test(form.email.trim()) ? 'Enter a valid email address.' : '',
+    phone: form.phone.trim() !== '' && !isPhoneValid(form.phone, phoneCountry) ? 'Enter a valid phone number.' : '',
     property: form.propertyId === '' ? 'Property is required.' : '',
     unit: form.unit.trim() === '' ? 'Unit is required.' : '',
     rent: !(form.rent > 0) ? 'Enter a monthly rent greater than 0.' : '',
@@ -66,11 +84,27 @@ export default function TenantFormModal({
         </div>
         <div className="field">
           <label htmlFor="tf-phone">Phone</label>
-          <input id="tf-phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(555) 555-0100" />
+          <PhoneInput
+            id="tf-phone"
+            value={form.phone}
+            defaultCountry={phoneCountry}
+            onChange={(phone) => setForm({ ...form, phone })}
+            invalid={submitted && errs.phone !== ''}
+          />
+          {err(errs.phone)}
         </div>
         <div className="field">
           <label htmlFor="tf-prop">Property *</label>
-          <select id="tf-prop" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value })} className={cls(errs.property !== '')}>
+          <select
+            id="tf-prop"
+            value={form.propertyId}
+            onChange={(e) => {
+              // A unit link never survives a property switch — units belong to exactly one property.
+              setForm({ ...form, propertyId: e.target.value, unit: '', unitId: undefined });
+              setUnitCustom(false);
+            }}
+            className={cls(errs.property !== '')}
+          >
             <option value="">Select property</option>
             {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
@@ -78,7 +112,41 @@ export default function TenantFormModal({
         </div>
         <div className="field">
           <label htmlFor="tf-unit">Unit *</label>
-          <input id="tf-unit" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className={cls(errs.unit !== '')} placeholder="A-204" />
+          {useUnitSelect ? (
+            <select
+              id="tf-unit"
+              value={form.unitId ?? ''}
+              onChange={(e) => {
+                const id = e.target.value;
+                if (id === CUSTOM_UNIT) {
+                  setUnitCustom(true);
+                  setForm({ ...form, unit: '', unitId: undefined });
+                  return;
+                }
+                const picked = propUnits.find((u) => u.id === id);
+                setForm({
+                  ...form,
+                  unitId: id === '' ? undefined : id,
+                  unit: picked?.name ?? '',
+                  // Adopt the unit's rent only while the field is still empty.
+                  rent: form.rent > 0 ? form.rent : picked?.rent ?? form.rent,
+                });
+              }}
+              className={cls(errs.unit !== '')}
+            >
+              <option value="">Select unit</option>
+              {propUnits.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.type} · ${u.rent.toLocaleString('en-US')}/mo</option>)}
+              <option value={CUSTOM_UNIT}>Other — enter manually</option>
+            </select>
+          ) : (
+            <input
+              id="tf-unit"
+              value={form.unit}
+              onChange={(e) => setForm({ ...form, unit: e.target.value, unitId: undefined })}
+              className={cls(errs.unit !== '')}
+              placeholder="A-204"
+            />
+          )}
           {err(errs.unit)}
         </div>
         <div className="field">

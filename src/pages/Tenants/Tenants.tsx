@@ -14,6 +14,9 @@ import TenantFormModal from './TenantFormModal';
 import type { TenantDraft } from './TenantFormModal';
 import { matchesTab } from './tenantUtils';
 import type { TenantAction, TenantSort, TenantTab } from './tenantUtils';
+import { PAYMENT_STATUS_ORDER, TENANT_STATUS_ORDER } from './tenantUtils';
+import { byDate, byNumber, byRank, byText, nextSort, sortRows } from '../../lib/sort';
+import type { SortState } from '../../lib/sort';
 
 const PAGE_SIZE = 10;
 
@@ -28,9 +31,10 @@ export default function Tenants({
   const pushToast = useStore((s) => s.pushToast);
   const tenants = useStore((s) => s.tenants);
   const properties = useStore((s) => s.properties);
+  const units = useStore((s) => s.units);
   const [tab, setTab] = useState<TenantTab>('All');
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<TenantSort>('featured');
+  const [sort, setSort] = useState<SortState<TenantSort>>({ key: 'featured', dir: 'asc' });
   const [page, setPage] = useState(1);
   // Selected tenant id mirrors the /tenants/:id detail route (modal for now).
   const [viewId, setViewId] = useState<string | null>(null);
@@ -50,21 +54,27 @@ export default function Tenants({
 
   const filtered = useMemo(() => {
     const q = `${query} ${search}`.trim().toLowerCase();
-    let out = tenants.filter((t) => {
+    const out = tenants.filter((t) => {
       if (!matchesTab(t, tab)) return false;
       if (
         q &&
-        !(t.name + ' ' + t.email + ' ' + t.phone + ' ' + propertyName(t.propertyId) + ' ' + t.unit).toLowerCase().includes(q)
+        !(t.name + ' ' + t.email + ' ' + t.phone + ' ' + propertyName(t.propertyId, properties) + ' ' + t.unit).toLowerCase().includes(q)
       )
         return false;
       return true;
     });
-    out = [...out];
-    if (sort === 'name') out.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === 'rent') out.sort((a, b) => b.rent - a.rent);
-    if (sort === 'leaseEnd') out.sort((a, b) => a.leaseEnd.localeCompare(b.leaseEnd));
-    return out;
-  }, [tenants, tab, search, sort, query]);
+    // Sorted here, over the whole filtered set, so pagination slices an
+    // already-ordered list rather than reordering one page.
+    return sortRows(out, sort, {
+      name: byText((t) => t.name),
+      property: byText((t) => propertyName(t.propertyId, properties)),
+      unit: byText((t) => t.unit),
+      rent: byNumber((t) => t.rent),
+      leaseEnd: byDate((t) => t.leaseEnd),
+      payment: byRank((t) => t.paymentStatus, PAYMENT_STATUS_ORDER),
+      status: byRank((t) => t.status, TENANT_STATUS_ORDER),
+    });
+  }, [tenants, properties, tab, search, sort, query]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -120,7 +130,7 @@ export default function Tenants({
         sort={sort}
         onTab={(t) => { setTab(t); setPage(1); }}
         onSearch={(s) => { setSearch(s); setPage(1); }}
-        onSort={(s) => { setSort(s); setPage(1); }}
+        onSort={(key) => { setSort({ key, dir: 'asc' }); setPage(1); }}
       />
 
       <div className="row">
@@ -130,7 +140,14 @@ export default function Tenants({
       {rows.length === 0 ? (
         <Card><p className="muted">No tenants match your filters.</p></Card>
       ) : (
-        <TenantTable rows={rows} onSelect={(t) => setViewId(t.id)} onAction={onAction} />
+        <TenantTable
+          rows={rows}
+          properties={properties}
+          sort={sort}
+          onSort={(key) => { setSort((cur) => nextSort(cur, key)); setPage(1); }}
+          onSelect={(t) => setViewId(t.id)}
+          onAction={onAction}
+        />
       )}
 
       <TenantPagination page={safePage} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
@@ -138,6 +155,7 @@ export default function Tenants({
       {viewed && (
         <TenantDetailsModal
           tenant={viewed}
+          properties={properties}
           onClose={() => setViewId(null)}
           onEdit={() => { setViewId(null); setEditId(viewed.id); }}
           onViewLease={() => { setViewId(null); navigate(`/leases?tenantId=${viewed.id}`); }}
@@ -150,11 +168,12 @@ export default function Tenants({
           title={`Edit Tenant — ${edited.name}`}
           initial={{
             name: edited.name, email: edited.email, phone: edited.phone,
-            propertyId: edited.propertyId, unit: edited.unit, beds: edited.beds,
+            propertyId: edited.propertyId, unit: edited.unit, unitId: edited.unitId, beds: edited.beds,
             rent: edited.rent, leaseStart: edited.leaseStart, leaseEnd: edited.leaseEnd,
             status: edited.status,
           }}
           properties={properties}
+          units={units}
           onClose={() => setEditId(null)}
           onSubmit={(d) => saveEdit(edited.id, d)}
         />

@@ -1,55 +1,100 @@
 import { useState } from 'react';
-import { tenants } from '../../data/mock';
-import type { MaintenanceRequest, Property } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } from '../../data/mock';
+import { tenantOption } from '../Leases/leaseUtils';
+import { resolveUnitStatus, unitsForProperty } from '../../lib/units';
+import { validateMaintenanceTarget } from '../../lib/maintenanceScope';
 import Modal from '../../components/Modal';
+import SearchSelect from '../../components/SearchSelect';
+import MultiSearchSelect from '../../components/MultiSearchSelect';
 
 type Category = MaintenanceRequest['category'];
 type Priority = MaintenanceRequest['priority'];
+type Scope = MaintenanceRequest['scope'];
 
 const CATEGORIES: Category[] = ['Plumbing', 'Electrical', 'HVAC', 'Appliance', 'Structural', 'Cleaning', 'General', 'Other'];
+
+const SCOPES: { value: Scope; label: string }[] = [
+  { value: 'property', label: 'Entire Property' },
+  { value: 'units', label: 'Specific Units' },
+  { value: 'tenants', label: 'Specific Tenants' },
+];
 
 export interface NewMaintenanceDraft {
   title: string;
   description: string;
   propertyId: string;
-  unit: string;
-  tenantId?: string;
+  scope: Scope;
+  /** Populated only when scope === 'units'. */
+  unitIds: string[];
+  /** Populated only when scope === 'tenants'. */
+  tenantIds: string[];
   category: Category;
   priority: Priority;
-  assignee: string;
+  assigneeId?: string;
   scheduledDate?: string;
   estimatedCost: number;
 }
 
 export default function NewMaintenanceModal({
   properties,
-  assignees,
+  units,
+  tenants,
+  staff,
   onClose,
   onCreate,
 }: {
   properties: Property[];
-  assignees: string[];
+  units: Unit[];
+  tenants: Tenant[];
+  staff: MaintenanceStaff[];
   onClose: () => void;
   onCreate: (d: NewMaintenanceDraft) => void;
 }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [propertyId, setPropertyId] = useState(properties[0]?.id ?? '');
-  const [unit, setUnit] = useState('');
-  const [tenantId, setTenantId] = useState('');
+  const [scope, setScope] = useState<Scope>('property');
+  const [unitIds, setUnitIds] = useState<string[]>([]);
+  const [tenantIds, setTenantIds] = useState<string[]>([]);
   const [category, setCategory] = useState<Category>('Plumbing');
   const [priority, setPriority] = useState<Priority>('Medium');
-  const [assignee, setAssignee] = useState('Unassigned');
+  const [assigneeId, setAssigneeId] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [cost, setCost] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  // Only units/tenants of the selected property are ever offered — never other properties'.
+  const propUnits = unitsForProperty(units, propertyId);
+  const propTenants = tenants.filter((t) => t.propertyId === propertyId);
+
+  const unitOptions = propUnits.map((u) => ({
+    value: u.id,
+    label: `${u.name} · ${u.type}`,
+    keywords: u.name,
+    detail: `Floor ${u.floor ?? '—'} · ${resolveUnitStatus(u, tenants, [])}`,
+  }));
+  const tenantOptions = propTenants.map(tenantOption);
+  const activeStaff = staff.filter((s) => s.status === 'Active');
+  const staffOptions = activeStaff.map((s) => ({ value: s.id, label: s.name, detail: s.specialty }));
+
+  const selectProperty = (id: string) => {
+    setPropertyId(id);
+    // A unit/tenant selection never survives a property switch — both belong to exactly one property.
+    setUnitIds([]);
+    setTenantIds([]);
+  };
+
+  const selectScope = (s: Scope) => {
+    setScope(s);
+    setUnitIds([]);
+    setTenantIds([]);
+  };
+
+  const targetErr = validateMaintenanceTarget({ propertyId, scope, unitIds, tenantIds }, units, tenants);
   const errs = {
     title: title.trim() === '' ? 'Title is required.' : '',
     description: description.trim() === '' ? 'Description is required.' : '',
-    property: propertyId === '' ? 'Property is required.' : '',
-    unit: unit.trim() === '' ? 'Unit is required.' : '',
-    category: category === ('' as Category) ? 'Category is required.' : '',
+    target: targetErr ?? '',
   };
   const invalid = Object.values(errs).some((e) => e !== '');
 
@@ -60,11 +105,12 @@ export default function NewMaintenanceModal({
       title: title.trim(),
       description: description.trim(),
       propertyId,
-      unit: unit.trim(),
-      tenantId: tenantId === '' ? undefined : tenantId,
+      scope,
+      unitIds: scope === 'units' ? unitIds : [],
+      tenantIds: scope === 'tenants' ? tenantIds : [],
       category,
       priority,
-      assignee,
+      assigneeId: assigneeId === '' ? undefined : assigneeId,
       scheduledDate: scheduledDate === '' ? undefined : scheduledDate,
       estimatedCost: cost.trim() === '' ? 0 : Number(cost),
     });
@@ -81,9 +127,11 @@ export default function NewMaintenanceModal({
           {err(errs.title)}
         </div>
         <div className="field">
-          <label htmlFor="nm-unit">Unit *</label>
-          <input id="nm-unit" value={unit} onChange={(e) => setUnit(e.target.value)} className={submitted && errs.unit !== '' ? 'invalid' : ''} placeholder="A-204" />
-          {err(errs.unit)}
+          <label htmlFor="nm-prop">Property *</label>
+          <select id="nm-prop" value={propertyId} onChange={(e) => selectProperty(e.target.value)}>
+            <option value="">Select property</option>
+            {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
         </div>
       </div>
       <div className="field">
@@ -91,22 +139,55 @@ export default function NewMaintenanceModal({
         <textarea id="nm-desc" value={description} onChange={(e) => setDescription(e.target.value)} className={submitted && errs.description !== '' ? 'invalid' : ''} placeholder="Describe the issue in detail..." />
         {err(errs.description)}
       </div>
+
+      <div className="field">
+        <label>What does this request cover? *</label>
+        <div className="tabs" role="tablist" aria-label="Request scope">
+          {SCOPES.map((s) => (
+            <button
+              key={s.value}
+              type="button"
+              role="tab"
+              aria-selected={scope === s.value}
+              className={`tab ${scope === s.value ? 'active' : ''}`}
+              onClick={() => selectScope(s.value)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        {scope === 'units' ? (
+          <div className="mt-2">
+            <MultiSearchSelect
+              id="nm-units"
+              values={unitIds}
+              onChange={setUnitIds}
+              options={unitOptions}
+              placeholder="Select unit(s)"
+              searchPlaceholder="Search units..."
+              emptyLabel={propUnits.length === 0 ? 'This property has no units yet' : 'No unit matches that search'}
+              invalid={submitted && errs.target !== ''}
+            />
+          </div>
+        ) : null}
+        {scope === 'tenants' ? (
+          <div className="mt-2">
+            <MultiSearchSelect
+              id="nm-tenants"
+              values={tenantIds}
+              onChange={setTenantIds}
+              options={tenantOptions}
+              placeholder="Select tenant(s)"
+              searchPlaceholder="Search by name, email, phone or unit..."
+              emptyLabel={propTenants.length === 0 ? 'This property has no tenants yet' : 'No tenant matches that search'}
+              invalid={submitted && errs.target !== ''}
+            />
+          </div>
+        ) : null}
+        {err(errs.target)}
+      </div>
+
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-        <div className="field">
-          <label htmlFor="nm-prop">Property *</label>
-          <select id="nm-prop" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={submitted && errs.property !== '' ? 'invalid' : ''}>
-            <option value="">Select property</option>
-            {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          {err(errs.property)}
-        </div>
-        <div className="field">
-          <label htmlFor="nm-tenant">Tenant (optional)</label>
-          <select id="nm-tenant" value={tenantId} onChange={(e) => setTenantId(e.target.value)}>
-            <option value="">No tenant</option>
-            {tenants.slice(0, 30).map((t) => <option key={t.id} value={t.id}>{t.name} · {t.unit}</option>)}
-          </select>
-        </div>
         <div className="field">
           <label htmlFor="nm-cat">Category *</label>
           <select id="nm-cat" value={category} onChange={(e) => setCategory(e.target.value as Category)}>
@@ -124,10 +205,15 @@ export default function NewMaintenanceModal({
         </div>
         <div className="field">
           <label htmlFor="nm-assign">Assigned To</label>
-          <select id="nm-assign" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
-            <option value="Unassigned">Unassigned</option>
-            {assignees.filter((a) => a !== 'Unassigned').map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
+          <SearchSelect
+            id="nm-assign"
+            value={assigneeId}
+            onChange={setAssigneeId}
+            options={staffOptions}
+            placeholder="Unassigned"
+            searchPlaceholder="Search staff..."
+            emptyLabel={activeStaff.length === 0 ? 'No active staff — add one from Manage Staff' : 'No staff matches that search'}
+          />
         </div>
         <div className="field">
           <label htmlFor="nm-date">Scheduled Date</label>

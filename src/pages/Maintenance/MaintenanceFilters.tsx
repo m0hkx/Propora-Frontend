@@ -1,16 +1,16 @@
-import type { Property } from '../../data/mock';
+import type { MaintenanceStaff, Property } from '../../data/mock';
 import { Card, Icon } from '../../components/ui';
 import { Icons } from '../../components/icons';
 import type { MaintenanceFilters, MaintenanceTab } from './maintenanceUtils';
 
-const tabs: MaintenanceTab[] = ['All', 'Open', 'In Progress', 'Scheduled', 'Completed'];
+const tabs: MaintenanceTab[] = ['All', 'Open', 'In Progress', 'Paused', 'Scheduled', 'Completed'];
 
 export default function MaintenanceFilters({
   tab,
   counts,
   filters,
   properties,
-  assignees,
+  staff,
   onTab,
   onChange,
 }: {
@@ -18,7 +18,7 @@ export default function MaintenanceFilters({
   counts: Record<MaintenanceTab, number>;
   filters: MaintenanceFilters;
   properties: Property[];
-  assignees: string[];
+  staff: MaintenanceStaff[];
   onTab: (t: MaintenanceTab) => void;
   onChange: (f: MaintenanceFilters) => void;
 }) {
@@ -55,6 +55,7 @@ export default function MaintenanceFilters({
           <option value="All">Status</option>
           <option value="Open">Open</option>
           <option value="In Progress">In Progress</option>
+          <option value="Paused">Paused</option>
           <option value="Scheduled">Scheduled</option>
           <option value="Completed">Completed</option>
         </select>
@@ -82,7 +83,8 @@ export default function MaintenanceFilters({
         </select>
         <select value={filters.assignee} onChange={(e) => set({ assignee: e.target.value })} aria-label="Filter by assignee">
           <option value="all">Assigned To</option>
-          {assignees.map((a) => <option key={a} value={a}>{a}</option>)}
+          <option value="unassigned">Unassigned</option>
+          {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
     </Card>

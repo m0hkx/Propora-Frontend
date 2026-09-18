@@ -20,6 +20,7 @@ priorities into one calm operating picture.
 
 </div>
 <img src="public/slide.png" alt="Propora — property management, made legible" width="100%" />
+
 ---
 
 ## The idea

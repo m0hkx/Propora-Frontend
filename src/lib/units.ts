@@ -1,4 +1,4 @@
-import type { Lease, MaintenanceRequest, Tenant, Unit, UnitStatus } from '../data/mock';
+import type { Lease, MaintenanceRequest, Tenant, Unit, UnitStatus, UnitType } from '../data/mock';
 
 /**
  * Unit domain helpers (Property → Units → Tenant/Lease).
@@ -9,6 +9,23 @@ import type { Lease, MaintenanceRequest, Tenant, Unit, UnitStatus } from '../dat
  * falls back to the label so rows that predate the unit registry keep
  * working.
  */
+
+/**
+ * Bedroom count implied by a unit type ("2 BR" → 2, "Studio" → 0). `Other`
+ * doesn't imply a count, so it returns `undefined` — the one case where
+ * bedrooms is a genuinely independent, manually-entered fact rather than a
+ * restatement of `type`.
+ */
+export function bedroomsForType(type: UnitType): number | undefined {
+  switch (type) {
+    case 'Studio': return 0;
+    case '1 BR': return 1;
+    case '2 BR': return 2;
+    case '3 BR': return 3;
+    case '4 BR': return 4;
+    case 'Other': return undefined;
+  }
+}
 
 /** Units of one property, sorted by label. Never leaks other properties' units. */
 export function unitsForProperty(units: Unit[], propertyId: string): Unit[] {

@@ -1,7 +1,7 @@
 import { tenantName } from '../../data/mock';
 import type { Property } from '../../data/mock';
-import { Card, Icon } from '../../components/ui';
-import { Icons } from '../../components/icons';
+import { Card } from '../../components/ui';
+import { FilterRow, SearchField } from '../../components/FilterBar';
 import type { DateFilter, DocFilters } from './documentUtils';
 import { filtersActive } from './documentUtils';
 
@@ -26,20 +26,17 @@ export default function DocumentFilters({
   const set = (patch: Partial<DocFilters>) => onChange({ ...filters, ...patch });
   return (
     <Card>
-      <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
-        <label className="search search-grow">
-          <Icon d={Icons.search} />
-          <input
-            placeholder="Search documents by name, property, tenant, or lease..."
-            value={filters.search}
-            onChange={(e) => set({ search: e.target.value })}
-            aria-label="Search documents by name, property, tenant, or lease"
-          />
-        </label>
+      <FilterRow>
+        <SearchField
+          value={filters.search}
+          onChange={(v) => set({ search: v })}
+          placeholder="Search documents by name, property, tenant, or lease..."
+          ariaLabel="Search documents by name, property, tenant, or lease"
+        />
         {filtersActive(filters) && (
           <button className="btn btn-ghost btn-sm" type="button" onClick={onClear}>Clear Filters</button>
         )}
-      </div>
+      </FilterRow>
       <div className="grid grid-cols-5 gap-2 mt-2.5 max-md:grid-cols-2">
         <select value={filters.property} onChange={(e) => set({ property: e.target.value })} aria-label="Filter by property">
           <option value="all">All Properties</option>

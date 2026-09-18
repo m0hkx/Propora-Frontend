@@ -1,15 +1,17 @@
-export default function TenantPagination({
+export default function Pagination({
   page,
   totalPages,
   total,
   pageSize,
   onPage,
+  itemLabel = 'items',
 }: {
   page: number;
   totalPages: number;
   total: number;
   pageSize: number;
   onPage: (p: number) => void;
+  itemLabel?: string;
 }) {
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
@@ -27,7 +29,7 @@ export default function TenantPagination({
 
   return (
     <div className="pagination max-md:flex-col max-md:items-stretch">
-      <span className="small muted">Showing {from}–{to} of {total} tenants</span>
+      <span className="small muted">Showing {from}–{to} of {total} {itemLabel}</span>
       <div className="page-btns max-md:justify-center">
         <button type="button" className="page-btn" disabled={page === 1} onClick={() => onPage(page - 1)} aria-label="Previous page">←</button>
         {numbers.map((n, i) =>

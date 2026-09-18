@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import type { Property } from '../../data/mock';
 import type { PropertyDraft } from './propertyForm';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { COUNTRY_OPTIONS, isValidCountryName } from '../../data/countries';
 
 const TYPES = ['Apartment Building', 'Villa', 'Office', 'Commercial', 'Mixed Use', 'Other'];
+const STATUSES: Property['status'][] = ['Active', 'Vacant', 'Under Maintenance'];
 
 /** Accepts `1200` or `1200.50`; rejects blanks, text and zero. */
 const MONEY = /^\d+(\.\d{1,2})?$/;
@@ -94,6 +96,12 @@ export default function AddPropertyModal({
               {typeOptions.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
             {submitted && errors.type !== '' ? <span className="field-error">{errors.type}</span> : null}
+          </div>
+          <div className="field">
+            <label htmlFor="ap-status">Status</label>
+            <select id="ap-status" value={form.status} onChange={(e) => set({ status: e.target.value as Property['status'] })}>
+              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
         </div>
         <div className="field">

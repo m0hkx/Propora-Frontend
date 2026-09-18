@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Property, Tenant, Unit } from '../../data/mock';
 import { unitsForProperty } from '../../lib/units';
+import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';
 import PhoneInput from '../../components/PhoneInput';
 import { DEFAULT_CALLING_COUNTRY, callingCountryForName, isPhoneValid } from '../../data/phone';
@@ -71,113 +72,131 @@ export default function TenantFormModal({
 
   return (
     <Modal title={title} onClose={onClose} wide>
-      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-        <div className="field">
-          <label htmlFor="tf-name">Full name *</label>
-          <input id="tf-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={cls(errs.name !== '')} />
-          {err(errs.name)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-email">Email *</label>
-          <input id="tf-email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={cls(errs.email !== '')} />
-          {err(errs.email)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-phone">Phone</label>
-          <PhoneInput
-            id="tf-phone"
-            value={form.phone}
-            defaultCountry={phoneCountry}
-            onChange={(phone) => setForm({ ...form, phone })}
-            invalid={submitted && errs.phone !== ''}
-          />
-          {err(errs.phone)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-prop">Property *</label>
-          <select
-            id="tf-prop"
-            value={form.propertyId}
-            onChange={(e) => {
-              // A unit link never survives a property switch — units belong to exactly one property.
-              setForm({ ...form, propertyId: e.target.value, unit: '', unitId: undefined });
-              setUnitCustom(false);
-            }}
-            className={cls(errs.property !== '')}
-          >
-            <option value="">Select property</option>
-            {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          {err(errs.property)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-unit">Unit *</label>
-          {useUnitSelect ? (
-            <select
-              id="tf-unit"
-              value={form.unitId ?? ''}
-              onChange={(e) => {
-                const id = e.target.value;
-                if (id === CUSTOM_UNIT) {
-                  setUnitCustom(true);
-                  setForm({ ...form, unit: '', unitId: undefined });
-                  return;
-                }
-                const picked = propUnits.find((u) => u.id === id);
-                setForm({
-                  ...form,
-                  unitId: id === '' ? undefined : id,
-                  unit: picked?.name ?? '',
-                  // Adopt the unit's rent only while the field is still empty.
-                  rent: form.rent > 0 ? form.rent : picked?.rent ?? form.rent,
-                });
-              }}
-              className={cls(errs.unit !== '')}
-            >
-              <option value="">Select unit</option>
-              {propUnits.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.type} · ${u.rent.toLocaleString('en-US')}/mo</option>)}
-              <option value={CUSTOM_UNIT}>Other — enter manually</option>
-            </select>
-          ) : (
-            <input
-              id="tf-unit"
-              value={form.unit}
-              onChange={(e) => setForm({ ...form, unit: e.target.value, unitId: undefined })}
-              className={cls(errs.unit !== '')}
-              placeholder="A-204"
+      <div className="modal-section">
+        <h4>Contact</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="tf-name">Full name *</label>
+            <input id="tf-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={cls(errs.name !== '')} />
+            {err(errs.name)}
+          </div>
+          <div className="field">
+            <label htmlFor="tf-email">Email *</label>
+            <input id="tf-email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={cls(errs.email !== '')} />
+            {err(errs.email)}
+          </div>
+          <div className="field">
+            <label htmlFor="tf-phone">Phone</label>
+            <PhoneInput
+              id="tf-phone"
+              value={form.phone}
+              defaultCountry={phoneCountry}
+              onChange={(phone) => setForm({ ...form, phone })}
+              invalid={submitted && errs.phone !== ''}
             />
-          )}
-          {err(errs.unit)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-beds">Beds</label>
-          <select id="tf-beds" value={form.beds} onChange={(e) => setForm({ ...form, beds: e.target.value })}>
-            {BED_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="tf-rent">Monthly rent *</label>
-          <input id="tf-rent" type="number" min={1} value={form.rent} onChange={(e) => setForm({ ...form, rent: Number(e.target.value) })} className={cls(errs.rent !== '')} />
-          {err(errs.rent)}
-        </div>
-        <div className="field">
-          <label htmlFor="tf-status">Status</label>
-          <select id="tf-status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Tenant['status'] })}>
-            <option value="Active">Active</option>
-            <option value="Pending">Pending</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="tf-start">Lease start</label>
-          <input id="tf-start" type="date" value={form.leaseStart} onChange={(e) => setForm({ ...form, leaseStart: e.target.value })} />
-        </div>
-        <div className="field">
-          <label htmlFor="tf-end">Lease end *</label>
-          <input id="tf-end" type="date" value={form.leaseEnd} onChange={(e) => setForm({ ...form, leaseEnd: e.target.value })} className={cls(errs.leaseEnd !== '')} />
-          {err(errs.leaseEnd)}
+            {err(errs.phone)}
+          </div>
         </div>
       </div>
+
+      <div className="modal-section">
+        <h4>Property &amp; Unit</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="tf-prop">Property *</label>
+            <select
+              id="tf-prop"
+              value={form.propertyId}
+              onChange={(e) => {
+                // A unit link never survives a property switch — units belong to exactly one property.
+                setForm({ ...form, propertyId: e.target.value, unit: '', unitId: undefined });
+                setUnitCustom(false);
+              }}
+              className={cls(errs.property !== '')}
+            >
+              <option value="">Select property</option>
+              {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            {err(errs.property)}
+          </div>
+          <div className="field">
+            <label htmlFor="tf-unit">Unit *</label>
+            {useUnitSelect ? (
+              <select
+                id="tf-unit"
+                value={form.unitId ?? ''}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  if (id === CUSTOM_UNIT) {
+                    setUnitCustom(true);
+                    setForm({ ...form, unit: '', unitId: undefined });
+                    return;
+                  }
+                  const picked = propUnits.find((u) => u.id === id);
+                  setForm({
+                    ...form,
+                    unitId: id === '' ? undefined : id,
+                    unit: picked?.name ?? '',
+                    // Picking a unit pulls in its own rent and bed count — that's the
+                    // point of linking to a managed unit instead of typing one in.
+                    rent: picked?.rent ?? form.rent,
+                    beds: picked && (BED_OPTIONS as string[]).includes(picked.type) ? picked.type : form.beds,
+                  });
+                }}
+                className={cls(errs.unit !== '')}
+              >
+                <option value="">Select unit</option>
+                {propUnits.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.type} · ${u.rent.toLocaleString('en-US')}/mo</option>)}
+                <option value={CUSTOM_UNIT}>Other — enter manually</option>
+              </select>
+            ) : (
+              <input
+                id="tf-unit"
+                value={form.unit}
+                onChange={(e) => setForm({ ...form, unit: e.target.value, unitId: undefined })}
+                className={cls(errs.unit !== '')}
+                placeholder="A-204"
+              />
+            )}
+            {err(errs.unit)}
+          </div>
+          <div className="field">
+            <label htmlFor="tf-beds">Beds</label>
+            <select id="tf-beds" value={form.beds} onChange={(e) => setForm({ ...form, beds: e.target.value })}>
+              {BED_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="modal-section">
+        <h4>Lease &amp; Rent</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="tf-rent">Monthly rent *</label>
+            <input id="tf-rent" type="number" min={1} value={form.rent} onChange={(e) => setForm({ ...form, rent: Number(e.target.value) })} className={cls(errs.rent !== '')} />
+            {err(errs.rent)}
+          </div>
+          <div className="field">
+            <label htmlFor="tf-status">Status</label>
+            <select id="tf-status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Tenant['status'] })}>
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="tf-start">Lease start</label>
+            <input id="tf-start" type="date" min={MIN_DATE} max={MAX_DATE} value={form.leaseStart} onChange={(e) => { if (isValidIsoDate(e.target.value)) setForm({ ...form, leaseStart: e.target.value }); }} />
+          </div>
+          <div className="field">
+            <label htmlFor="tf-end">Lease end *</label>
+            <input id="tf-end" type="date" min={MIN_DATE} max={MAX_DATE} value={form.leaseEnd} onChange={(e) => { if (isValidIsoDate(e.target.value)) setForm({ ...form, leaseEnd: e.target.value }); }} className={cls(errs.leaseEnd !== '')} />
+            {err(errs.leaseEnd)}
+          </div>
+        </div>
+      </div>
+
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>
         <button className="btn btn-teal" type="button" onClick={submit}>Save Tenant</button>

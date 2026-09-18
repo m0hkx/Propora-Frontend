@@ -12,4 +12,6 @@ export const Icons = {
   plus: 'M12 5v14 M5 12h14',
   building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16 M16 9h4a2 2 0 0 1 2 2v10 M2 21h22 M6 7h2 M6 11h2 M6 15h2 M10 7h2 M10 11h2 M10 15h2',
   key: 'M21 2l-2 2 M15.5 8.5 21 3 M11 4a7 7 0 0 0-9.9 9.9L2 21l4-1 1.5-1.5M11 4l2 2M8 7l2 2',
+  close: 'M18 6 6 18 M6 6l12 12',
+  check: 'M20 6 9 17l-5-5',
 };

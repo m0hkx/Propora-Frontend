@@ -3,7 +3,7 @@ import { propertyName, tenantName, tenants } from '../../data/mock';
 import type { DocFile, DocumentStatus, DocumentType, Property } from '../../data/mock';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
-import { fmtDate } from '../../lib/format';
+import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import { docStatusTone } from './documentUtils';
 
 const TYPES: DocumentType[] = ['Lease', 'Contract', 'Invoice', 'Property Document', 'Tenant Document', 'Maintenance', 'Insurance', 'Legal', 'Other'];
@@ -115,7 +115,7 @@ export default function DocumentDetails({
             </div>
             <div className="field">
               <label htmlFor="dd-exp">Expiration Date</label>
-              <input id="dd-exp" type="date" value={form.expirationDate} onChange={(e) => setForm({ ...form, expirationDate: e.target.value })} />
+              <input id="dd-exp" type="date" min={MIN_DATE} max={MAX_DATE} value={form.expirationDate} onChange={(e) => { if (isValidIsoDate(e.target.value)) setForm({ ...form, expirationDate: e.target.value }); }} />
             </div>
           </div>
           <div className="field">

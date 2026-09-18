@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { formatMoney } from '../../data/mock';
 import type { Unit, UnitStatus } from '../../data/mock';
 import { getUnitBlockers, resolveUnitStatus, unitsForProperty } from '../../lib/units';
+import { unitStatusTone as statusTone } from '../../lib/tone';
 import { useStore } from '../../state/useStore';
 import { Badge } from '../../components/ui';
 import SortableTh from '../../components/SortableTh';
@@ -15,10 +16,6 @@ type SortKey = 'name' | 'floor' | 'type' | 'rent' | 'status';
 
 /** Occupancy order for the status column. */
 const UNIT_STATUS_ORDER = ['Occupied', 'Vacant', 'Maintenance'] as const satisfies readonly UnitStatus[];
-
-function statusTone(s: UnitStatus): 'success' | 'info' | 'warn' {
-  return s === 'Occupied' ? 'success' : s === 'Maintenance' ? 'warn' : 'info';
-}
 
 function spec(u: Unit): string {
   const parts = [`${u.bedrooms} bd`, `${u.bathrooms} ba`];
@@ -68,23 +65,18 @@ export default function UnitsSection({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div className="modal-section">
+    <div className="flex flex-col gap-2.5">
       <div className="row">
-        <h4 className="m-0 text-muted-foreground uppercase tracking-[0.5px] text-xs">
-          Units · {rows.length}
-        </h4>
+        <h3 className="pd-heading">
+          Units <span className="text-muted-foreground font-semibold tabular-nums">{rows.length}</span>
+        </h3>
         <button className="btn btn-teal btn-sm" type="button" onClick={() => setFormOpen(true)}>
           + Add Unit
         </button>
       </div>
 
       {rows.length === 0 ? (
-        <div className="row flex-wrap">
-          <p className="muted m-0">No units have been added yet.</p>
-          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setFormOpen(true)}>
-            Add Unit
-          </button>
-        </div>
+        <p className="muted m-0">No units have been added yet.</p>
       ) : (
         <div className="table-wrap table-flush">
           <table className="tenant-table">

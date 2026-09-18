@@ -1,5 +1,7 @@
 import type { DocFile, DocumentStatus, DocumentType } from '../../data/mock';
 
+export { docStatusTone } from '../../lib/tone';
+
 export type DateFilter = 'any' | 'today' | 'week' | 'month' | 'year';
 
 export interface DocFilters {
@@ -18,13 +20,6 @@ export const EMPTY_FILTERS: DocFilters = {
 export function filtersActive(f: DocFilters): boolean {
   return f.search.trim() !== '' || f.property !== 'all' || f.type !== 'All Types' || f.tenant !== 'all' || f.status !== 'All' || f.date !== 'any';
 }
-export function docStatusTone(s: DocumentStatus): 'success' | 'warn' | 'danger' | 'neutral' {
-  if (s === 'Active') return 'success';
-  if (s === 'Expiring Soon') return 'warn';
-  if (s === 'Expired') return 'danger';
-  return 'neutral';
-}
-
 function startOfDay(d: Date): Date {
   const c = new Date(d);
   c.setHours(0, 0, 0, 0);

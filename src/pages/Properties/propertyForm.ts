@@ -17,11 +17,13 @@ export interface PropertyDraft {
   purchasePrice: string;
   revenue: string;
   expenses: string;
+  status: Property['status'];
 }
 
 export const EMPTY_PROPERTY_DRAFT: PropertyDraft = {
   name: '', type: '', description: '', address: '', city: '', country: '', postal: '',
   units: '', baseRent: '', yearBuilt: '', floors: '', size: '', purchasePrice: '', revenue: '', expenses: '',
+  status: 'Active',
 };
 
 /**
@@ -47,5 +49,6 @@ export function propertyToDraft(p: Property): PropertyDraft {
     purchasePrice: '',
     revenue: String(p.rent * p.units),
     expenses: '',
+    status: p.status,
   };
 }

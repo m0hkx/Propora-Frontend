@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { formatMoney } from '../data/mock';
 import type { Property } from '../data/mock';
-import { Badge, Card, Icon, Progress } from '../components/ui';
+import { Badge, Card, Progress } from '../components/ui';
+import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
+import EmptyState from '../components/EmptyState';
 import { Icons } from '../components/icons';
 import KpiCard from '../components/KpiCard';
 import PropertyDetailsModal from './Properties/PropertyDetailsModal';
@@ -9,6 +11,7 @@ import AddPropertyModal from './Properties/AddPropertyModal';
 import { propertyToDraft } from './Properties/propertyForm';
 import type { PropertyDraft } from './Properties/propertyForm';
 import { useStore } from '../state/useStore';
+import { propertyTone as tone } from '../lib/tone';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
 type SortKey = 'featured' | 'name' | 'revenue' | 'occupancy';
@@ -21,10 +24,6 @@ const gradients = [
   'linear-gradient(135deg,#0F172A,#0369A1 60%,#14B8A6)',
   'linear-gradient(135deg,#475569,#0F766E 65%,#99F6E4)',
 ];
-
-function tone(s: Property['status']): 'success' | 'warn' | 'danger' {
-  return s === 'Active' ? 'success' : s === 'Vacant' ? 'warn' : 'danger';
-}
 
 function occupancy(p: Property): number {
   return p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
@@ -93,6 +92,7 @@ export default function Properties({ query }: { query: string }) {
       units: Number(d.units),
       // Base rent stays exactly what the user typed — never recalculated.
       rent: Number(d.baseRent),
+      status: d.status,
       yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : existing.yearBuilt,
       image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
       imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
@@ -137,31 +137,21 @@ export default function Properties({ query }: { query: string }) {
 
       {/* 3. Filters / controls */}
       <Card>
-        <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
-          <div className="tabs" role="tablist" aria-label="Filter by status">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="tab"
-                aria-selected={status === t}
-                onClick={() => setStatus(t)}
-                className={`tab ${status === t ? 'active' : ''}`}
-              >
-                {t === 'All' ? 'All Properties' : t} · {counts[t]}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
-            <label className="search search-sm">
-              <Icon d={Icons.search} />
-              <input
-                placeholder="Search properties by name, location, or type..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search properties by name, location, or type"
-              />
-            </label>
+        <FilterRow>
+          <FilterTabs
+            tabs={tabs.map((t) => ({ key: t, label: t === 'All' ? 'All Properties' : t, count: counts[t] }))}
+            active={status}
+            onChange={(k) => setStatus(k as StatusFilter)}
+            ariaLabel="Filter by status"
+          />
+          <FilterControls>
+            <SearchField
+              value={search}
+              onChange={setSearch}
+              placeholder="Search properties by name, location, or type..."
+              ariaLabel="Search properties by name, location, or type"
+              variant="sm"
+            />
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label="Filter by property type" className="max-md:flex-1">
               {types.map((t) => (
                 <option key={t} value={t}>{t === 'All types' ? 'Filter' : t}</option>
@@ -173,8 +163,8 @@ export default function Properties({ query }: { query: string }) {
               <option value="revenue">Revenue high–low</option>
               <option value="occupancy">Occupancy high–low</option>
             </select>
-          </div>
-        </div>
+          </FilterControls>
+        </FilterRow>
       </Card>
 
       {/* 4. Properties grid */}
@@ -182,14 +172,20 @@ export default function Properties({ query }: { query: string }) {
         <div><strong>Properties</strong> <span className="small muted">({list.length} of {properties.length})</span></div>
       </div>
       {list.length === 0 ? (
-        <Card><p className="muted">No properties match your filters.</p></Card>
+        <Card>
+          <EmptyState
+            icon={Icons.building}
+            title="No properties found"
+            description="Try adjusting your search or filters to find what you're looking for."
+          />
+        </Card>
       ) : (
         <div className="grid grid-cols-3 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
           {list.map((p, i) => {
             const occ = occupancy(p);
             const avail = p.units - p.occupied;
             return (
-              <Card key={p.id} className={`prop-card ${selected?.id === p.id ? 'selected' : ''}`}>
+              <Card key={p.id} className="prop-card">
                 <div className="prop-image" style={{ background: gradients[i % gradients.length] }}>
                   {!failed[p.id] && (
                     <img

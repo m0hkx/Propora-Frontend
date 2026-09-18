@@ -7,10 +7,10 @@ export type ChipTint = 'teal' | 'blue' | 'amber' | 'rose';
 export type DeltaTone = 'up' | 'down' | 'flat' | 'warn';
 
 const TINT_STROKE: Record<ChipTint, string> = {
-  teal: '#0F766E',
-  blue: '#0369A1',
-  amber: '#B45309',
-  rose: '#DC2626',
+  teal: 'var(--color-primary)',
+  blue: 'var(--color-accent)',
+  amber: 'var(--color-warn)',
+  rose: 'var(--color-destructive)',
 };
 
 export interface KpiDelta {

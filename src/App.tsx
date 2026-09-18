@@ -168,7 +168,7 @@ function AppShell() {
       occupied: 0,
       // Base rent is whatever the user typed — never derived.
       rent: Number(d.baseRent),
-      status: 'Active',
+      status: d.status,
       image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
       imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
       yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : new Date().getFullYear(),

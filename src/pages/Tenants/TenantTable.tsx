@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { propertyCity, propertyName } from '../../data/mock';
 import type { Property, Tenant } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
+import MobileRowCard from '../../components/MobileRowCard';
 import TenantRow, { TenantAvatar } from './TenantRow';
 import { fmtDate } from '../../lib/format';
 import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
@@ -73,7 +74,7 @@ export default function TenantTable({
       {/* Mobile cards */}
       <div className="hidden max-md:flex flex-col gap-2.5 p-2">
         {rows.map((t) => (
-          <div key={t.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => onSelect(t)}>
+          <MobileRowCard key={t.id} onSelect={() => onSelect(t)}>
             <div className="row">
               <div className="flex items-center gap-2.5">
                 <TenantAvatar name={t.name} />
@@ -99,7 +100,7 @@ export default function TenantTable({
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => onAction('edit', t)}>Edit</button>
               </span>
             </div>
-          </div>
+          </MobileRowCard>
         ))}
       </div>
     </Card>

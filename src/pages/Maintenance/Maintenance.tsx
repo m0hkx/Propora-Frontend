@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { staffName } from '../../data/mock';
 import type { MaintenanceRequest, MaintenanceStatus } from '../../data/mock';
 import { Card } from '../../components/ui';
+import EmptyState from '../../components/EmptyState';
+import { Icons } from '../../components/icons';
 import { useStore } from '../../state/useStore';
 import MaintenanceStats from './MaintenanceStats';
 import MaintenanceFilters from './MaintenanceFilters';
@@ -104,7 +106,13 @@ export default function Maintenance() {
       </div>
 
       {filtered.length === 0 ? (
-        <Card><p className="muted">No maintenance requests match your filters.</p></Card>
+        <Card>
+          <EmptyState
+            icon={Icons.wrench}
+            title="No requests found"
+            description="Try adjusting your search or filters to find what you're looking for."
+          />
+        </Card>
       ) : (
         <MaintenanceTable rows={filtered} units={units} tenants={tenants} staff={staff} onSelect={(m) => setSelectedId(m.id)} />
       )}

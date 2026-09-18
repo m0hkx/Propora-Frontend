@@ -3,11 +3,8 @@ import { formatMoney } from '../../data/mock';
 import type { Property } from '../../data/mock';
 import { Badge, Progress } from '../../components/ui';
 import Modal from '../../components/Modal';
+import { propertyTone } from '../../lib/tone';
 import UnitsSection from './UnitsSection';
-
-function tone(s: Property['status']): 'success' | 'warn' | 'danger' {
-  return s === 'Active' ? 'success' : s === 'Vacant' ? 'warn' : 'danger';
-}
 
 export default function PropertyDetailsModal({
   property,
@@ -20,60 +17,85 @@ export default function PropertyDetailsModal({
 }) {
   const p = property;
   const [imgFailed, setImgFailed] = useState(false);
-  const occ = p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
-  const available = Math.max(0, p.units - p.occupied);
+
+  // A blank imageUrl must not reach <img src="">, which makes the browser
+  // re-request the page. No image and a failed image are the same state here.
+  const hasPhoto = !imgFailed && p.imageUrl.trim() !== '';
+  const hasUnits = p.units > 0;
+  const occ = hasUnits ? Math.round((p.occupied / p.units) * 100) : 0;
   const monthlyRevenue = p.occupied * p.rent;
-  const location = p.country ? `${p.address}, ${p.country}` : p.address;
-  const showImage = !imgFailed;
 
   return (
     <Modal title={p.name} onClose={onClose} wide>
-      <div className="prop-image rounded-chip no-scrim" style={showImage ? undefined : { background: '#0F766E' }}>
-        {showImage ? (
-          <img
-            src={p.imageUrl}
-            alt={`${p.name} photo`}
-            loading="lazy"
-            onError={() => setImgFailed(true)}
-          />
-        ) : null}
-        <span className="prop-initials">{p.image}</span>
-        <span className="z-[2]"><Badge tone={tone(p.status)}>{p.status}</Badge></span>
+      {/* The building's own photograph is the identity — nothing is written
+          over it. The monogram stands in only when the image fails. */}
+      <div className="pd-photo">
+        {hasPhoto ? (
+          <img src={p.imageUrl} alt={p.name} loading="lazy" onError={() => setImgFailed(true)} />
+        ) : (
+          <span className="pd-monogram">{p.image}</span>
+        )}
       </div>
 
-      <p className="small muted break-words">{location === '' ? '—' : location}</p>
-
-      <div className="modal-section">
-        <h4>Overview</h4>
-        <div className="list mt-0">
-          <div className="list-row"><span>Country</span><strong>{p.country ?? '—'}</strong></div>
-          <div className="list-row"><span>Property type</span><strong>{p.type}</strong></div>
-          <div className="list-row"><span>Year built</span><strong>{p.yearBuilt}</strong></div>
+      <div className="pd-block-flush">
+        <div className="pd-identity">
+          <p className="pd-address">{p.address.trim() === '' ? 'No address recorded' : p.address}</p>
+          <Badge tone={propertyTone(p.status)}>{p.status}</Badge>
         </div>
+        <dl className="pd-facts">
+          <div>
+            <dt>Type</dt>
+            <dd>{p.type}</dd>
+          </div>
+          <div>
+            <dt>Built</dt>
+            <dd>{p.yearBuilt}</dd>
+          </div>
+          <div>
+            <dt>Country</dt>
+            <dd>{p.country ?? '—'}</dd>
+          </div>
+        </dl>
       </div>
 
-      <div className="modal-section">
-        <h4>Units &amp; occupancy</h4>
-        <div>
-          <div className="row small"><span className="muted">Occupancy</span><strong>{occ}%</strong></div>
-          <Progress value={occ} />
-        </div>
-        <div className="list mt-0">
-          <div className="list-row"><span>Total units</span><strong>{p.units}</strong></div>
-          <div className="list-row"><span>Occupied</span><strong>{p.occupied}</strong></div>
-          <div className="list-row"><span>Available</span><strong>{available}</strong></div>
-        </div>
+      <div className="pd-block">
+        {hasUnits ? (
+          <>
+            <p className="pd-occupancy">
+              <span className="pd-occupancy-count">{p.occupied}</span>
+              <span className="pd-occupancy-text">of {p.units} units occupied</span>
+            </p>
+            <div className="pd-meter">
+              <Progress value={occ} label={`Occupancy: ${occ} percent`} />
+              <span className="pd-meter-value">{occ}%</span>
+            </div>
+          </>
+        ) : (
+          <p className="pd-note">No units recorded yet. Add one below to start tracking occupancy.</p>
+        )}
       </div>
 
-      <UnitsSection propertyId={p.id} />
-
-      <div className="modal-section">
-        <h4>Financials</h4>
-        <div className="list mt-0">
-          <div className="list-row"><span>Base rent (per unit / month)</span><strong>{formatMoney(p.rent)}/mo</strong></div>
-          <div className="list-row"><span>Est. monthly revenue</span><strong>{formatMoney(monthlyRevenue)}</strong></div>
-          <div className="list-row"><span>Est. annual revenue</span><strong>{formatMoney(monthlyRevenue * 12)}</strong></div>
+      <div className="pd-block">
+        <h3 className="pd-heading">Revenue</h3>
+        <div className="pd-figures">
+          <span>
+            <span className="pd-figure">{formatMoney(monthlyRevenue)}</span>
+            <span className="pd-unit">per month</span>
+          </span>
+          <span>
+            <span className="pd-figure-sub">{formatMoney(monthlyRevenue * 12)}</span>
+            <span className="pd-unit">per year</span>
+          </span>
         </div>
+        <p className="pd-note">
+          {monthlyRevenue > 0
+            ? `Estimated from ${p.occupied} occupied ${p.occupied === 1 ? 'unit' : 'units'} at ${formatMoney(p.rent)} base rent.`
+            : 'Nothing is occupied yet, so no revenue is expected.'}
+        </p>
+      </div>
+
+      <div className="pd-block">
+        <UnitsSection propertyId={p.id} />
       </div>
 
       <div className="modal-foot">

@@ -1,6 +1,8 @@
 import type { MaintenanceRequest, MaintenanceStatus, Property, Tenant, Unit } from '../../data/mock';
 import { staffName, tenantName } from '../../data/mock';
 
+export { maintenanceStatusTone as statusTone, maintenancePriorityTone as priorityTone } from '../../lib/tone';
+
 export type MaintenanceTab = 'All' | 'Open' | 'In Progress' | 'Paused' | 'Scheduled' | 'Completed';
 
 export interface MaintenanceFilters {
@@ -16,21 +18,6 @@ export interface MaintenanceFilters {
 export const EMPTY_MFILTERS: MaintenanceFilters = {
   search: '', status: 'All', priority: 'All', property: 'all', category: 'All', assignee: 'all',
 };
-
-export function statusTone(s: MaintenanceStatus): 'success' | 'warn' | 'info' | 'danger' | 'neutral' {
-  if (s === 'Completed') return 'success';
-  if (s === 'In Progress') return 'info';
-  if (s === 'Scheduled') return 'neutral';
-  if (s === 'Paused') return 'danger';
-  return 'warn';
-}
-
-export function priorityTone(p: MaintenanceRequest['priority']): 'danger' | 'warn' | 'info' | 'neutral' {
-  if (p === 'Urgent') return 'danger';
-  if (p === 'High') return 'warn';
-  if (p === 'Medium') return 'info';
-  return 'neutral';
-}
 
 /** What a request targets, for the table/details "Property/Unit" column and search. */
 export function scopeLabel(m: MaintenanceRequest, units: Unit[]): string {

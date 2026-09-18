@@ -3,6 +3,8 @@ import { propertyName, tenantName } from '../../data/mock';
 import type { DocFile } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import EmptyState from '../../components/EmptyState';
+import { Icons } from '../../components/icons';
 import { useStore } from '../../state/useStore';
 import DocumentStats from './DocumentStats';
 import DocumentFilters from './DocumentFilters';
@@ -114,14 +116,26 @@ export default function Documents() {
 
       {!grouped ? (
         filtered.length === 0 ? (
-          <Card><p className="muted">No documents match your filters.</p></Card>
+          <Card>
+            <EmptyState
+              icon={Icons.folder}
+              title="No documents found"
+              description="Try adjusting your search or filters to find what you're looking for."
+            />
+          </Card>
         ) : (
           <DocumentTable rows={filtered} onAction={onAction} />
         )
       ) : (
         <div className="flex flex-col gap-4">
           {groups.length === 0 ? (
-            <Card><p className="muted">No documents match your filters.</p></Card>
+            <Card>
+              <EmptyState
+                icon={Icons.folder}
+                title="No documents found"
+                description="Try adjusting your search or filters to find what you're looking for."
+              />
+            </Card>
           ) : (
             groups.map((g) => (
               <Card key={g.property.id}>

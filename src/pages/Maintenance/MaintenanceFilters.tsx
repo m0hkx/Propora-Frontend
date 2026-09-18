@@ -1,6 +1,6 @@
 import type { MaintenanceStaff, Property } from '../../data/mock';
-import { Card, Icon } from '../../components/ui';
-import { Icons } from '../../components/icons';
+import { Card } from '../../components/ui';
+import { FilterRow, FilterTabs, SearchField } from '../../components/FilterBar';
 import type { MaintenanceFilters, MaintenanceTab } from './maintenanceUtils';
 
 const tabs: MaintenanceTab[] = ['All', 'Open', 'In Progress', 'Paused', 'Scheduled', 'Completed'];
@@ -25,31 +25,21 @@ export default function MaintenanceFilters({
   const set = (patch: Partial<MaintenanceFilters>) => onChange({ ...filters, ...patch });
   return (
     <Card>
-      <div className="tabs mb-2.5" role="tablist" aria-label="Filter by status">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            role="tab"
-            aria-selected={tab === t}
-            onClick={() => onTab(t)}
-            className={`tab ${tab === t ? 'active' : ''}`}
-          >
-            {t} · {counts[t]}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
-        <label className="search search-grow">
-          <Icon d={Icons.search} />
-          <input
-            placeholder="Search maintenance requests..."
-            value={filters.search}
-            onChange={(e) => set({ search: e.target.value })}
-            aria-label="Search maintenance by title, property, unit, tenant or description"
-          />
-        </label>
-      </div>
+      <FilterTabs
+        tabs={tabs.map((t) => ({ key: t, label: t, count: counts[t] }))}
+        active={tab}
+        onChange={(k) => onTab(k as MaintenanceTab)}
+        ariaLabel="Filter by status"
+        className="mb-2.5"
+      />
+      <FilterRow>
+        <SearchField
+          value={filters.search}
+          onChange={(v) => set({ search: v })}
+          placeholder="Search maintenance requests..."
+          ariaLabel="Search maintenance by title, property, unit, tenant or description"
+        />
+      </FilterRow>
       <div className="grid grid-cols-5 gap-2 mt-2.5 max-md:grid-cols-2">
         <select value={filters.status} onChange={(e) => set({ status: e.target.value as MaintenanceFilters['status'] })} aria-label="Filter by status">
           <option value="All">Status</option>

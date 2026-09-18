@@ -1,5 +1,7 @@
 import type { Tenant } from '../../data/mock';
 
+export { paymentTone, tenantLeaseTone as leaseTone, tenantStatusTone as tenantTone } from '../../lib/tone';
+
 export type TenantTab = 'All' | 'Active' | 'Pending' | 'Expiring' | 'Overdue';
 /** 'featured' keeps the store's own order — the default, unsorted view. */
 export type TenantSort = 'featured' | 'name' | 'property' | 'unit' | 'rent' | 'leaseEnd' | 'payment' | 'status';
@@ -20,18 +22,6 @@ export function avatarBg(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
   return avatarPalette[Math.abs(h) % avatarPalette.length];
-}
-
-export function leaseTone(s: Tenant['leaseStatus']): 'success' | 'warn' | 'danger' {
-  return s === 'Active' ? 'success' : s === 'Expiring Soon' ? 'warn' : 'danger';
-}
-
-export function paymentTone(s: Tenant['paymentStatus']): 'success' | 'warn' | 'danger' {
-  return s === 'Paid' ? 'success' : s === 'Pending' ? 'warn' : 'danger';
-}
-
-export function tenantTone(s: Tenant['status']): 'success' | 'warn' | 'neutral' {
-  return s === 'Active' ? 'success' : s === 'Pending' ? 'warn' : 'neutral';
 }
 
 export function matchesTab(t: Tenant, tab: TenantTab): boolean {

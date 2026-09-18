@@ -4,11 +4,13 @@ import { formatMoney, propertyName } from '../../data/mock';
 import type { Tenant } from '../../data/mock';
 import { Card } from '../../components/ui';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import EmptyState from '../../components/EmptyState';
+import { Icons } from '../../components/icons';
 import { useStore } from '../../state/useStore';
 import TenantStats from './TenantStats';
 import TenantFilters from './TenantFilters';
 import TenantTable from './TenantTable';
-import TenantPagination from './TenantPagination';
+import Pagination from '../../components/Pagination';
 import TenantDetailsModal from './TenantDetailsModal';
 import TenantFormModal from './TenantFormModal';
 import type { TenantDraft } from './TenantFormModal';
@@ -138,7 +140,13 @@ export default function Tenants({
       </div>
 
       {rows.length === 0 ? (
-        <Card><p className="muted">No tenants match your filters.</p></Card>
+        <Card>
+          <EmptyState
+            icon={Icons.users}
+            title="No tenants found"
+            description="Try adjusting your search or filters to find what you're looking for."
+          />
+        </Card>
       ) : (
         <TenantTable
           rows={rows}
@@ -150,7 +158,7 @@ export default function Tenants({
         />
       )}
 
-      <TenantPagination page={safePage} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
+      <Pagination page={safePage} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} itemLabel="tenants" />
 
       {viewed && (
         <TenantDetailsModal

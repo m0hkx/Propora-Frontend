@@ -3,10 +3,10 @@ import { useStore } from '../state/useStore';
 import type { AppNotification } from '../data/mock';
 
 const KIND_DOT: Record<AppNotification['kind'], string> = {
-  maintenance: '#CA8A04',
-  payment: '#DC2626',
-  lease: '#EA580C',
-  tenant: '#0369A1',
+  maintenance: 'var(--color-category-maintenance)',
+  payment: 'var(--color-destructive)',
+  lease: 'var(--color-category-lease)',
+  tenant: 'var(--color-accent)',
 };
 
 export default function NotificationsPanel({

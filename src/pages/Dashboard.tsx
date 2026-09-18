@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { propertyName, tenantName } from '../data/mock';
 import { AreaChart, Donut } from '../components/charts';
 import { Badge, Card, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
@@ -8,6 +9,8 @@ import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
 import { spreadByProperty } from '../lib/stats';
+import { maintenancePriorityTone, paymentTone } from '../lib/tone';
+import { scopeLabel } from './Maintenance/maintenanceUtils';
 
 type Range = 'Monthly' | 'Quarterly' | 'Yearly';
 
@@ -16,33 +19,6 @@ const revenueSets: Record<Range, { values: number[]; labels: string[]; counts: n
   Quarterly: { values: [260, 310, 345, 372], labels: ['Q1', 'Q2', 'Q3', 'Q4'], counts: [0, 0, 8, 0] },
   Yearly: { values: [820, 950, 1100, 1280, 1450], labels: ['2022', '2023', '2024', '2025', '2026'], counts: [0, 0, 0, 0, 8] },
 };
-
-const propertyRows = [
-  { name: 'Harbor Point', occ: '100%', rev: '$62,400', tone: 'success' as const, status: 'Excellent' },
-  { name: 'Sunset Apartments', occ: '94%', rev: '$41,200', tone: 'success' as const, status: 'Good' },
-  { name: 'Palm Residence', occ: '82%', rev: '$29,800', tone: 'warn' as const, status: 'Attention' },
-  { name: 'Downtown Plaza', occ: '76%', rev: '$18,400', tone: 'warn' as const, status: 'Attention' },
-];
-
-const revenueBars = [
-  { name: 'Harbor Point', pct: 100, value: '$62.4k' },
-  { name: 'Sunset Apartments', pct: 66, value: '$41.2k' },
-  { name: 'Palm Residence', pct: 48, value: '$29.8k' },
-  { name: 'Downtown Plaza', pct: 30, value: '$18.4k' },
-];
-
-const recentPayments = [
-  { tenant: 'Sarah Johnson', prop: 'Harbor #204', amount: '$1,200', tone: 'success' as const, status: 'Paid' },
-  { tenant: 'Michael Smith', prop: 'Palm #102', amount: '$950', tone: 'success' as const, status: 'Paid' },
-  { tenant: 'David Brown', prop: 'Sunset #301', amount: '$1,400', tone: 'danger' as const, status: 'Overdue' },
-  { tenant: 'John Wilson', prop: 'Harbor #102', amount: '$1,100', tone: 'warn' as const, status: 'Pending' },
-];
-
-const maintenanceItems = [
-  { title: 'AC not working', unit: 'Apartment #204', meta: 'High Priority · In Progress', tone: 'danger' as const },
-  { title: 'Broken window', unit: 'Apartment #103', meta: 'Medium · Open', tone: 'warn' as const },
-  { title: 'Water leakage', unit: 'Apartment #302', meta: 'High Priority · Open', tone: 'danger' as const },
-];
 
 const timeline = [
   { text: 'Sarah Johnson paid $1,200', time: '10 minutes ago' },
@@ -61,6 +37,7 @@ export default function Dashboard() {
   const payments = useStore((s) => s.payments);
   const maintenance = useStore((s) => s.maintenance);
   const tenants = useStore((s) => s.tenants);
+  const units = useStore((s) => s.units);
   // Portfolio-wide total: 18 managed + any created in this session.
   const totalProperties = 18 + Math.max(0, properties.length - 6);
 
@@ -77,6 +54,52 @@ export default function Dashboard() {
   const openMaint = maintenance.filter((m) => m.status === 'Open');
   const expiring = tenants.filter((t) => t.leaseStatus === 'Expiring Soon');
   const tenantOf = (id: string) => tenants.find((t) => t.id === id)?.name ?? id;
+
+  // Top properties by revenue, feeding both the performance table and the
+  // revenue-by-property list below — same live store data, two views of it.
+  const topProperties = [...properties]
+    .sort((a, b) => b.occupied * b.rent - a.occupied * a.rent)
+    .slice(0, 4);
+  const maxTopRevenue = Math.max(1, ...topProperties.map((p) => p.occupied * p.rent));
+  const propertyRows = topProperties.map((p) => {
+    const occPct = p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
+    const healthy = occPct >= 95 ? 'Excellent' : occPct >= 85 ? 'Good' : 'Attention';
+    return {
+      name: p.name,
+      occ: `${occPct}%`,
+      rev: fmtMoney(p.occupied * p.rent),
+      tone: occPct >= 85 ? ('success' as const) : ('warn' as const),
+      status: healthy,
+    };
+  });
+  const revenueBars = topProperties.map((p) => ({
+    name: p.name,
+    pct: Math.round(((p.occupied * p.rent) / maxTopRevenue) * 100),
+    value: fmtMoney(p.occupied * p.rent),
+  }));
+
+  const recentPayments = [...payments]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 4)
+    .map((p) => ({
+      tenant: tenantName(p.tenantId, tenants),
+      prop: propertyName(p.propertyId, properties),
+      amount: fmtMoney(p.amount),
+      tone: paymentTone(p.status),
+      status: p.status,
+    }));
+
+  const maintenanceItems = [...maintenance]
+    .filter((m) => m.status !== 'Completed')
+    .sort((a, b) => b.reported.localeCompare(a.reported))
+    .slice(0, 3)
+    .map((m) => ({
+      title: m.title,
+      unit: `${propertyName(m.propertyId, properties)} · ${scopeLabel(m, units)}`,
+      meta: `${m.priority} Priority · ${m.status}`,
+      status: m.status,
+      tone: maintenancePriorityTone(m.priority),
+    }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -113,7 +136,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 — Revenue + Occupancy */}
-      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1 rise sd-3">
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-1 rise sd-3">
         <Card>
           <div className="row">
             <div><strong>Revenue Overview</strong><div className="kpi my-1">$124,850</div><div className="small text-success font-bold">+7.2% vs last month</div></div>
@@ -142,7 +165,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 3 — Performance + Action */}
-      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-2 max-md:grid-cols-1 rise sd-4">
+      <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-1 rise sd-4">
         <div className="flex flex-col gap-4">
           <Card>
             <div className="row"><strong>Property Performance</strong><button className="btn btn-ghost" type="button" onClick={() => navigate('/properties')}>View All Properties →</button></div>
@@ -180,15 +203,15 @@ export default function Dashboard() {
           <strong>Action Required</strong>
           <div className="list">
             <div className="list-row">
-              <span><span className="dot dot-live" style={{ background: '#DC2626' }} /> {overdue.length} Overdue Payments</span>
+              <span><span className="dot dot-live" style={{ background: 'var(--color-destructive)' }} /> {overdue.length} Overdue Payments</span>
               <strong>${overdue.reduce((s, p) => s + p.amount, 0).toLocaleString('en-US')} outstanding</strong>
             </div>
             <div className="list-row">
-              <span><span className="dot" style={{ background: '#EA580C' }} /> {expiring.length} Leases Expiring Soon</span>
+              <span><span className="dot" style={{ background: 'var(--color-category-lease)' }} /> {expiring.length} Leases Expiring Soon</span>
               <strong>Within 30 days</strong>
             </div>
             <div className="list-row">
-              <span><span className="dot" style={{ background: '#CA8A04' }} /> {openMaint.length} Maintenance Requests</span>
+              <span><span className="dot" style={{ background: 'var(--color-category-maintenance)' }} /> {openMaint.length} Maintenance Requests</span>
               <strong>Awaiting resolution</strong>
             </div>
           </div>
@@ -222,7 +245,7 @@ export default function Dashboard() {
             {maintenanceItems.map((m) => (
               <div key={m.title} className="list-row">
                 <div><strong>{m.title}</strong><div className="small muted">{m.unit}</div><div className="small muted">{m.meta}</div></div>
-                <Badge tone={m.tone}>{m.meta.split('·')[1]?.trim() ?? 'Open'}</Badge>
+                <Badge tone={m.tone}>{m.status}</Badge>
               </div>
             ))}
           </div>

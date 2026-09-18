@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Property, Tenant, Unit } from '../../data/mock';
 import { formatMoney, propertyName, tenantById } from '../../data/mock';
 import { leaseTone, orDash, tenantOption, tenantPrefill } from './leaseUtils';
-import { fmtDate } from '../../lib/format';
+import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import { unitsForProperty } from '../../lib/units';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
@@ -72,6 +72,8 @@ export default function AddLeaseModal({
     const prefill = tenantPrefill(id, tenants, defaultPropertyId);
     setPropertyId(prefill.propertyId);
     setRent(prefill.rent);
+    setStart(prefill.start);
+    setEnd(prefill.end);
     // Adopt the tenant's unit link when it belongs to the prefilled property.
     const picked = id === '' ? undefined : tenantById(id, tenants);
     setUnitId(
@@ -179,7 +181,7 @@ export default function AddLeaseModal({
             </div>
           </div>
           <span className="small muted">
-            Property and monthly rent are prefilled from this record — edit them if this lease differs. The tenant's own record is not changed.
+            Property, unit, monthly rent and lease term are prefilled from this record — edit them if this lease differs. The tenant's own record is not changed.
           </span>
         </div>
       ) : null}
@@ -196,12 +198,12 @@ export default function AddLeaseModal({
         </div>
         <div className="field">
           <label htmlFor="al-start">Start date *</label>
-          <input id="al-start" type="date" value={start} onChange={(e) => setStart(e.target.value)} className={cls(errs.start !== '')} />
+          <input id="al-start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => { if (isValidIsoDate(e.target.value)) setStart(e.target.value); }} className={cls(errs.start !== '')} />
           {err(errs.start)}
         </div>
         <div className="field">
           <label htmlFor="al-end">End date *</label>
-          <input id="al-end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} className={cls(errs.end !== '')} />
+          <input id="al-end" type="date" min={MIN_DATE} max={MAX_DATE} value={end} onChange={(e) => { if (isValidIsoDate(e.target.value)) setEnd(e.target.value); }} className={cls(errs.end !== '')} />
           {err(errs.end)}
         </div>
       </div>

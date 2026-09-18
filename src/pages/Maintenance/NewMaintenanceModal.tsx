@@ -3,6 +3,7 @@ import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } fro
 import { tenantOption } from '../Leases/leaseUtils';
 import { resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { validateMaintenanceTarget } from '../../lib/maintenanceScope';
+import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import MultiSearchSelect from '../../components/MultiSearchSelect';
@@ -120,110 +121,120 @@ export default function NewMaintenanceModal({
 
   return (
     <Modal title="New Maintenance Request" onClose={onClose} wide>
-      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-        <div className="field">
-          <label htmlFor="nm-title">Title *</label>
-          <input id="nm-title" value={title} onChange={(e) => setTitle(e.target.value)} className={submitted && errs.title !== '' ? 'invalid' : ''} placeholder="AC not cooling" />
-          {err(errs.title)}
+      <div className="modal-section">
+        <h4>Request Details</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="nm-title">Title *</label>
+            <input id="nm-title" value={title} onChange={(e) => setTitle(e.target.value)} className={submitted && errs.title !== '' ? 'invalid' : ''} placeholder="AC not cooling" />
+            {err(errs.title)}
+          </div>
+          <div className="field">
+            <label htmlFor="nm-prop">Property *</label>
+            <select id="nm-prop" value={propertyId} onChange={(e) => selectProperty(e.target.value)}>
+              <option value="">Select property</option>
+              {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
         </div>
         <div className="field">
-          <label htmlFor="nm-prop">Property *</label>
-          <select id="nm-prop" value={propertyId} onChange={(e) => selectProperty(e.target.value)}>
-            <option value="">Select property</option>
-            {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <label htmlFor="nm-desc">Description *</label>
+          <textarea id="nm-desc" value={description} onChange={(e) => setDescription(e.target.value)} className={submitted && errs.description !== '' ? 'invalid' : ''} placeholder="Describe the issue in detail..." />
+          {err(errs.description)}
         </div>
-      </div>
-      <div className="field">
-        <label htmlFor="nm-desc">Description *</label>
-        <textarea id="nm-desc" value={description} onChange={(e) => setDescription(e.target.value)} className={submitted && errs.description !== '' ? 'invalid' : ''} placeholder="Describe the issue in detail..." />
-        {err(errs.description)}
       </div>
 
-      <div className="field">
-        <label>What does this request cover? *</label>
-        <div className="tabs" role="tablist" aria-label="Request scope">
-          {SCOPES.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              role="tab"
-              aria-selected={scope === s.value}
-              className={`tab ${scope === s.value ? 'active' : ''}`}
-              onClick={() => selectScope(s.value)}
-            >
-              {s.label}
-            </button>
-          ))}
+      <div className="modal-section">
+        <h4>Scope</h4>
+        <div className="field">
+          <label>What does this request cover? *</label>
+          <div className="tabs" role="tablist" aria-label="Request scope">
+            {SCOPES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                role="tab"
+                aria-selected={scope === s.value}
+                className={`tab ${scope === s.value ? 'active' : ''}`}
+                onClick={() => selectScope(s.value)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {scope === 'units' ? (
+            <div className="mt-2">
+              <MultiSearchSelect
+                id="nm-units"
+                values={unitIds}
+                onChange={setUnitIds}
+                options={unitOptions}
+                placeholder="Select unit(s)"
+                searchPlaceholder="Search units..."
+                emptyLabel={propUnits.length === 0 ? 'This property has no units yet' : 'No unit matches that search'}
+                invalid={submitted && errs.target !== ''}
+              />
+            </div>
+          ) : null}
+          {scope === 'tenants' ? (
+            <div className="mt-2">
+              <MultiSearchSelect
+                id="nm-tenants"
+                values={tenantIds}
+                onChange={setTenantIds}
+                options={tenantOptions}
+                placeholder="Select tenant(s)"
+                searchPlaceholder="Search by name, email, phone or unit..."
+                emptyLabel={propTenants.length === 0 ? 'This property has no tenants yet' : 'No tenant matches that search'}
+                invalid={submitted && errs.target !== ''}
+              />
+            </div>
+          ) : null}
+          {err(errs.target)}
         </div>
-        {scope === 'units' ? (
-          <div className="mt-2">
-            <MultiSearchSelect
-              id="nm-units"
-              values={unitIds}
-              onChange={setUnitIds}
-              options={unitOptions}
-              placeholder="Select unit(s)"
-              searchPlaceholder="Search units..."
-              emptyLabel={propUnits.length === 0 ? 'This property has no units yet' : 'No unit matches that search'}
-              invalid={submitted && errs.target !== ''}
-            />
-          </div>
-        ) : null}
-        {scope === 'tenants' ? (
-          <div className="mt-2">
-            <MultiSearchSelect
-              id="nm-tenants"
-              values={tenantIds}
-              onChange={setTenantIds}
-              options={tenantOptions}
-              placeholder="Select tenant(s)"
-              searchPlaceholder="Search by name, email, phone or unit..."
-              emptyLabel={propTenants.length === 0 ? 'This property has no tenants yet' : 'No tenant matches that search'}
-              invalid={submitted && errs.target !== ''}
-            />
-          </div>
-        ) : null}
-        {err(errs.target)}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-        <div className="field">
-          <label htmlFor="nm-cat">Category *</label>
-          <select id="nm-cat" value={category} onChange={(e) => setCategory(e.target.value as Category)}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+      <div className="modal-section">
+        <h4>Assignment &amp; Cost</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="nm-cat">Category *</label>
+            <select id="nm-cat" value={category} onChange={(e) => setCategory(e.target.value as Category)}>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="nm-pri">Priority *</label>
+            <select id="nm-pri" value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
+              <option value="Urgent">Urgent</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="nm-assign">Assigned To</label>
+            <SearchSelect
+              id="nm-assign"
+              value={assigneeId}
+              onChange={setAssigneeId}
+              options={staffOptions}
+              placeholder="Unassigned"
+              searchPlaceholder="Search staff..."
+              emptyLabel={activeStaff.length === 0 ? 'No active staff — add one from Manage Staff' : 'No staff matches that search'}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="nm-date">Scheduled Date</label>
+            <input id="nm-date" type="date" min={MIN_DATE} max={MAX_DATE} value={scheduledDate} onChange={(e) => { if (isValidIsoDate(e.target.value)) setScheduledDate(e.target.value); }} />
+          </div>
         </div>
         <div className="field">
-          <label htmlFor="nm-pri">Priority *</label>
-          <select id="nm-pri" value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
-            <option value="Urgent">Urgent</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="nm-assign">Assigned To</label>
-          <SearchSelect
-            id="nm-assign"
-            value={assigneeId}
-            onChange={setAssigneeId}
-            options={staffOptions}
-            placeholder="Unassigned"
-            searchPlaceholder="Search staff..."
-            emptyLabel={activeStaff.length === 0 ? 'No active staff — add one from Manage Staff' : 'No staff matches that search'}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="nm-date">Scheduled Date</label>
-          <input id="nm-date" type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
+          <label htmlFor="nm-cost">Estimated Cost ($)</label>
+          <input id="nm-cost" inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="250" />
         </div>
       </div>
-      <div className="field">
-        <label htmlFor="nm-cost">Estimated Cost ($)</label>
-        <input id="nm-cost" inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="250" />
-      </div>
+
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>
         <button className="btn btn-teal" type="button" onClick={submit}>Create Request</button>

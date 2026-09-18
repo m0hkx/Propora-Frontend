@@ -56,36 +56,46 @@ export default function StaffFormModal({
 
   return (
     <Modal title={editing ? `Edit Staff — ${editing.name}` : 'Add Maintenance Staff'} onClose={onClose}>
-      <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-        <div className="field">
-          <label htmlFor="sf-name">Name *</label>
-          <input id="sf-name" value={name} onChange={(e) => setName(e.target.value)} className={cls(errs.name !== '')} placeholder="R. Alvarez" autoFocus />
-          {err(errs.name)}
-        </div>
-        <div className="field">
-          <label htmlFor="sf-email">Email *</label>
-          <input id="sf-email" value={email} onChange={(e) => setEmail(e.target.value)} className={cls(errs.email !== '')} placeholder="r.alvarez@propora.io" />
-          {err(errs.email)}
-        </div>
-        <div className="field">
-          <label htmlFor="sf-phone">Phone</label>
-          <PhoneInput id="sf-phone" value={phone} defaultCountry={DEFAULT_CALLING_COUNTRY} onChange={setPhone} invalid={submitted && errs.phone !== ''} />
-          {err(errs.phone)}
-        </div>
-        <div className="field">
-          <label htmlFor="sf-specialty">Specialty</label>
-          <select id="sf-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value as MaintenanceRequest['category'])}>
-            {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="sf-status">Status</label>
-          <select id="sf-status" value={status} onChange={(e) => setStatus(e.target.value as MaintenanceStaffStatus)}>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+      <div className="modal-section">
+        <h4>Contact</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="sf-name">Name *</label>
+            <input id="sf-name" value={name} onChange={(e) => setName(e.target.value)} className={cls(errs.name !== '')} placeholder="R. Alvarez" autoFocus />
+            {err(errs.name)}
+          </div>
+          <div className="field">
+            <label htmlFor="sf-email">Email *</label>
+            <input id="sf-email" value={email} onChange={(e) => setEmail(e.target.value)} className={cls(errs.email !== '')} placeholder="r.alvarez@propora.io" />
+            {err(errs.email)}
+          </div>
+          <div className="field">
+            <label htmlFor="sf-phone">Phone</label>
+            <PhoneInput id="sf-phone" value={phone} defaultCountry={DEFAULT_CALLING_COUNTRY} onChange={setPhone} invalid={submitted && errs.phone !== ''} />
+            {err(errs.phone)}
+          </div>
         </div>
       </div>
+
+      <div className="modal-section">
+        <h4>Role</h4>
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+          <div className="field">
+            <label htmlFor="sf-specialty">Specialty</label>
+            <select id="sf-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value as MaintenanceRequest['category'])}>
+              {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="sf-status">Status</label>
+            <select id="sf-status" value={status} onChange={(e) => setStatus(e.target.value as MaintenanceStaffStatus)}>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {serverError !== '' ? <p className="field-error m-0" role="alert">{serverError}</p> : null}
       <div className="modal-foot">
         <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>

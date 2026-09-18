@@ -81,7 +81,7 @@ export function AreaChart({
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#14B8A6" stopOpacity="0.45" />
+              <stop offset="0%" stopColor="var(--color-secondary)" stopOpacity="0.45" />
               <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.25" />
             </linearGradient>
           </defs>
@@ -92,7 +92,7 @@ export function AreaChart({
                 x2={CHART_W - MARGIN.right}
                 y1={yOf(t)}
                 y2={yOf(t)}
-                stroke="#F1F5F9"
+                stroke="var(--color-muted)"
                 strokeWidth="1"
               />
               <text
@@ -101,7 +101,7 @@ export function AreaChart({
                 textAnchor="end"
                 dominantBaseline="middle"
                 fontSize="11"
-                fill="#475569"
+                fill="var(--color-muted-foreground)"
               >
                 {fmt(t)}
               </text>
@@ -112,11 +112,11 @@ export function AreaChart({
             x2={MARGIN.left}
             y1={MARGIN.top}
             y2={plotBottom}
-            stroke="#E8F0F3"
+            stroke="var(--color-muted)"
             strokeWidth="1.5"
           />
           <polygon points={area} fill={`url(#${gradientId})`} />
-          <polyline points={line} fill="none" stroke="#0F766E" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1} className="chart-draw" />
+          <polyline points={line} fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1} className="chart-draw" />
           {pts.map((p, i) => (
             <circle
               key={i}
@@ -124,7 +124,7 @@ export function AreaChart({
               cy={p.y}
               r={active === i ? 5 : 3.5}
               fill="#fff"
-              stroke="#0F766E"
+              stroke="var(--color-primary)"
               strokeWidth="2"
               className="chart-dot"
               style={{ animationDelay: `${0.55 + i * 0.06}s` }}
@@ -173,14 +173,14 @@ export function Donut({ percent, label }: { percent: number; label: string }) {
   return (
     <div className="flex items-center gap-3">
       <svg width="110" height="110" viewBox="0 0 110 110" role="img" aria-label={`${label} ${percent}%`}>
-        <circle cx="55" cy="55" r={r} fill="none" stroke="#F1F5F9" strokeWidth="12" />
+        <circle cx="55" cy="55" r={r} fill="none" stroke="var(--color-muted)" strokeWidth="12" />
         <circle
-          cx="55" cy="55" r={r} fill="none" stroke="#0F766E" strokeWidth="12"
+          cx="55" cy="55" r={r} fill="none" stroke="var(--color-primary)" strokeWidth="12"
           strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 55 55)"
           pathLength={c} className="donut-arc"
           style={{ '--donut-from': c } as CSSProperties}
         />
-        <text x="55" y="60" textAnchor="middle" fontWeight="700" fontSize="18" fill="#134E4A">{percent}%</text>
+        <text x="55" y="60" textAnchor="middle" fontWeight="700" fontSize="18" fill="var(--color-foreground)">{percent}%</text>
       </svg>
       <div><div className="font-bold">{label}</div><div className="small muted">Portfolio occupancy</div></div>
     </div>
@@ -191,7 +191,7 @@ export function Donut({ percent, label }: { percent: number; label: string }) {
    just shape + end dot. Decorative (aria-hidden); the card text carries meaning. */
 export function Spark({
   values,
-  stroke = '#0F766E',
+  stroke = 'var(--color-primary)',
   height = 36,
 }: {
   values: number[];

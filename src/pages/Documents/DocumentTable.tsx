@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { propertyName, tenantName } from '../../data/mock';
 import type { DocFile } from '../../data/mock';
 import { Badge, Card } from '../../components/ui';
+import RowMenu from '../../components/RowMenu';
+import MobileRowCard from '../../components/MobileRowCard';
 import { fmtDate } from '../../lib/format';
+import { onActivateKey } from '../../lib/a11y';
 import { DOC_STATUS_ORDER, docStatusTone } from './documentUtils';
 import SortableTh from '../../components/SortableTh';
 import { byDate, byRank, byText, nextSort, sortRows } from '../../lib/sort';
@@ -68,7 +71,14 @@ export default function DocumentTable({
           </thead>
           <tbody>
             {sorted.map((d) => (
-              <tr key={d.id} className="cursor-pointer" onClick={() => act('view', d)}>
+              <tr
+                key={d.id}
+                className="cursor-pointer"
+                onClick={() => act('view', d)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={onActivateKey(() => act('view', d))}
+              >
                 <td><strong>{d.name}</strong><div className="small muted">{d.size}</div></td>
                 <td>{propertyName(d.propertyId)}</td>
                 <td className="max-compact:hidden">
@@ -79,44 +89,21 @@ export default function DocumentTable({
                 <td className="max-compact:hidden small">{fmtDate(d.uploadDate)}</td>
                 <td><Badge tone={docStatusTone(d.status)}>{d.status}</Badge></td>
                 <td onClick={(e) => e.stopPropagation()}>
-                  <div className="row-menu-wrap">
-                    <button
-                      type="button"
-                      className="icon-btn icon-btn-sm"
-                      aria-label={`Actions for ${d.name}`}
-                      aria-haspopup="menu"
-                      aria-expanded={openId === d.id}
-                      onClick={() => setOpenId((id) => (id === d.id ? null : d.id))}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" />
-                      </svg>
-                    </button>
-                    {openId === d.id && (
-                      <div className="row-menu" role="menu">
-                        {(
-                          [
-                            ['view', 'View'],
-                            ['download', 'Download'],
-                            ['edit', 'Edit Details'],
-                            ['move', 'Move / Assign'],
-                            ['archive', 'Archive'],
-                            ['delete', 'Delete'],
-                          ] as [DocAction, string][]
-                        ).map(([a, label]) => (
-                          <button
-                            key={a}
-                            type="button"
-                            role="menuitem"
-                            className={`row-menu-item ${a === 'delete' ? 'danger' : ''}`}
-                            onClick={() => act(a, d)}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <RowMenu
+                    label={`Actions for ${d.name}`}
+                    open={openId === d.id}
+                    onToggle={() => setOpenId((id) => (id === d.id ? null : d.id))}
+                    actions={(
+                      [
+                        ['view', 'View'],
+                        ['download', 'Download'],
+                        ['edit', 'Edit Details'],
+                        ['move', 'Move / Assign'],
+                        ['archive', 'Archive'],
+                        ['delete', 'Delete'],
+                      ] as [DocAction, string][]
+                    ).map(([a, label]) => ({ key: a, label, danger: a === 'delete', onClick: () => act(a, d) }))}
+                  />
                 </td>
               </tr>
             ))}
@@ -126,7 +113,7 @@ export default function DocumentTable({
 
       <div className="hidden max-md:flex flex-col gap-2.5 p-2">
         {sorted.map((d) => (
-          <div key={d.id} className="rounded-xl border border-[#F1F5F9] bg-white p-3 cursor-pointer" onClick={() => act('view', d)}>
+          <MobileRowCard key={d.id} onSelect={() => act('view', d)}>
             <div className="row">
               <div><strong>{d.name}</strong><div className="small muted">{propertyName(d.propertyId)}{d.unit ? ` · Unit ${d.unit}` : ''}</div></div>
               <Badge tone={docStatusTone(d.status)}>{d.status}</Badge>
@@ -142,7 +129,7 @@ export default function DocumentTable({
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => act('edit', d)}>Edit</button>
               </span>
             </div>
-          </div>
+          </MobileRowCard>
         ))}
       </div>
     </Card>

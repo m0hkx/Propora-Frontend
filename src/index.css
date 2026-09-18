@@ -44,6 +44,17 @@
   --shadow-card-hover: 0 16px 40px rgb(15 118 110 / 0.14);
   --shadow-lift: 0 8px 20px rgb(15 118 110 / 0.12);
   --shadow-glow-teal: 0 0 0 4px rgb(20 184 166 / 0.12);
+  /* Elevated-surface shadows: one recipe per surface class, governed here
+     instead of hand-retyped per component (modal/dropdown/menu/toast). */
+  --shadow-modal: 0 24px 60px rgb(0 0 0 / 0.22);
+  --shadow-popover: 0 20px 50px rgb(15 118 110 / 0.18);
+  --shadow-menu: 0 14px 34px rgb(15 118 110 / 0.16);
+  --shadow-toast: 0 14px 34px rgb(0 0 0 / 0.25);
+
+  /* Category accents for notification/action "kind" dots — one source of
+     truth shared by NotificationsPanel and Dashboard's Action Required list. */
+  --color-category-lease: #EA580C;
+  --color-category-maintenance: #CA8A04;
 
   /* Motion: one spring for entrances, one crisp ease for feedback.
      Durations live with the components; keep entrances ≤500ms,
@@ -57,10 +68,3 @@
   --breakpoint-compact: 1100px;
 }
 
-/* Temporary non-color variables still referenced by the legacy sheet.
-   Deleted once Phases 2–6 replace their usages (see D4). */
-:root {
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow: 0 10px 30px rgb(15 118 110 / 0.08);
-}

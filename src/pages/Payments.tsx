@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { formatMoney } from '../data/mock';
 import type { Payment } from '../data/mock';
-import { Badge, Card, Icon } from '../components/ui';
+import { Badge, Card } from '../components/ui';
+import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
+import Pagination from '../components/Pagination';
+import EmptyState from '../components/EmptyState';
 import { Icons } from '../components/icons';
 import KpiCard from '../components/KpiCard';
 import RecordPaymentModal from './Payments/RecordPaymentModal';
@@ -10,6 +13,7 @@ import type { PaymentDraft } from './Payments/RecordPaymentModal';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
 import { spreadByProperty } from '../lib/stats';
+import { paymentTone as tone } from '../lib/tone';
 import SortableTh from '../components/SortableTh';
 import { byDate, byNumber, byRank, byText, nextSort, sortRows } from '../lib/sort';
 import type { SortState } from '../lib/sort';
@@ -21,10 +25,7 @@ type PaySort = 'id' | 'tenant' | 'property' | 'amount' | 'date' | 'method' | 'st
 const PAYMENT_STATUS_ORDER = ['Paid', 'Pending', 'Overdue'] as const satisfies readonly Payment['status'][];
 
 const tabs: PayTab[] = ['All', 'Paid', 'Pending', 'Overdue'];
-
-function tone(s: Payment['status']): 'success' | 'warn' | 'danger' {
-  return s === 'Paid' ? 'success' : s === 'Pending' ? 'warn' : 'danger';
-}
+const PAGE_SIZE = 10;
 
 export default function Payments() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,6 +39,7 @@ export default function Payments() {
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState('all');
   const [method, setMethod] = useState('all');
+  const [page, setPage] = useState(1);
   // Default view is unchanged: newest payments first.
   const [sort, setSort] = useState<SortState<PaySort>>({ key: 'date', dir: 'desc' });
 
@@ -97,6 +99,11 @@ export default function Payments() {
   const onSort = (key: PaySort) => setSort((cur) => nextSort(cur, key));
 
   const filtersOn = tab !== 'All' || search.trim() !== '' || property !== 'all' || method !== 'all';
+  const resetFilters = () => { setTab('All'); setSearch(''); setProperty('all'); setMethod('all'); setPage(1); };
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const sumsByProp = (status: Payment['status']) =>
     spreadByProperty(
@@ -163,36 +170,26 @@ export default function Payments() {
       </div>
 
       <Card>
-        <div className="tabs mb-2.5" role="tablist" aria-label="Filter payments by status">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              type="button"
-              role="tab"
-              aria-selected={tab === t}
-              onClick={() => setTab(t)}
-              className={`tab ${tab === t ? 'active' : ''}`}
-            >
-              {t} · {counts[t]}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch">
-          <label className="search search-grow">
-            <Icon d={Icons.search} />
-            <input
-              placeholder="Search by payment, tenant, property, or amount..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search payments"
-            />
-          </label>
-          <div className="flex gap-2 items-center flex-wrap flex-auto justify-end max-md:w-full">
-            <select value={property} onChange={(e) => setProperty(e.target.value)} aria-label="Filter by property" className="max-md:flex-1">
+        <FilterTabs
+          tabs={tabs.map((t) => ({ key: t, label: t, count: counts[t] }))}
+          active={tab}
+          onChange={(k) => { setTab(k as PayTab); setPage(1); }}
+          ariaLabel="Filter payments by status"
+          className="mb-2.5"
+        />
+        <FilterRow>
+          <SearchField
+            value={search}
+            onChange={(v) => { setSearch(v); setPage(1); }}
+            placeholder="Search by payment, tenant, property, or amount..."
+            ariaLabel="Search payments"
+          />
+          <FilterControls>
+            <select value={property} onChange={(e) => { setProperty(e.target.value); setPage(1); }} aria-label="Filter by property" className="max-md:flex-1">
               <option value="all">All Properties</option>
               {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <select value={method} onChange={(e) => setMethod(e.target.value)} aria-label="Filter by method" className="max-md:flex-1">
+            <select value={method} onChange={(e) => { setMethod(e.target.value); setPage(1); }} aria-label="Filter by method" className="max-md:flex-1">
               <option value="all">All Methods</option>
               <option value="Bank">Bank</option>
               <option value="Card">Card</option>
@@ -209,18 +206,23 @@ export default function Payments() {
               <option value="status">Status</option>
             </select>
             {filtersOn ? (
-              <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setTab('All'); setSearch(''); setProperty('all'); setMethod('all'); }}>
+              <button className="btn btn-ghost btn-sm" type="button" onClick={resetFilters}>
                 Reset
               </button>
             ) : null}
-          </div>
-        </div>
+          </FilterControls>
+        </FilterRow>
       </Card>
 
       <Card className="table-card">
         <div className="row table-head-row"><strong>Payment history</strong><span className="small muted">({filtered.length} records)</span></div>
         {filtered.length === 0 ? (
-          <p className="muted px-3 pb-3">No payments match your filters.</p>
+          <EmptyState
+            icon={Icons.card}
+            title="No payments found"
+            description="Try adjusting your search or filters to find what you're looking for."
+            action={filtersOn ? <button className="btn btn-ghost btn-sm" type="button" onClick={resetFilters}>Reset filters</button> : undefined}
+          />
         ) : (
           <div className="table-wrap table-flush">
             <table className="tenant-table">
@@ -237,7 +239,7 @@ export default function Payments() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
+                {paged.map((p) => (
                   <tr key={p.id}>
                     <td><strong>{p.id}</strong></td>
                     <td>{tenantOf(p.tenantId)?.name ?? p.tenantId}</td>
@@ -258,6 +260,10 @@ export default function Payments() {
           </div>
         )}
       </Card>
+
+      {filtered.length > 0 ? (
+        <Pagination page={safePage} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} itemLabel="payments" />
+      ) : null}
 
       {editing && (
         <RecordPaymentModal

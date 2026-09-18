@@ -1,7 +1,9 @@
 import { propertyCity, propertyName } from '../../data/mock';
 import type { Property, Tenant } from '../../data/mock';
 import { Badge } from '../../components/ui';
+import RowMenu from '../../components/RowMenu';
 import { fmtDate } from '../../lib/format';
+import { onActivateKey } from '../../lib/a11y';
 import { avatarBg, initials, leaseTone, paymentTone, tenantTone } from './tenantUtils';
 import type { TenantAction } from './tenantUtils';
 
@@ -30,7 +32,13 @@ export default function TenantRow({
 }) {
   const t = tenant;
   return (
-    <tr className="cursor-pointer" onClick={() => onSelect(t)}>
+    <tr
+      className="cursor-pointer"
+      onClick={() => onSelect(t)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={onActivateKey(() => onSelect(t))}
+    >
       <td>
         <div className="flex items-center gap-2.5">
           <TenantAvatar name={t.name} />
@@ -58,43 +66,20 @@ export default function TenantRow({
       </td>
       <td><Badge tone={tenantTone(t.status)}>{t.status}</Badge></td>
       <td onClick={(e) => e.stopPropagation()}>
-        <div className="row-menu-wrap">
-          <button
-            type="button"
-            className="icon-btn icon-btn-sm"
-            aria-label={`Actions for ${t.name}`}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            onClick={onToggleMenu}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" />
-            </svg>
-          </button>
-          {menuOpen && (
-            <div className="row-menu" role="menu">
-              {(
-                [
-                  ['view', 'View Tenant'],
-                  ['edit', 'Edit Tenant'],
-                  ['lease', 'View Lease'],
-                  ['payments', 'View Payments'],
-                  ['delete', 'Delete Tenant'],
-                ] as [TenantAction, string][]
-              ).map(([a, label]) => (
-                <button
-                  key={a}
-                  type="button"
-                  role="menuitem"
-                  className={`row-menu-item ${a === 'delete' ? 'danger' : ''}`}
-                  onClick={() => onAction(a, t)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <RowMenu
+          label={`Actions for ${t.name}`}
+          open={menuOpen}
+          onToggle={onToggleMenu}
+          actions={(
+            [
+              ['view', 'View Tenant'],
+              ['edit', 'Edit Tenant'],
+              ['lease', 'View Lease'],
+              ['payments', 'View Payments'],
+              ['delete', 'Delete Tenant'],
+            ] as [TenantAction, string][]
+          ).map(([a, label]) => ({ key: a, label, danger: a === 'delete', onClick: () => onAction(a, t) }))}
+        />
       </td>
     </tr>
   );

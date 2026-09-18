@@ -6,6 +6,8 @@ import type { SearchSelectOption } from '../../components/searchSelectUtils';
 export interface TenantPrefill {
   propertyId: string;
   rent: number;
+  start: string;
+  end: string;
 }
 
 /**
@@ -21,8 +23,8 @@ export function tenantPrefill(
   defaultPropertyId: string
 ): TenantPrefill {
   const t = tenantId === '' ? undefined : tenantById(tenantId, tenants);
-  if (!t) return { propertyId: defaultPropertyId, rent: 0 };
-  return { propertyId: t.propertyId, rent: t.rent };
+  if (!t) return { propertyId: defaultPropertyId, rent: 0, start: '', end: '' };
+  return { propertyId: t.propertyId, rent: t.rent, start: t.leaseStart, end: t.leaseEnd };
 }
 
 /** Optional tenant fields (unit, email, phone) can be blank on a mid-session tenant. */

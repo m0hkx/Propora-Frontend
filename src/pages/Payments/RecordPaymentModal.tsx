@@ -4,6 +4,10 @@ import { tenantById } from '../../data/mock';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { tenantOption } from '../Leases/leaseUtils';
+import { isValidIsoDate, MAX_DATE } from '../../lib/format';
+
+// Payments can't be backdated — only today or a future date is accepted.
+const today = new Date().toISOString().slice(0, 10);
 
 export interface PaymentDraft {
   tenantId: string;
@@ -39,10 +43,19 @@ export default function RecordPaymentModal({
   const [status, setStatus] = useState<Payment['status']>(initial.status);
   const [submitted, setSubmitted] = useState(false);
 
+  // Only tenants at the selected property are offered, so a payment can never
+  // be recorded against a tenant/property mismatch. With no property chosen
+  // yet, the full list is shown and picking a tenant fills in their property.
+  const propertyTenants = useMemo(
+    () => (propertyId === '' ? tenants : tenants.filter((t) => t.propertyId === propertyId)),
+    [tenants, propertyId]
+  );
   // Same searchable options as the lease form — one builder, no duplicate
   // tenant-search logic. Full list: the picker caps rendered rows itself.
-  const tenantOptions = useMemo(() => tenants.map(tenantOption), [tenants]);
-  const tenantMissing = tenantId !== '' && tenantById(tenantId, tenants) === undefined;
+  const tenantOptions = useMemo(() => propertyTenants.map(tenantOption), [propertyTenants]);
+  const selectedTenant = tenantId === '' ? undefined : tenantById(tenantId, tenants);
+  const tenantMissing =
+    tenantId !== '' && (selectedTenant === undefined || (propertyId !== '' && selectedTenant.propertyId !== propertyId));
 
   const selectTenant = (id: string) => {
     setTenantId(id);
@@ -53,11 +66,19 @@ export default function RecordPaymentModal({
     }
   };
 
+  const selectProperty = (id: string) => {
+    setPropertyId(id);
+    // A tenant selection never survives a property switch it no longer belongs to.
+    if (id !== '' && tenantId !== '' && tenantById(tenantId, tenants)?.propertyId !== id) setTenantId('');
+  };
+
   const errs = {
     tenant: tenantId === '' ? 'Tenant is required.' : tenantMissing ? 'That tenant is no longer available. Pick another.' : '',
     property: propertyId === '' ? 'Property is required.' : '',
     amount: !(amount > 0) ? 'Enter an amount greater than 0.' : '',
-    date: date === '' ? 'Date is required.' : '',
+    // Only new payments are held to "no past dates" — editing an existing
+    // (often historical) payment record shouldn't be blocked by a date it already had.
+    date: date === '' ? 'Date is required.' : mode === 'add' && date < today ? 'Payment date cannot be in the past.' : '',
   };
   const invalid = Object.values(errs).some((e) => e !== '');
   const err = (msg: string) => (submitted && msg !== '' ? <span className="field-error">{msg}</span> : null);
@@ -81,14 +102,14 @@ export default function RecordPaymentModal({
             options={tenantOptions}
             placeholder="Select tenant"
             searchPlaceholder="Search by name, email, phone or unit..."
-            emptyLabel="No tenant matches that search"
+            emptyLabel={propertyId !== '' && propertyTenants.length === 0 ? 'No tenants at this property' : 'No tenant matches that search'}
             invalid={submitted && errs.tenant !== ''}
           />
           {err(errs.tenant)}
         </div>
         <div className="field">
           <label htmlFor="rp-prop">Property *</label>
-          <select id="rp-prop" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={cls(errs.property !== '')}>
+          <select id="rp-prop" value={propertyId} onChange={(e) => selectProperty(e.target.value)} className={cls(errs.property !== '')}>
             <option value="">Select property</option>
             {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
@@ -101,7 +122,7 @@ export default function RecordPaymentModal({
         </div>
         <div className="field">
           <label htmlFor="rp-date">Date *</label>
-          <input id="rp-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={cls(errs.date !== '')} />
+          <input id="rp-date" type="date" min={mode === 'add' ? today : undefined} max={MAX_DATE} value={date} onChange={(e) => { if (isValidIsoDate(e.target.value)) setDate(e.target.value); }} className={cls(errs.date !== '')} />
           {err(errs.date)}
         </div>
         <div className="field">

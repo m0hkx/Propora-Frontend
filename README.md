@@ -104,20 +104,6 @@ Conventions: pages own their filter state and modals; domain data flows top-down
 from the store; type-only imports use `import type`; all display copy lives next
 to the component that renders it.
 
-## Honest limitations
-
-- All data resets on reload — persistence was intentionally out of scope.
-- Showcase aggregates on the dashboard are illustrative constants; list views and
-  triage queues compute live from the store.
-- Related records don't cascade (deleting a tenant keeps their leases for
-  bookkeeping — the confirm dialog says so).
-
-## Roadmap ideas
-
-Persisted store (localStorage adapter) · route-level code splitting · real
-backend behind the existing store interface · `strict: true` TypeScript ·
-playwright smoke tests · dark-theme token pass.
-
 ---
 
 <div align="center">

@@ -32,8 +32,9 @@ ehthumbs.db
 *.sln
 *.sw?
 
-# OpenCode tooling (local skills/config) - never commit
+# Agentic tooling (local skills/config) - never commit
 .opencode/
+.claude/
 
 # Test coverage
 coverage/

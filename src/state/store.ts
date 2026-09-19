@@ -1,17 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import {
-  conversations as seedConversations,
-  documents as seedDocuments,
-  leases as seedLeases,
-  maintenance as seedMaintenance,
-  notifications as seedNotifications,
-  payments as seedPayments,
-  properties as seedProperties,
-  staff as seedStaff,
-  tenants as seedTenants,
-  units as seedUnits,
-} from '../data/mock';
+
 import type {
   AppNotification,
   ChatMessage,
@@ -20,16 +8,21 @@ import type {
   Lease,
   MaintenanceRequest,
   MaintenanceStaff,
+  MaintenanceStatus,
   Payment,
   Property,
   Tenant,
   Unit,
 } from '../data/mock';
+import { conversations as seedConversations } from '../data/mock';
+
 import { validateUnit } from '../lib/units';
 import { validateStaff } from '../lib/staff';
 import { validateMaintenanceTarget } from '../lib/maintenanceScope';
 import { sanitizeFileName, validateDocRecord } from '../lib/files';
+
 import { DEFAULT_CALLING_COUNTRY } from '../data/phone';
+
 import {
   APP_TIMEZONE,
   logAutomationReport,
@@ -38,6 +31,23 @@ import {
 } from '../lib/paymentAutomation';
 import type { PaymentAutomationReport } from '../lib/paymentAutomation';
 
+import * as propertiesApi from '../api/properties';
+import * as unitsApi from '../api/units';
+import * as tenantsApi from '../api/tenants';
+import * as leasesApi from '../api/leases';
+import * as paymentsApi from '../api/payments';
+import * as maintenanceApi from '../api/maintenance';
+import * as staffApi from '../api/maintenanceStaff';
+import * as documentsApi from '../api/documents';
+import * as notificationsApi from '../api/notifications';
+
+import type { PropertyDraft } from '../pages/Properties/propertyForm';
+import type { TenantDraft } from '../pages/Tenants/TenantFormModal';
+import type { LeaseDraft } from '../pages/Leases/AddLeaseModal';
+import type { PaymentDraft } from '../pages/Payments/RecordPaymentModal';
+import type { NewMaintenanceDraft } from '../pages/Maintenance/NewMaintenanceModal';
+import type { NewDocDraft } from '../pages/Documents/UploadDocumentModal';
+
 export interface Toast {
   id: number;
   message: string;
@@ -45,111 +55,174 @@ export interface Toast {
 
 export interface StoreState {
   properties: Property[];
-  addProperty: (p: Property) => void;
-  updateProperty: (id: string, patch: Partial<Property>) => void;
+  fetchProperties: () => Promise<void>;
+  addProperty: (d: PropertyDraft, image: File | undefined) => Promise<void>;
+  updateProperty: (id: string, d: PropertyDraft, image: File | undefined) => Promise<void>;
+  deleteProperty: (id: string) => Promise<void>;
+
   units: Unit[];
+  fetchUnits: () => Promise<void>;
   /**
    * Service-layer writes. Add/update run `validateUnit` (required name,
-   * per-property uniqueness, non-negative numbers) and return the rejection
-   * reason instead of persisting bad data — `null` means success.
+   * per-property uniqueness, non-negative numbers) before ever reaching the
+   * network, and return the rejection reason instead of persisting bad data
+   * — `null` means success (and the store already reflects the server row).
    */
-  addUnit: (u: Unit) => string | null;
-  updateUnit: (id: string, patch: Partial<Unit>) => string | null;
-  deleteUnit: (id: string) => void;
+  addUnit: (propertyId: string, u: Omit<Unit, 'id' | 'propertyId'>) => Promise<string | null>;
+  updateUnit: (id: string, patch: Partial<Omit<Unit, 'id'>>) => Promise<string | null>;
+  deleteUnit: (id: string) => Promise<void>;
+
   tenants: Tenant[];
-  addTenant: (t: Tenant) => void;
-  updateTenant: (id: string, patch: Partial<Tenant>) => void;
-  deleteTenant: (id: string) => void;
+  fetchTenants: () => Promise<void>;
+  addTenant: (d: TenantDraft) => Promise<void>;
+  updateTenant: (id: string, d: TenantDraft) => Promise<void>;
+  deleteTenant: (id: string) => Promise<void>;
+
   leases: Lease[];
-  addLease: (l: Lease) => void;
+  fetchLeases: () => Promise<void>;
+  addLease: (d: LeaseDraft) => Promise<void>;
+
   payments: Payment[];
-  addPayment: (p: Payment) => void;
+  fetchPayments: () => Promise<void>;
+  addPayment: (d: PaymentDraft) => Promise<void>;
+  updatePayment: (id: string, patch: Partial<PaymentDraft>) => Promise<void>;
   /**
    * Idempotent rent-automation job: generates due billing periods as Pending
-   * and flips Pending rows past due date + grace to Overdue. Safe to run any
-   * number of times; accepts an explicit clock for testing (defaults to now).
-   * Applies at most one `set()` — and none when there is nothing to do.
+   * and flips Pending rows past due date + grace to Overdue, persisting each
+   * change through the API. Safe to run any number of times; accepts an
+   * explicit clock for testing (defaults to now).
    */
-  runPaymentAutomation: (now?: Date) => PaymentAutomationReport;
-  updatePayment: (id: string, patch: Partial<Payment>) => void;
+  runPaymentAutomation: (now?: Date) => Promise<PaymentAutomationReport>;
+
   maintenance: MaintenanceRequest[];
+  fetchMaintenance: () => Promise<void>;
   /**
    * Service-layer write: validates the property → unit(s)/tenant(s)
-   * relationship (`validateMaintenanceTarget`) before persisting — the
-   * store-layer stand-in for backend enforcement (this app has no backend).
+   * relationship (`validateMaintenanceTarget`) before ever reaching the
+   * network — the same pre-flight `addUnit` gives units.
    */
-  addMaintenance: (m: MaintenanceRequest) => string | null;
-  updateMaintenance: (id: string, patch: Partial<MaintenanceRequest>) => void;
+  addMaintenance: (d: NewMaintenanceDraft) => Promise<string | null>;
+  updateMaintenanceStatus: (id: string, status: MaintenanceStatus) => Promise<void>;
+  updateMaintenanceAssignee: (id: string, staffId: string | undefined) => Promise<void>;
+
   staff: MaintenanceStaff[];
+  fetchStaff: () => Promise<void>;
   /** Add/update run `validateStaff` (name, email format, phone if present) and return the rejection reason — `null` means success. */
-  addStaff: (s: MaintenanceStaff) => string | null;
-  updateStaff: (id: string, patch: Partial<MaintenanceStaff>) => string | null;
-  deleteStaff: (id: string) => void;
+  addStaff: (s: Omit<MaintenanceStaff, 'id'>) => Promise<string | null>;
+  updateStaff: (id: string, patch: Partial<Omit<MaintenanceStaff, 'id'>>) => Promise<string | null>;
+  deleteStaff: (id: string) => Promise<void>;
+
   documents: DocFile[];
+  fetchDocuments: () => Promise<void>;
   /**
-   * Storage-layer gate (this app has no backend — this is the ingestion
-   * point). Re-validates extension, size and MIME independently of the upload
-   * form and sanitizes the stored display name. Returns the rejection reason,
+   * Re-validates extension, size and MIME independently of the upload form
+   * before the file ever reaches the network. Returns the rejection reason,
    * or `null` on success.
    */
-  addDocument: (d: DocFile, meta?: { sizeBytes: number; mime: string }) => string | null;
-  updateDocument: (id: string, patch: Partial<DocFile>) => void;
-  deleteDocument: (id: string) => void;
+  addDocument: (d: NewDocDraft, file: File) => Promise<string | null>;
+  updateDocument: (id: string, patch: Partial<Omit<DocFile, 'id'>>) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+
   notifications: AppNotification[];
-  markNotificationRead: (id: string) => void;
-  markAllNotificationsRead: () => void;
-  pushNotification: (n: Omit<AppNotification, 'id' | 'read'>) => void;
+  fetchNotifications: () => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+
+  // Inbox/chat stays on local mock data — no backend resource exists for it.
   conversations: Conversation[];
   markConversationRead: (id: string) => void;
   sendMessage: (conversationId: string, text: string) => void;
+
   toasts: Toast[];
   pushToast: (message: string) => void;
   dismissToast: (id: number) => void;
+
+  /** Fetches every server-backed resource once a session is confirmed, then runs the automation catch-up. */
+  loadAll: () => Promise<void>;
 }
 
 let toastSeq = 1;
-let notificationSeq = 100;
 let messageSeq = 100;
 
-export const useStore = create<StoreState>()(
-  persist(
-    (set, get) => ({
-  properties: seedProperties,
-  addProperty: (p) => set((s) => ({ properties: [p, ...s.properties] })),
-  updateProperty: (id, patch) =>
-    set((s) => ({ properties: s.properties.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+export const useStore = create<StoreState>()((set, get) => ({
+  properties: [],
+  fetchProperties: async () => set({ properties: await propertiesApi.getProperties() }),
+  addProperty: async (d, image) => {
+    const created = await propertiesApi.createProperty(d, image);
+    set((s) => ({ properties: [created, ...s.properties] }));
+  },
+  updateProperty: async (id, d, image) => {
+    const updated = await propertiesApi.updateProperty(id, d, image);
+    set((s) => ({ properties: s.properties.map((p) => (p.id === id ? updated : p)) }));
+  },
+  deleteProperty: async (id) => {
+    await propertiesApi.deleteProperty(id);
+    set((s) => ({ properties: s.properties.filter((p) => p.id !== id) }));
+  },
 
-  units: seedUnits,
-  addUnit: (u) => {
-    const err = validateUnit(get().units, u.propertyId, u);
+  units: [],
+  fetchUnits: async () => {
+    const units = await unitsApi.getAllUnits(get().properties.map((p) => p.id));
+    set({ units });
+  },
+  addUnit: async (propertyId, u) => {
+    const err = validateUnit(get().units, propertyId, u);
     if (err) return err;
-    set((s) => ({ units: [u, ...s.units] }));
+    const created = await unitsApi.createUnit(propertyId, u);
+    set((s) => ({ units: [created, ...s.units] }));
     return null;
   },
-  updateUnit: (id, patch) => {
+  updateUnit: async (id, patch) => {
     const units = get().units;
     const existing = units.find((u) => u.id === id);
     if (!existing) return 'Unit not found.';
     const next = { ...existing, ...patch };
     const err = validateUnit(units, next.propertyId, next, id);
     if (err) return err;
-    set((s) => ({ units: s.units.map((u) => (u.id === id ? next : u)) }));
+    const updated = await unitsApi.updateUnit(id, patch);
+    set((s) => ({ units: s.units.map((u) => (u.id === id ? updated : u)) }));
     return null;
   },
-  deleteUnit: (id) => set((s) => ({ units: s.units.filter((u) => u.id !== id) })),
+  deleteUnit: async (id) => {
+    await unitsApi.deleteUnit(id);
+    set((s) => ({ units: s.units.filter((u) => u.id !== id) }));
+  },
 
-  tenants: seedTenants,
-  addTenant: (t) => set((s) => ({ tenants: [t, ...s.tenants] })),
-  updateTenant: (id, patch) =>
-    set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
-  deleteTenant: (id) => set((s) => ({ tenants: s.tenants.filter((t) => t.id !== id) })),
+  tenants: [],
+  fetchTenants: async () => set({ tenants: await tenantsApi.getTenants() }),
+  addTenant: async (d) => {
+    const created = await tenantsApi.createTenant(d);
+    set((s) => ({ tenants: [created, ...s.tenants] }));
+    void get().fetchNotifications();
+  },
+  updateTenant: async (id, d) => {
+    const updated = await tenantsApi.updateTenant(id, d);
+    set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? updated : t)) }));
+  },
+  deleteTenant: async (id) => {
+    await tenantsApi.deleteTenant(id);
+    set((s) => ({ tenants: s.tenants.filter((t) => t.id !== id) }));
+  },
 
-  leases: seedLeases,
-  addLease: (l) => set((s) => ({ leases: [l, ...s.leases] })),
+  leases: [],
+  fetchLeases: async () => set({ leases: await leasesApi.getLeases() }),
+  addLease: async (d) => {
+    const created = await leasesApi.createLease(d);
+    set((s) => ({ leases: [created, ...s.leases] }));
+  },
 
-  payments: seedPayments,
-  addPayment: (p) => set((s) => ({ payments: [p, ...s.payments] })),
-  runPaymentAutomation: (now) => {
+  payments: [],
+  fetchPayments: async () => set({ payments: await paymentsApi.getPayments() }),
+  addPayment: async (d) => {
+    const created = await paymentsApi.createPayment(d);
+    set((s) => ({ payments: [created, ...s.payments] }));
+  },
+  updatePayment: async (id, patch) => {
+    const updated = await paymentsApi.updatePayment(id, patch);
+    set((s) => ({ payments: s.payments.map((p) => (p.id === id ? updated : p)) }));
+    if (patch.status === 'Overdue') void get().fetchNotifications();
+  },
+  runPaymentAutomation: async (now) => {
     const { leases, tenants, payments } = get();
     let today: string;
     try {
@@ -169,81 +242,107 @@ export const useStore = create<StoreState>()(
     }
     const { toCreate, toMarkOverdue, report } = planAutomationRun({ leases, tenants, payments }, today);
     if (toCreate.length === 0 && toMarkOverdue.length === 0) return report;
-    const flip = new Set(toMarkOverdue);
-    set((s) => ({
-      payments: [
-        ...toCreate,
-        ...s.payments.map((p) =>
-          // Re-check Pending at apply time: a Paid row must never flip.
-          flip.has(p.id) && p.status === 'Pending' ? { ...p, status: 'Overdue' as const } : p
-        ),
-      ],
-    }));
+
+    await Promise.all(
+      toCreate.map((p) =>
+        paymentsApi.createPayment({
+          tenantId: p.tenantId,
+          propertyId: p.propertyId,
+          amount: p.amount,
+          date: p.date,
+          method: p.method,
+          status: p.status,
+          leaseId: p.leaseId,
+          period: p.period,
+        })
+      )
+    );
+    await Promise.all(toMarkOverdue.map((id) => paymentsApi.updatePayment(id, { status: 'Overdue' })));
+    await get().fetchPayments();
+
     logAutomationReport(report);
-    get().pushNotification({
-      kind: 'payment',
-      title: 'Rent automation ran',
-      detail:
-        `Periods ${report.periods.join(', ')}: ` +
-        `${report.createdIds.length} payment(s) generated, ` +
-        `${report.markedOverdueIds.length} marked overdue.`,
-      time: 'Now',
-      link: 'Payments',
-    });
+    get().pushToast(
+      `Rent automation: ${report.createdIds.length} payment(s) generated, ${report.markedOverdueIds.length} marked overdue.`
+    );
+    void get().fetchNotifications();
     return report;
   },
-  updatePayment: (id, patch) =>
-    set((s) => ({ payments: s.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
 
-  maintenance: seedMaintenance,
-  addMaintenance: (m) => {
-    const err = validateMaintenanceTarget(m, get().units, get().tenants);
+  maintenance: [],
+  fetchMaintenance: async () => set({ maintenance: await maintenanceApi.getMaintenanceRequests() }),
+  addMaintenance: async (d) => {
+    const err = validateMaintenanceTarget(d, get().units, get().tenants);
     if (err) return err;
-    set((s) => ({ maintenance: [m, ...s.maintenance] }));
+    const created = await maintenanceApi.createMaintenanceRequest(d);
+    set((s) => ({ maintenance: [created, ...s.maintenance] }));
+    void get().fetchNotifications();
     return null;
   },
-  updateMaintenance: (id, patch) =>
-    set((s) => ({ maintenance: s.maintenance.map((m) => (m.id === id ? { ...m, ...patch } : m)) })),
+  updateMaintenanceStatus: async (id, status) => {
+    const updated = await maintenanceApi.updateMaintenanceStatus(id, status);
+    set((s) => ({ maintenance: s.maintenance.map((m) => (m.id === id ? updated : m)) }));
+  },
+  updateMaintenanceAssignee: async (id, staffId) => {
+    const updated = await maintenanceApi.updateMaintenanceAssignee(id, staffId);
+    set((s) => ({ maintenance: s.maintenance.map((m) => (m.id === id ? updated : m)) }));
+  },
 
-  staff: seedStaff,
-  addStaff: (staffMember) => {
+  staff: [],
+  fetchStaff: async () => set({ staff: await staffApi.getStaff() }),
+  addStaff: async (staffMember) => {
     const err = validateStaff(staffMember, DEFAULT_CALLING_COUNTRY);
     if (err) return err;
-    set((s) => ({ staff: [staffMember, ...s.staff] }));
+    const created = await staffApi.createStaff(staffMember);
+    set((s) => ({ staff: [created, ...s.staff] }));
     return null;
   },
-  updateStaff: (id, patch) => {
+  updateStaff: async (id, patch) => {
     const existing = get().staff.find((s) => s.id === id);
     if (!existing) return 'Staff member not found.';
     const next = { ...existing, ...patch };
     const err = validateStaff(next, DEFAULT_CALLING_COUNTRY);
     if (err) return err;
-    set((s) => ({ staff: s.staff.map((m) => (m.id === id ? next : m)) }));
+    const updated = await staffApi.updateStaff(id, patch);
+    set((s) => ({ staff: s.staff.map((m) => (m.id === id ? updated : m)) }));
     return null;
   },
-  deleteStaff: (id) => set((s) => ({ staff: s.staff.filter((m) => m.id !== id) })),
+  deleteStaff: async (id) => {
+    await staffApi.deleteStaff(id);
+    set((s) => ({ staff: s.staff.filter((m) => m.id !== id) }));
+  },
 
-  documents: seedDocuments,
-  addDocument: (d, meta) => {
-    const err = validateDocRecord(d.name, meta?.sizeBytes, meta?.mime);
+  documents: [],
+  fetchDocuments: async () => set({ documents: await documentsApi.getDocuments() }),
+  addDocument: async (d, file) => {
+    const err = validateDocRecord(d.name, d.sizeBytes, d.mime);
     if (err) return err;
     const clean = sanitizeFileName(d.name);
     if (clean === '') return 'Document name is required.';
-    set((s) => ({ documents: [{ ...d, name: clean }, ...s.documents] }));
+    const created = await documentsApi.createDocument({ ...d, name: clean }, file);
+    set((s) => ({ documents: [created, ...s.documents] }));
     return null;
   },
-  updateDocument: (id, patch) =>
-    set((s) => ({ documents: s.documents.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
-  deleteDocument: (id) => set((s) => ({ documents: s.documents.filter((d) => d.id !== id) })),
+  updateDocument: async (id, patch) => {
+    const updated =
+      patch.status === 'Archived' && Object.keys(patch).length === 1
+        ? await documentsApi.archiveDocument(id)
+        : await documentsApi.updateDocument(id, patch);
+    set((s) => ({ documents: s.documents.map((d) => (d.id === id ? updated : d)) }));
+  },
+  deleteDocument: async (id) => {
+    await documentsApi.deleteDocument(id);
+    set((s) => ({ documents: s.documents.filter((d) => d.id !== id) }));
+  },
 
-  notifications: seedNotifications,
-  markNotificationRead: (id) =>
-    set((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) })),
-  markAllNotificationsRead: () =>
-    set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
-  pushNotification: (n) => {
-    const id = `n-${notificationSeq++}`;
-    set((s) => ({ notifications: [{ ...n, id, read: false }, ...s.notifications] }));
+  notifications: [],
+  fetchNotifications: async () => set({ notifications: await notificationsApi.getNotifications() }),
+  markNotificationRead: async (id) => {
+    set((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) }));
+    await notificationsApi.markNotificationAsRead(id);
+  },
+  markAllNotificationsRead: async () => {
+    set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+    await notificationsApi.markAllNotificationsAsRead();
   },
 
   conversations: seedConversations,
@@ -267,16 +366,23 @@ export const useStore = create<StoreState>()(
     set((s) => ({ toasts: [...s.toasts.slice(-2), { id, message }] }));
     window.setTimeout(() => get().dismissToast(id), 3500);
   },
-    }),
-    {
-      // The slices with user-created/-changed records that must survive a
-      // refresh; everything else stays session-scoped seed data. Additive
-      // vs. the original units-only shape, so no version bump is needed —
-      // old persisted blobs just leave maintenance/staff at their seed value.
-      name: 'propora-units-v1',
-      version: 1,
-      storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ units: s.units, maintenance: s.maintenance, staff: s.staff }),
+
+  loadAll: async () => {
+    await get().fetchProperties();
+    await Promise.all([
+      get().fetchUnits(),
+      get().fetchTenants(),
+      get().fetchLeases(),
+      get().fetchPayments(),
+      get().fetchMaintenance(),
+      get().fetchStaff(),
+      get().fetchDocuments(),
+      get().fetchNotifications(),
+    ]);
+    try {
+      await get().runPaymentAutomation();
+    } catch (err) {
+      console.error('[payments:auto] boot catch-up failed', err);
     }
-  )
-);
+  },
+}));

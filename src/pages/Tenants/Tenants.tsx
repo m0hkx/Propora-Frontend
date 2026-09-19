@@ -91,18 +91,28 @@ export default function Tenants({
   const edited = editId ? tenants.find((t) => t.id === editId) ?? null : null;
   const deleted = deleteId ? tenants.find((t) => t.id === deleteId) ?? null : null;
 
-  const saveEdit = (id: string, draft: TenantDraft) => {
-    updateTenant(id, { ...draft });
-    setEditId(null);
-    pushToast(`Saved changes for ${draft.name}`);
+  const saveEdit = async (id: string, draft: TenantDraft) => {
+    try {
+      await updateTenant(id, draft);
+      setEditId(null);
+      pushToast(`Saved changes for ${draft.name}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to save tenant');
+    }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleted) return;
-    deleteTenant(deleted.id);
-    setDeleteId(null);
-    if (viewId === deleted.id) setViewId(null);
-    pushToast(`Deleted tenant ${deleted.name}`);
+    try {
+      await deleteTenant(deleted.id);
+      setDeleteId(null);
+      if (viewId === deleted.id) setViewId(null);
+      pushToast(`Deleted tenant ${deleted.name}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to delete tenant');
+    }
   };
 
   const onAction = (a: TenantAction, t: Tenant) => {

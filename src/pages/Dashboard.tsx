@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { propertyName, tenantName } from '../data/mock';
+import { formatMoney, propertyName, tenantName } from '../data/mock';
 import { AreaChart, Donut } from '../components/charts';
 import { Badge, Card, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
@@ -8,41 +8,42 @@ import KpiCard from '../components/KpiCard';
 import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
 import { fmtDate } from '../lib/format';
-import { spreadByProperty } from '../lib/stats';
+import { revenueByPeriod, spreadByProperty } from '../lib/stats';
+import type { RevenueRange } from '../lib/stats';
 import { maintenancePriorityTone, paymentTone } from '../lib/tone';
+import { withLiveOccupancy } from '../lib/units';
 import { scopeLabel } from './Maintenance/maintenanceUtils';
 
-type Range = 'Monthly' | 'Quarterly' | 'Yearly';
-
-const revenueSets: Record<Range, { values: number[]; labels: string[]; counts: number[] }> = {
-  Monthly: { values: [82, 88, 84, 92, 95, 102, 108, 115, 124], labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], counts: [0, 0, 0, 0, 0, 0, 1, 3, 4] },
-  Quarterly: { values: [260, 310, 345, 372], labels: ['Q1', 'Q2', 'Q3', 'Q4'], counts: [0, 0, 8, 0] },
-  Yearly: { values: [820, 950, 1100, 1280, 1450], labels: ['2022', '2023', '2024', '2025', '2026'], counts: [0, 0, 0, 0, 8] },
-};
-
-const timeline = [
-  { text: 'Sarah Johnson paid $1,200', time: '10 minutes ago' },
-  { text: 'New lease created for Unit #204', time: '1 hour ago' },
-  { text: 'Maintenance request completed', time: '3 hours ago' },
-  { text: 'Michael Smith added as a tenant', time: 'Yesterday' },
-  { text: 'Property "Harbor Point" added', time: 'Yesterday' },
-];
+type Range = RevenueRange;
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [range, setRange] = useState<Range>('Monthly');
   const [actionOpen, setActionOpen] = useState(false);
-  const set = revenueSets[range];
-  const properties = useStore((s) => s.properties);
+  const rawProperties = useStore((s) => s.properties);
   const payments = useStore((s) => s.payments);
   const maintenance = useStore((s) => s.maintenance);
   const tenants = useStore((s) => s.tenants);
   const units = useStore((s) => s.units);
-  // Portfolio-wide total: 18 managed + any created in this session.
-  const totalProperties = 18 + Math.max(0, properties.length - 6);
+  const documents = useStore((s) => s.documents);
+  // Nothing keeps the stored `occupied` field in sync — see withLiveOccupancy.
+  const properties = useMemo(() => withLiveOccupancy(rawProperties, tenants), [rawProperties, tenants]);
+  const totalProperties = properties.length;
+  const activeProperties = properties.filter((p) => p.status === 'Active').length;
 
   const fmtInt = (n: number) => Math.round(n).toLocaleString('en-US');
   const fmtMoney = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+
+  const totalUnits = properties.reduce((s, p) => s + p.units, 0);
+  const occupiedUnits = properties.reduce((s, p) => s + p.occupied, 0);
+  const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
+  const occPct = totalUnits === 0 ? 0 : Math.round((occupiedUnits / totalUnits) * 100);
+  // Expected monthly revenue from currently occupied units — same formula the
+  // Property Performance / Revenue by Property sections use per property.
+  const monthlyRevenue = properties.reduce((s, p) => s + p.occupied * p.rent, 0);
+
+  const chart = useMemo(() => revenueByPeriod(payments, range), [payments, range]);
+
   const overdueSums = spreadByProperty(
     properties,
     payments.filter((p) => p.status === 'Overdue'),
@@ -51,9 +52,26 @@ export default function Dashboard() {
   );
 
   const overdue = payments.filter((p) => p.status === 'Overdue');
+  const outstanding = overdue.reduce((s, p) => s + p.amount, 0);
   const openMaint = maintenance.filter((m) => m.status === 'Open');
   const expiring = tenants.filter((t) => t.leaseStatus === 'Expiring Soon');
   const tenantOf = (id: string) => tenants.find((t) => t.id === id)?.name ?? id;
+
+  // Merges every dated event this account actually has — maintenance history
+  // entries, paid payments, document uploads — sorted newest-first. Tenants
+  // and leases carry no creation timestamp (only contractual dates), so they
+  // aren't a reliable "recent activity" signal and are left out.
+  const activity = useMemo(() => {
+    const items: { text: string; date: string }[] = [];
+    for (const m of maintenance) {
+      for (const h of m.history) items.push({ text: `${h.text} — ${m.title}`, date: h.date });
+    }
+    for (const p of payments) {
+      if (p.status === 'Paid') items.push({ text: `${tenantName(p.tenantId, tenants)} paid ${formatMoney(p.amount)}`, date: p.date });
+    }
+    for (const d of documents) items.push({ text: `Document uploaded: ${d.name}`, date: d.uploadDate });
+    return items.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  }, [maintenance, payments, documents, tenants]);
 
   // Top properties by revenue, feeding both the performance table and the
   // revenue-by-property list below — same live store data, two views of it.
@@ -107,30 +125,30 @@ export default function Dashboard() {
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <KpiCard
           icon={Icons.building} tint="teal"
-          delta={{ text: '▲ +2 this month', tone: 'up' }}
+          delta={{ text: `${properties.length - activeProperties} inactive`, tone: 'flat' }}
           value={totalProperties} format={fmtInt}
-          label="Total Properties" sub="17 Active"
+          label="Total Properties" sub={`${activeProperties} Active`}
           spark={properties.map((p) => p.units)} stagger="sd-1"
         />
         <KpiCard
           icon={Icons.home} tint="blue"
-          delta={{ text: '90.1% occupied', tone: 'flat' }}
-          value={142} format={(n) => `${fmtInt(n)} Units`}
-          label="Total Units" sub="128 Occupied"
+          delta={{ text: `${occPct}% occupied`, tone: 'flat' }}
+          value={totalUnits} format={(n) => `${fmtInt(n)} Units`}
+          label="Total Units" sub={`${occupiedUnits} Occupied`}
           spark={properties.map((p) => p.occupied)} stagger="sd-2"
         />
         <KpiCard
           icon={Icons.card} tint="amber"
-          delta={{ text: '▲ +$8,420', tone: 'up' }}
-          value={124850} format={fmtMoney}
-          label="Monthly Revenue" sub="vs last month"
+          delta={{ text: 'From occupied units', tone: 'flat' }}
+          value={monthlyRevenue} format={fmtMoney}
+          label="Monthly Revenue" sub="Current run-rate"
           spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-3"
         />
         <KpiCard
           icon={Icons.bell} tint="rose"
-          delta={{ text: (<><span className="dot" style={{ background: 'currentColor' }} /> 3 overdue</>), tone: 'down' }}
-          value={12450} format={fmtMoney}
-          label="Outstanding" sub="8 Payments"
+          delta={{ text: (<><span className="dot" style={{ background: 'currentColor' }} /> {overdue.length} overdue</>), tone: overdue.length > 0 ? 'down' : 'flat' }}
+          value={outstanding} format={fmtMoney}
+          label="Outstanding" sub={`${overdue.length} Payments`}
           spark={overdueSums} stagger="sd-4"
         />
       </div>
@@ -139,7 +157,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-[2fr_1fr] gap-4 max-compact:grid-cols-1 rise sd-3">
         <Card>
           <div className="row">
-            <div><strong>Revenue Overview</strong><div className="kpi my-1">$124,850</div><div className="small text-success font-bold">+7.2% vs last month</div></div>
+            <div><strong>Revenue Overview</strong><div className="kpi my-1">{fmtMoney(monthlyRevenue)}</div><div className="small muted">Current run-rate from occupied units</div></div>
             <label className="small muted">Range&nbsp;
               <select value={range} onChange={(e) => setRange(e.target.value as Range)} aria-label="Revenue range">
                 <option value="Monthly">Monthly</option>
@@ -148,19 +166,22 @@ export default function Dashboard() {
               </select>
             </label>
           </div>
-          <AreaChart values={set.values} labels={set.labels} counts={set.counts} />
+          {chart.values.length >= 2 ? (
+            <AreaChart values={chart.values} labels={chart.labels} counts={chart.counts} />
+          ) : (
+            <p className="small muted mt-3 mb-1">Not enough payment history yet to chart a trend — record a few payments to see it here.</p>
+          )}
         </Card>
         <Card>
           <div className="small muted">Occupancy</div>
-          <div className="kpi">90.1%</div>
-          <div className="small muted">128 / 142 units occupied</div>
-          <div className="my-3"><Progress value={90.1} /></div>
-          <Donut percent={90} label="Occupied" />
+          <div className="kpi">{occPct}%</div>
+          <div className="small muted">{occupiedUnits} / {totalUnits} units occupied</div>
+          <div className="my-3"><Progress value={occPct} /></div>
+          <Donut percent={occPct} label="Occupied" />
           <div className="list">
-            <div className="list-row"><span>Occupied</span><strong>128</strong></div>
-            <div className="list-row"><span>Vacant</span><strong>14</strong></div>
+            <div className="list-row"><span>Occupied</span><strong>{occupiedUnits}</strong></div>
+            <div className="list-row"><span>Vacant</span><strong>{vacantUnits}</strong></div>
           </div>
-          <div className="small text-success font-bold mt-2">+2.4% vs last month</div>
         </Card>
       </div>
 
@@ -255,14 +276,18 @@ export default function Dashboard() {
       {/* Row 5 — Activity */}
       <Card className="rise sd-6">
         <strong>Recent Activity</strong>
-        <div className="timeline">
-          {timeline.map((t) => (
-            <div key={t.text} className="timeline-item">
-              <span className="timeline-dot" />
-              <div><div>{t.text}</div><div className="small muted">{t.time}</div></div>
-            </div>
-          ))}
-        </div>
+        {activity.length === 0 ? (
+          <p className="small muted mt-3 mb-1">No activity yet — it will show up here as you record payments, upload documents and work maintenance requests.</p>
+        ) : (
+          <div className="timeline">
+            {activity.map((a, i) => (
+              <div key={`${a.date}-${i}`} className="timeline-item">
+                <span className="timeline-dot" />
+                <div><div>{a.text}</div><div className="small muted">{fmtDate(a.date)}</div></div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       {actionOpen && (

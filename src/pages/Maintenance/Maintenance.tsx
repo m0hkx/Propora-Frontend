@@ -14,7 +14,8 @@ import { EMPTY_MFILTERS, maintenanceSearchText } from './maintenanceUtils';
 import type { MaintenanceFilters as Filters, MaintenanceTab } from './maintenanceUtils';
 
 export default function Maintenance() {
-  const updateMaintenance = useStore((s) => s.updateMaintenance);
+  const updateMaintenanceStatus = useStore((s) => s.updateMaintenanceStatus);
+  const updateMaintenanceAssignee = useStore((s) => s.updateMaintenanceAssignee);
   const pushToast = useStore((s) => s.pushToast);
   const maintenance = useStore((s) => s.maintenance);
   const properties = useStore((s) => s.properties);
@@ -56,26 +57,25 @@ export default function Maintenance() {
 
   const selected = selectedId ? maintenance.find((m) => m.id === selectedId) ?? null : null;
 
-  const changeStatus = (m: MaintenanceRequest, status: MaintenanceStatus) => {
-    const today = new Date().toISOString().slice(0, 10);
-    updateMaintenance(m.id, {
-      status,
-      scheduledDate: m.scheduledDate ?? (status !== 'Open' ? today : undefined),
-      completedDate: status === 'Completed' ? today : undefined,
-      actualCost: status === 'Completed' ? m.actualCost ?? m.estimatedCost : m.actualCost,
-      history: [...m.history, { date: today, text: `Status changed to ${status}` }],
-    });
-    pushToast(`${m.id} marked as ${status}`);
+  const changeStatus = async (m: MaintenanceRequest, status: MaintenanceStatus) => {
+    try {
+      await updateMaintenanceStatus(m.id, status);
+      pushToast(`${m.id} marked as ${status}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to update status');
+    }
   };
 
-  const changeAssignee = (m: MaintenanceRequest, staffId: string) => {
-    const today = new Date().toISOString().slice(0, 10);
+  const changeAssignee = async (m: MaintenanceRequest, staffId: string) => {
     const assigneeId = staffId === '' ? undefined : staffId;
-    updateMaintenance(m.id, {
-      assigneeId,
-      history: [...m.history, { date: today, text: assigneeId ? `Reassigned to ${staffName(assigneeId, staff)}` : 'Unassigned' }],
-    });
-    pushToast(assigneeId ? `Assigned to ${staffName(assigneeId, staff)}` : `${m.id} unassigned`);
+    try {
+      await updateMaintenanceAssignee(m.id, assigneeId);
+      pushToast(assigneeId ? `Assigned to ${staffName(assigneeId, staff)}` : `${m.id} unassigned`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to update assignee');
+    }
   };
 
   return (

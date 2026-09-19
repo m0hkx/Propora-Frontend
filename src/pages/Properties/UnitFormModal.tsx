@@ -76,7 +76,7 @@ export default function UnitFormModal({
   const err = (msg: string) => (submitted && msg !== '' ? <span className="field-error">{msg}</span> : null);
   const cls = (bad: boolean) => (submitted && bad ? 'invalid' : '');
 
-  const submit = () => {
+  const submit = async () => {
     setSubmitted(true);
     setServerError('');
     if (invalid) return;
@@ -94,15 +94,20 @@ export default function UnitFormModal({
     // The store re-validates (required name, per-property uniqueness,
     // non-negative numbers) so bad data can never persist, even if the
     // form check is bypassed.
-    const rejected = editing
-      ? updateUnit(editing.id, { ...patch, propertyId })
-      : addUnit({ id: `u-${Date.now()}`, propertyId, ...patch });
-    if (rejected) {
-      setServerError(rejected);
-      return;
+    try {
+      const rejected = editing
+        ? await updateUnit(editing.id, { ...patch, propertyId })
+        : await addUnit(propertyId, patch);
+      if (rejected) {
+        setServerError(rejected);
+        return;
+      }
+      pushToast(editing ? `Saved changes for unit ${patch.name}` : `Unit ${patch.name} added to ${property?.name ?? 'property'}`);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      setServerError(error instanceof Error ? error.message : 'Failed to save unit');
     }
-    pushToast(editing ? `Saved changes for unit ${patch.name}` : `Unit ${patch.name} added to ${property?.name ?? 'property'}`);
-    onClose();
   };
 
   return (

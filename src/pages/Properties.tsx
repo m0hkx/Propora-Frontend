@@ -12,6 +12,7 @@ import { propertyToDraft } from './Properties/propertyForm';
 import type { PropertyDraft } from './Properties/propertyForm';
 import { useStore } from '../state/useStore';
 import { propertyTone as tone } from '../lib/tone';
+import { withLiveOccupancy } from '../lib/units';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
 type SortKey = 'featured' | 'name' | 'revenue' | 'occupancy';
@@ -36,7 +37,10 @@ function revenue(p: Property): number {
 const tabs: StatusFilter[] = ['All', 'Active', 'Vacant', 'Maintenance'];
 
 export default function Properties({ query }: { query: string }) {
-  const properties = useStore((s) => s.properties);
+  const rawProperties = useStore((s) => s.properties);
+  const tenants = useStore((s) => s.tenants);
+  // Nothing keeps the stored `occupied` field in sync — see withLiveOccupancy.
+  const properties = useMemo(() => withLiveOccupancy(rawProperties, tenants), [rawProperties, tenants]);
   const updateProperty = useStore((s) => s.updateProperty);
   const pushToast = useStore((s) => s.pushToast);
   const [status, setStatus] = useState<StatusFilter>('All');
@@ -47,10 +51,14 @@ export default function Properties({ query }: { query: string }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
 
-  // Portfolio-wide total: 18 managed + any created in this session.
-  const totalProperties = 18 + Math.max(0, properties.length - 6);
+  const totalUnits = properties.reduce((s, p) => s + p.units, 0);
+  const occupiedUnits = properties.reduce((s, p) => s + p.occupied, 0);
+  const availableUnits = Math.max(0, totalUnits - occupiedUnits);
+  const occPct = totalUnits === 0 ? 0 : Math.round((occupiedUnits / totalUnits) * 100);
+  const monthlyRevenue = properties.reduce((s, p) => s + p.occupied * p.rent, 0);
 
   const types = useMemo(() => ['All types', ...Array.from(new Set(properties.map((p) => p.type)))], [properties]);
+
   const counts = useMemo(
     () => ({
       All: properties.length,
@@ -63,6 +71,7 @@ export default function Properties({ query }: { query: string }) {
 
   const list = useMemo(() => {
     const q = `${query} ${search}`.trim().toLowerCase();
+
     let out = properties.filter((p) => {
       if (status === 'Active' && p.status !== 'Active') return false;
       if (status === 'Vacant' && p.status !== 'Vacant') return false;
@@ -71,7 +80,9 @@ export default function Properties({ query }: { query: string }) {
       if (q && !(p.name + ' ' + p.address + ' ' + p.type).toLowerCase().includes(q)) return false;
       return true;
     });
+
     out = [...out];
+
     if (sort === 'name') out.sort((a, b) => a.name.localeCompare(b.name));
     if (sort === 'revenue') out.sort((a, b) => revenue(b) - revenue(a));
     if (sort === 'occupancy') out.sort((a, b) => occupancy(b) - occupancy(a));
@@ -80,25 +91,15 @@ export default function Properties({ query }: { query: string }) {
 
   const editing = editId ? properties.find((p) => p.id === editId) ?? null : null;
 
-  const saveEdit = (id: string, d: PropertyDraft, imageUrl: string) => {
-    const existing = properties.find((p) => p.id === id);
-    if (!existing) return;
-    const seed = `custom-${Date.now()}`;
-    updateProperty(id, {
-      name: d.name,
-      address: `${d.address}, ${d.city}`,
-      country: d.country === '' ? undefined : d.country,
-      type: d.type,
-      units: Number(d.units),
-      // Base rent stays exactly what the user typed — never recalculated.
-      rent: Number(d.baseRent),
-      status: d.status,
-      yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : existing.yearBuilt,
-      image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
-      imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
-    });
-    setEditId(null);
-    pushToast(`Saved changes for ${d.name}`);
+  const saveEdit = async (id: string, d: PropertyDraft, image: File | undefined) => {
+    try {
+      await updateProperty(id, d, image);
+      setEditId(null);
+      pushToast(`Saved changes for ${d.name}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to save property');
+    }
   };
 
   return (
@@ -107,29 +108,29 @@ export default function Properties({ query }: { query: string }) {
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <KpiCard
           icon={Icons.building} tint="teal"
-          delta={{ text: '+2.4% vs last month', tone: 'up' }}
-          value={totalProperties} format={(n) => Math.round(n).toLocaleString('en-US')}
+          delta={{ text: `${counts.Active} Active`, tone: 'flat' }}
+          value={properties.length} format={(n) => Math.round(n).toLocaleString('en-US')}
           label="Total Properties"
           spark={properties.map((p) => p.units)} stagger="sd-1"
         />
         <KpiCard
           icon={Icons.home} tint="blue"
-          delta={{ text: '90.1% occupancy', tone: 'flat' }}
-          value={128} format={(n) => Math.round(n).toLocaleString('en-US')}
+          delta={{ text: `${occPct}% occupancy`, tone: 'flat' }}
+          value={occupiedUnits} format={(n) => Math.round(n).toLocaleString('en-US')}
           label="Occupied Units"
           spark={properties.map((p) => p.occupied)} stagger="sd-2"
         />
         <KpiCard
           icon={Icons.key} tint="amber"
-          delta={{ text: '-3.2% vs last month', tone: 'down' }}
-          value={14} format={(n) => Math.round(n).toLocaleString('en-US')}
+          delta={{ text: `${totalUnits} total units`, tone: 'flat' }}
+          value={availableUnits} format={(n) => Math.round(n).toLocaleString('en-US')}
           label="Available Units"
           spark={properties.map((p) => p.units - p.occupied)} stagger="sd-3"
         />
         <KpiCard
           icon={Icons.card} tint="amber"
-          delta={{ text: '+8.4% vs last month', tone: 'up' }}
-          value={124850} format={(n) => '$' + Math.round(n).toLocaleString('en-US')}
+          delta={{ text: 'From occupied units', tone: 'flat' }}
+          value={monthlyRevenue} format={(n) => '$' + Math.round(n).toLocaleString('en-US')}
           label="Monthly Revenue"
           spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-4"
         />
@@ -247,7 +248,7 @@ export default function Properties({ query }: { query: string }) {
           initial={propertyToDraft(editing)}
           initialImageUrl={editing.imageUrl}
           onClose={() => setEditId(null)}
-          onSubmit={(d, img) => saveEdit(editing.id, d, img)}
+          onSubmit={(d, image) => saveEdit(editing.id, d, image)}
         />
       )}
     </div>

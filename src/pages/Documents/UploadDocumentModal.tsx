@@ -33,7 +33,7 @@ export default function UploadDocumentModal({
 }: {
   properties: Property[];
   onClose: () => void;
-  onCreate: (d: NewDocDraft) => void;
+  onCreate: (d: NewDocDraft, file: File) => void;
 }) {
   const [name, setName] = useState('');
   const [propertyId, setPropertyId] = useState(properties[0]?.id ?? '');
@@ -104,15 +104,18 @@ export default function UploadDocumentModal({
       return;
     }
     if (fileError !== null) return;
-    onCreate({
-      name: name.trim(),
-      propertyId,
-      tenantId: tenantId === '' ? undefined : tenantId,
-      type,
-      size: formatBytes(file.size),
-      sizeBytes: file.size,
-      mime: file.type,
-    });
+    onCreate(
+      {
+        name: name.trim(),
+        propertyId,
+        tenantId: tenantId === '' ? undefined : tenantId,
+        type,
+        size: formatBytes(file.size),
+        sizeBytes: file.size,
+        mime: file.type,
+      },
+      file
+    );
   };
 
   return (

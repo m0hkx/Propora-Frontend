@@ -24,10 +24,11 @@ export default function AddPropertyModal({
   initial: PropertyDraft;
   initialImageUrl: string;
   onClose: () => void;
-  onSubmit: (d: PropertyDraft, imageUrl: string) => void;
+  onSubmit: (d: PropertyDraft, image: File | undefined, imageUrl: string) => Promise<void>;
 }) {
   const [form, setForm] = useState<PropertyDraft>(initial);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
+  const [imageFile, setImageFile] = useState<File | undefined>();
   const [submitted, setSubmitted] = useState(false);
 
   const set = (patch: Partial<PropertyDraft>) => setForm({ ...form, ...patch });
@@ -52,15 +53,22 @@ export default function AddPropertyModal({
 
   const readFile = (f: File | undefined) => {
     if (!f) return;
+
+    setImageFile(f);
+
     const reader = new FileReader();
-    reader.onload = () => setImageUrl(String(reader.result));
+
+    reader.onload = () => {
+      setImageUrl(String(reader.result));
+    };
+
     reader.readAsDataURL(f);
   };
 
   const submit = () => {
     setSubmitted(true);
     if (invalid) return;
-    onSubmit({ ...form, name: form.name.trim(), address: form.address.trim(), city: form.city.trim() }, imageUrl);
+    onSubmit({ ...form, name: form.name.trim(), address: form.address.trim(), city: form.city.trim() }, imageFile, imageUrl);
   };
 
   const field = (

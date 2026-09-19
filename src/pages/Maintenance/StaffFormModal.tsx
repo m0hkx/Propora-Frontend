@@ -38,20 +38,25 @@ export default function StaffFormModal({
   const err = (msg: string) => (submitted && msg !== '' ? <span className="field-error">{msg}</span> : null);
   const cls = (bad: boolean) => (submitted && bad ? 'invalid' : '');
 
-  const submit = () => {
+  const submit = async () => {
     setSubmitted(true);
     setServerError('');
     if (invalid) return;
     const patch = { name: name.trim(), email: email.trim(), phone, specialty, status };
     // The store re-validates (name, email format, phone) so bad data can
     // never persist, even if the form check is bypassed.
-    const rejected = editing ? updateStaff(editing.id, patch) : addStaff({ id: `st-${Date.now()}`, ...patch });
-    if (rejected) {
-      setServerError(rejected);
-      return;
+    try {
+      const rejected = editing ? await updateStaff(editing.id, patch) : await addStaff(patch);
+      if (rejected) {
+        setServerError(rejected);
+        return;
+      }
+      pushToast(editing ? `Saved changes for ${patch.name}` : `${patch.name} added to maintenance staff`);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      setServerError(error instanceof Error ? error.message : 'Failed to save staff member');
     }
-    pushToast(editing ? `Saved changes for ${patch.name}` : `${patch.name} added to maintenance staff`);
-    onClose();
   };
 
   return (

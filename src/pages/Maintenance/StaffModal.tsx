@@ -26,21 +26,31 @@ export default function StaffModal({ onClose }: { onClose: () => void }) {
   const deleting = deleteId ? staff.find((s) => s.id === deleteId) ?? null : null;
   const blockers = deleting ? getStaffBlockers(deleting.id, maintenance) : [];
 
-  const toggleStatus = (id: string, status: MaintenanceStaffStatus) => {
+  const toggleStatus = async (id: string, status: MaintenanceStaffStatus) => {
     const next: MaintenanceStaffStatus = status === 'Active' ? 'Inactive' : 'Active';
-    const rejected = updateStaff(id, { status: next });
-    if (rejected) {
-      pushToast(rejected);
-      return;
+    try {
+      const rejected = await updateStaff(id, { status: next });
+      if (rejected) {
+        pushToast(rejected);
+        return;
+      }
+      pushToast(`Marked ${next}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to update status');
     }
-    pushToast(`Marked ${next}`);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleting) return;
-    deleteStaff(deleting.id);
-    setDeleteId(null);
-    pushToast(`Removed ${deleting.name} from maintenance staff`);
+    try {
+      await deleteStaff(deleting.id);
+      setDeleteId(null);
+      pushToast(`Removed ${deleting.name} from maintenance staff`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to delete staff member');
+    }
   };
 
   return (

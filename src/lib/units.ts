@@ -1,4 +1,4 @@
-import type { Lease, MaintenanceRequest, Tenant, Unit, UnitStatus, UnitType } from '../data/mock';
+import type { Lease, MaintenanceRequest, Property, Tenant, Unit, UnitStatus, UnitType } from '../data/mock';
 
 /**
  * Unit domain helpers (Property → Units → Tenant/Lease).
@@ -141,6 +141,26 @@ export function getUnitBlockers(
   });
   for (const m of open) blockers.push(`Has open maintenance request ${m.id} (${m.status})`);
   return blockers;
+}
+
+/**
+ * Live occupied-unit count for a property: active (non-Inactive) tenants
+ * billed against it, capped at its declared unit total. Nothing keeps a
+ * stored `Property.occupied` field in sync (there's no such form field, and
+ * no create/delete flow touches it), so it must never be trusted directly —
+ * this is the single source of truth, the same role `resolveUnitStatus`
+ * plays for an individual unit's status.
+ */
+export function occupiedCountForProperty(propertyId: string, tenants: Tenant[]): number {
+  return tenants.filter((t) => t.propertyId === propertyId && t.status !== 'Inactive').length;
+}
+
+/** Properties with `occupied` recomputed live from `tenants` — use this instead of the raw store array anywhere occupancy or revenue is displayed or totaled. */
+export function withLiveOccupancy(properties: Property[], tenants: Tenant[]): Property[] {
+  return properties.map((p) => ({
+    ...p,
+    occupied: Math.min(p.units, occupiedCountForProperty(p.id, tenants)),
+  }));
 }
 
 /** Display label for a lease row: linked unit name, else the tenant's free-text label. */

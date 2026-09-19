@@ -70,7 +70,6 @@ Designed, not decorated — one teal identity carried through every surface:
 | State | Zustand 5, selector subscriptions |
 | Routing | React Router 7, flat route table |
 | Charts | Hand-rolled SVG (area, donut, sparklines) — no chart dependency |
-| Data | Generated in-memory seed (`src/data/mock.ts`), no backend |
 | Quality gates | `tsc -b` project references, ESLint flat config |
 
 ## Getting started

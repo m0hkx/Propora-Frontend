@@ -28,7 +28,7 @@ export default function TenantStats({
     <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
       <KpiCard
         icon={Icons.users} tint="teal"
-        delta={{ text: '+6 this month', tone: 'up' }}
+        delta={{ text: `${total - active} not active`, tone: 'flat' }}
         value={total} format={fmtInt}
         label="Total Tenants" sub="Across portfolio"
         spark={byProp(tenants)} stagger="sd-1"

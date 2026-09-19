@@ -57,11 +57,16 @@ export default function UnitsSection({ propertyId }: { propertyId: string }) {
   const deleting = deleteId ? units.find((u) => u.id === deleteId) ?? null : null;
   const blockers = deleting ? getUnitBlockers(deleting, tenants, leases, maintenance) : [];
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleting) return;
-    deleteUnit(deleting.id);
-    setDeleteId(null);
-    pushToast(`Deleted unit ${deleting.name}`);
+    try {
+      await deleteUnit(deleting.id);
+      setDeleteId(null);
+      pushToast(`Deleted unit ${deleting.name}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to delete unit');
+    }
   };
 
   return (

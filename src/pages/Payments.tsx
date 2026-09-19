@@ -45,11 +45,10 @@ export default function Payments() {
 
   // Catch-up for long-open sessions (idempotent; silent when nothing is due).
   useEffect(() => {
-    try {
-      useStore.getState().runPaymentAutomation();
-    } catch (err) {
-      console.error('[payments:auto] catch-up failed', err);
-    }
+    useStore
+      .getState()
+      .runPaymentAutomation()
+      .catch((err) => console.error('[payments:auto] catch-up failed', err));
   }, []);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -122,10 +121,15 @@ export default function Payments() {
 
   const editing = editId ? payments.find((p) => p.id === editId) ?? null : null;
 
-  const saveEdit = (id: string, d: PaymentDraft) => {
-    updatePayment(id, { ...d });
-    setEditId(null);
-    pushToast(`Saved changes for ${id}`);
+  const saveEdit = async (id: string, d: PaymentDraft) => {
+    try {
+      await updatePayment(id, d);
+      setEditId(null);
+      pushToast(`Saved changes for ${id}`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to save payment');
+    }
   };
 
   return (

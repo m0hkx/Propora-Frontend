@@ -824,8 +824,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* NOTE: fill is `backwards`, never `both` — a retained end-state transform
+   would turn the element into a containing block for `position: fixed`
+   descendants (e.g. .modal-overlay), shrinking the backdrop to this box
+   instead of the viewport. */
 .rise {
-  animation: rise 0.48s var(--ease-spring) both;
+  animation: rise 0.48s var(--ease-spring) backwards;
 }
 
 /* Stagger steps (~70ms apart — sections land as one wave, not popcorn) */
@@ -842,7 +846,7 @@
 }
 
 .page-enter {
-  animation: page-enter 0.3s var(--ease-spring) both;
+  animation: page-enter 0.3s var(--ease-spring) backwards;
 }
 
 /* --- Cards: lift on hover for interactive surfaces only --- */

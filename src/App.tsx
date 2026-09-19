@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { staffName } from './data/mock';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import Tenants from './pages/Tenants/Tenants';
@@ -14,8 +13,7 @@ import UploadDocumentModal from './pages/Documents/UploadDocumentModal';
 import type { NewDocDraft } from './pages/Documents/UploadDocumentModal';
 import Profile from './pages/Profile';
 import AddPropertyModal from './pages/Properties/AddPropertyModal';
-import { EMPTY_PROPERTY_DRAFT } from './pages/Properties/propertyForm';
-import type { PropertyDraft } from './pages/Properties/propertyForm';
+import { EMPTY_PROPERTY_DRAFT, type PropertyDraft } from './pages/Properties/propertyForm';
 import TenantFormModal from './pages/Tenants/TenantFormModal';
 import type { TenantDraft } from './pages/Tenants/TenantFormModal';
 import AddLeaseModal from './pages/Leases/AddLeaseModal';
@@ -29,6 +27,10 @@ import Toasts from './components/Toasts';
 import NotificationsPanel from './components/NotificationsPanel';
 import MessagesPanel from './components/MessagesPanel';
 import { useStore } from './state/useStore';
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ProtectedRoute from "./auth/ProtectedRoute";
+import { useAuth } from "./auth/useAuth";
 
 const navPages = ['dashboard', 'properties', 'tenants', 'leases', 'payments', 'maintenance', 'documents'] as const;
 type NavPage = (typeof navPages)[number];
@@ -74,24 +76,28 @@ function AppShell() {
   const addMaintenance = useStore((s) => s.addMaintenance);
   const addDocument = useStore((s) => s.addDocument);
   const pushToast = useStore((s) => s.pushToast);
-  const pushNotification = useStore((s) => s.pushNotification);
+  const loadAll = useStore((s) => s.loadAll);
   const properties = useStore((s) => s.properties);
   const units = useStore((s) => s.units);
-  const maintenance = useStore((s) => s.maintenance);
   const staff = useStore((s) => s.staff);
   const tenants = useStore((s) => s.tenants);
-  const leases = useStore((s) => s.leases);
-  const payments = useStore((s) => s.payments);
   const notifications = useStore((s) => s.notifications);
   const conversations = useStore((s) => s.conversations);
+  const { user, logout } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadAll().catch((err) => console.error('[boot] failed to load account data', err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const segments = location.pathname.split('/').filter(Boolean);
   const currentRoute: NavPage = (segments[0] ?? 'dashboard') as NavPage;
   const currentPage = routeToLabel[currentRoute] ?? 'Dashboard';
 
+  const [addPropOpen, setAddPropOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -99,7 +105,6 @@ function AppShell() {
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(false);
   const [currency, setCurrency] = useState('USD');
-  const [addPropOpen, setAddPropOpen] = useState(false);
   const [addTenantOpen, setAddTenantOpen] = useState(false);
   const [addLeaseOpen, setAddLeaseOpen] = useState(false);
   const [recordPayOpen, setRecordPayOpen] = useState(false);
@@ -146,6 +151,15 @@ function AppShell() {
     setMenuOpen(false);
   };
 
+  const accountName = user?.name ?? 'Account';
+  const accountInitials = accountName.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase();
+
+  const handleSignOut = () => {
+    setMenuOpen(false);
+    logout();
+    navigate('/login');
+  };
+
   const onHeaderAction = () => {
     if (currentRoute === 'dashboard' || currentRoute === 'properties') setAddPropOpen(true);
     else if (currentRoute === 'tenants') setAddTenantOpen(true);
@@ -155,158 +169,83 @@ function AppShell() {
     else if (currentRoute === 'documents') setUploadOpen(true);
   };
 
-  const createProperty = (d: PropertyDraft, imageUrl: string) => {
-    const units = Number(d.units);
-    const seed = `custom-${Date.now()}`;
-    addProperty({
-      id: `p-${Date.now()}`,
-      name: d.name,
-      address: `${d.address}, ${d.city}`,
-      country: d.country === '' ? undefined : d.country,
-      type: d.type,
-      units,
-      occupied: 0,
-      // Base rent is whatever the user typed — never derived.
-      rent: Number(d.baseRent),
-      status: d.status,
-      image: d.name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase(),
-      imageUrl: imageUrl === '' ? `https://picsum.photos/seed/${seed}/600/400` : imageUrl,
-      yearBuilt: d.yearBuilt.trim() !== '' ? Number(d.yearBuilt) : new Date().getFullYear(),
-    });
-    setAddPropOpen(false);
-    pushToast('Property created successfully');
-    navigate('/properties');
-  };
-
-  const createTenant = (d: TenantDraft) => {
-    const today = new Date().toISOString().slice(0, 10);
-    addTenant({
-      id: `t-${Date.now()}`,
-      name: d.name,
-      email: d.email,
-      phone: d.phone === '' ? '—' : d.phone,
-      propertyId: d.propertyId,
-      unit: d.unit,
-      unitId: d.unitId,
-      beds: d.beds,
-      leaseStart: d.leaseStart === '' ? today : d.leaseStart,
-      leaseEnd: d.leaseEnd,
-      leaseStatus: 'Active',
-      rent: d.rent,
-      paymentStatus: 'Paid',
-      paymentDate: '—',
-      status: d.status,
-    });
-    setAddTenantOpen(false);
-    pushToast(`Tenant ${d.name} added`);
-    navigate('/tenants');
-  };
-
-  const createLease = (d: LeaseDraft) => {
-    const maxId = leases.reduce((m, l) => {
-      const n = Number(l.id.replace('L-', ''));
-      return Number.isNaN(n) ? m : Math.max(m, n);
-    }, 1029);
-    addLease({
-      id: `L-${maxId + 1}`,
-      propertyId: d.propertyId,
-      tenantId: d.tenantId,
-      unitId: d.unitId,
-      rent: d.rent,
-      deposit: d.deposit,
-      start: d.start,
-      end: d.end,
-      status: 'Active',
-    });
-    setAddLeaseOpen(false);
-    pushToast(`Lease L-${maxId + 1} created`);
-  };
-
-  const createPayment = (d: PaymentDraft) => {
-    const maxId = payments.reduce((m, p) => {
-      const n = Number(p.id.replace('PAY-', ''));
-      return Number.isNaN(n) ? m : Math.max(m, n);
-    }, 9018);
-    addPayment({
-      id: `PAY-${maxId + 1}`,
-      tenantId: d.tenantId,
-      propertyId: d.propertyId,
-      amount: d.amount,
-      date: d.date,
-      method: d.method,
-      status: d.status,
-    });
-    setRecordPayOpen(false);
-    pushToast(`Payment of $${d.amount.toLocaleString('en-US')} recorded`);
-  };
-
-  const createMaintenance = (d: NewMaintenanceDraft) => {
-    const maxId = maintenance.reduce((m, r) => {
-      const n = Number(r.id.replace('M-', ''));
-      return Number.isNaN(n) ? m : Math.max(m, n);
-    }, 200);
-    const today = new Date().toISOString().slice(0, 10);
-    // Second gate: the store re-validates the property/unit/tenant relationship
-    // even if the form is bypassed.
-    const rejected = addMaintenance({
-      id: `M-${maxId + 1}`,
-      propertyId: d.propertyId,
-      scope: d.scope,
-      unitIds: d.unitIds,
-      tenantIds: d.tenantIds,
-      title: d.title,
-      description: d.description,
-      category: d.category,
-      priority: d.priority,
-      status: 'Open',
-      reported: today,
-      scheduledDate: d.scheduledDate,
-      assigneeId: d.assigneeId,
-      estimatedCost: d.estimatedCost,
-      history: [
-        { date: today, text: 'Request created' },
-        ...(d.assigneeId ? [{ date: today, text: `Assigned to ${staffName(d.assigneeId, staff)}` }] : []),
-      ],
-    });
-    if (rejected) {
-      pushToast(rejected);
-      return;
+  const handleCreateProperty = async (data: PropertyDraft, image: File | undefined) => {
+    try {
+      await addProperty(data, image);
+      setAddPropOpen(false);
+      pushToast('Property created successfully');
+      navigate('/properties');
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to create property');
     }
-    setNewMaintOpen(false);
-    pushToast('Maintenance request created');
-    pushNotification({
-      kind: 'maintenance',
-      title: 'New maintenance request',
-      detail: d.title,
-      time: 'Now',
-      link: 'Maintenance',
-    });
   };
 
-  const createDocument = (d: NewDocDraft) => {
-    const today = new Date().toISOString().slice(0, 10);
-    // Second gate: the storage layer re-validates even if the form is bypassed.
-    const rejected = addDocument(
-      {
-        id: `d-${Date.now()}`,
-        name: d.name,
-        propertyId: d.propertyId,
-        tenantId: d.tenantId,
-        type: d.type,
-        size: d.size,
-        uploadedBy: 'Jordan Miller',
-        uploadDate: today,
-        status: 'Active',
-        description: `${d.type} uploaded ${today}.`,
-      },
-      { sizeBytes: d.sizeBytes, mime: d.mime }
-    );
-    if (rejected) {
-      pushToast(rejected);
-      return;
+  const createTenant = async (d: TenantDraft) => {
+    try {
+      await addTenant(d);
+      setAddTenantOpen(false);
+      pushToast(`Tenant ${d.name} added`);
+      navigate('/tenants');
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to add tenant');
     }
-    setUploadOpen(false);
-    pushToast('Document uploaded successfully');
+  };
+
+  const createLease = async (d: LeaseDraft) => {
+    try {
+      await addLease(d);
+      setAddLeaseOpen(false);
+      pushToast('Lease created');
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to create lease');
+    }
+  };
+
+  const createPayment = async (d: PaymentDraft) => {
+    try {
+      await addPayment(d);
+      setRecordPayOpen(false);
+      pushToast(`Payment of $${d.amount.toLocaleString('en-US')} recorded`);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to record payment');
+    }
+  };
+
+  const createMaintenance = async (d: NewMaintenanceDraft) => {
+    try {
+      // Second gate: the store re-validates the property/unit/tenant relationship
+      // even if the form is bypassed.
+      const rejected = await addMaintenance(d);
+      if (rejected) {
+        pushToast(rejected);
+        return;
+      }
+      setNewMaintOpen(false);
+      pushToast('Maintenance request created');
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to create maintenance request');
+    }
+  };
+
+  const createDocument = async (d: NewDocDraft, file: File) => {
+    try {
+      // Second gate: the storage layer re-validates even if the form is bypassed.
+      const rejected = await addDocument(d, file);
+      if (rejected) {
+        pushToast(rejected);
+        return;
+      }
+      setUploadOpen(false);
+      pushToast('Document uploaded successfully');
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to upload document');
+    }
   };
 
   return (
@@ -325,10 +264,10 @@ function AppShell() {
             <span aria-hidden="true" />
             <span aria-hidden="true" />
           </button>
-        <div className="brand">
-          <div className="brand-mark"><LogoMark /></div>
-          <span className="brand-name max-sm:hidden">Propora</span>
-        </div>
+          <div className="brand">
+            <div className="brand-mark"><LogoMark /></div>
+            <span className="brand-name max-sm:hidden">Propora</span>
+          </div>
           {navOpen ? (
             <nav id="mobile-nav" className="mobile-nav md:hidden" aria-label="Primary">
               {navPages.map((p) => (
@@ -399,21 +338,21 @@ function AppShell() {
             <button
               className="avatar"
               type="button"
-              title="Jordan Miller - Account"
+              title={`${accountName} - Account`}
               aria-label="Account menu"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
             >
-              JM
+              {accountInitials}
             </button>
             {menuOpen && (
               <div className="dropdown" role="menu" aria-label="Profile menu">
                 <div className="dropdown-head">
-                  <div className="avatar avatar-lg">JM</div>
+                  <div className="avatar avatar-lg">{accountInitials}</div>
                   <div>
-                    <strong>Jordan Miller</strong>
-                    <div className="small muted">jordan@propora.io</div>
+                    <strong>{accountName}</strong>
+                    <div className="small muted">{user?.email}</div>
                     <span className="badge success mt-1">Property Manager</span>
                   </div>
                 </div>
@@ -461,7 +400,7 @@ function AppShell() {
                 </div>
                 <div className="dropdown-foot">
                   <button className="btn btn-ghost" type="button" onClick={() => setMenuOpen(false)}>Close</button>
-                  <button className="btn btn-ghost" type="button">Sign out</button>
+                  <button className="btn btn-ghost" type="button" onClick={handleSignOut}>Sign out</button>
                 </div>
               </div>
             )}
@@ -516,7 +455,7 @@ function AppShell() {
           initial={EMPTY_PROPERTY_DRAFT}
           initialImageUrl=""
           onClose={() => setAddPropOpen(false)}
-          onSubmit={createProperty}
+          onSubmit={handleCreateProperty}
         />
       )}
 
@@ -569,7 +508,7 @@ function AppShell() {
           onCreate={createMaintenance}
         />
       )}
-      
+
       {uploadOpen && (
         <UploadDocumentModal properties={properties} onClose={() => setUploadOpen(false)} onCreate={createDocument} />
       )}
@@ -581,7 +520,19 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

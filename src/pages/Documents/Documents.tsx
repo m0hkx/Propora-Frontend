@@ -52,12 +52,17 @@ export default function Documents() {
     setStartEdit(edit);
   };
 
-  const onAction = (a: DocAction, d: DocFile) => {
+  const onAction = async (a: DocAction, d: DocFile) => {
     if (a === 'view' || a === 'edit' || a === 'move') openDetails(d, a !== 'view');
     else if (a === 'download') pushToast(`Download started: ${d.name} (mock)`);
     else if (a === 'archive') {
-      updateDocument(d.id, { status: 'Archived' });
-      pushToast(`Archived: ${d.name}`);
+      try {
+        await updateDocument(d.id, { status: 'Archived' });
+        pushToast(`Archived: ${d.name}`);
+      } catch (error) {
+        console.error(error);
+        pushToast(error instanceof Error ? error.message : 'Failed to archive document');
+      }
     } else {
       setDeleteId(d.id);
     }
@@ -65,12 +70,17 @@ export default function Documents() {
 
   const deleted = deleteId ? documents.find((d) => d.id === deleteId) ?? null : null;
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleted) return;
-    deleteDocument(deleted.id);
-    pushToast(`Deleted: ${deleted.name}`);
-    if (selectedId === deleted.id) setSelectedId(null);
-    setDeleteId(null);
+    try {
+      await deleteDocument(deleted.id);
+      pushToast(`Deleted: ${deleted.name}`);
+      if (selectedId === deleted.id) setSelectedId(null);
+      setDeleteId(null);
+    } catch (error) {
+      console.error(error);
+      pushToast(error instanceof Error ? error.message : 'Failed to delete document');
+    }
   };
 
   const selected = selectedId ? documents.find((d) => d.id === selectedId) ?? null : null;
@@ -177,14 +187,24 @@ export default function Documents() {
           startEditing={startEdit}
           onClose={() => setSelectedId(null)}
           onSave={(patch) => {
-            updateDocument(selected.id, patch);
-            pushToast(`Saved: ${patch.name ?? selected.name}`);
+            updateDocument(selected.id, patch)
+              .then(() => pushToast(`Saved: ${patch.name ?? selected.name}`))
+              .catch((error) => {
+                console.error(error);
+                pushToast(error instanceof Error ? error.message : 'Failed to save document');
+              });
           }}
           onDownload={() => pushToast(`Preview is mocked — no file storage yet (${selected.name})`)}
           onArchive={() => {
-            updateDocument(selected.id, { status: 'Archived' });
-            pushToast(`Archived: ${selected.name}`);
-            setSelectedId(null);
+            updateDocument(selected.id, { status: 'Archived' })
+              .then(() => {
+                pushToast(`Archived: ${selected.name}`);
+                setSelectedId(null);
+              })
+              .catch((error) => {
+                console.error(error);
+                pushToast(error instanceof Error ? error.message : 'Failed to archive document');
+              });
           }}
           onDelete={() => setDeleteId(selected.id)}
         />

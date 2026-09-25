@@ -31,6 +31,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/useAuth";
+import { ErrorBoundary, getErrorMessage } from 'react-error-boundary';
 
 const navPages = ['dashboard', 'properties', 'tenants', 'leases', 'payments', 'maintenance', 'documents'] as const;
 type NavPage = (typeof navPages)[number];
@@ -434,17 +435,27 @@ function AppShell() {
 
       <main>
         <div key={location.pathname} className="page-enter">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/properties" element={<Properties query={query} />} />
-            <Route path="/tenants" element={<Tenants query={query} />} />
-            <Route path="/leases" element={<Leases />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
+          <ErrorBoundary
+            fallbackRender={({ error, resetErrorBoundary }) => (
+              <div role="alert">
+                <p>Something went wrong. Please try again.</p>
+                {import.meta.env.DEV ? <pre>{getErrorMessage(error)}</pre> : null}
+                <button onClick={resetErrorBoundary}>Try again</button>
+              </div>
+            )}
+          >
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/properties" element={<Properties query={query} />} />
+              <Route path="/tenants" element={<Tenants query={query} />} />
+              <Route path="/leases" element={<Leases />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/profile" element={<Profile />} />
+            </Routes>
+          </ErrorBoundary>
         </div>
       </main>
 

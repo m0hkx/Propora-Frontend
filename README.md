@@ -76,13 +76,12 @@ Designed, not decorated — one teal identity carried through every surface:
 
 ```bash
 npm install   # install dependencies
+cp .env.example .env # put API url in VITE_API_URL
 npm run dev   # start the dev server with HMR
 npm run lint  # eslint over the repo
 npm run build # type-check, then bundle to dist/
 npm run preview # serve the production build
 ```
-
-No `.env`, database, or migration step — open `http://localhost:5173` and click around.
 
 ## Project structure
 

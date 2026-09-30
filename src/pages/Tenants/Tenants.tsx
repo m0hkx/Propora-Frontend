@@ -34,6 +34,7 @@ export default function Tenants({
   const tenants = useStore((s) => s.tenants);
   const properties = useStore((s) => s.properties);
   const units = useStore((s) => s.units);
+  const leases = useStore((s) => s.leases);
   const [tab, setTab] = useState<TenantTab>('All');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortState<TenantSort>>({ key: 'featured', dir: 'asc' });
@@ -192,6 +193,9 @@ export default function Tenants({
           }}
           properties={properties}
           units={units}
+          tenants={tenants}
+          leases={leases}
+          editingId={edited.id}
           onClose={() => setEditId(null)}
           onSubmit={(d) => saveEdit(edited.id, d)}
         />

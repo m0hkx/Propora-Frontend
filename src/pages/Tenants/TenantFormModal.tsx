@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { Property, Tenant, Unit } from '../../data/mock';
-import { unitsForProperty } from '../../lib/units';
+import type { Lease, Property, Tenant, Unit } from '../../data/mock';
+import { bedsLabel, unitOccupant, unitsForProperty, validateTenantUnit } from '../../lib/units';
 import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
@@ -22,7 +22,8 @@ export interface TenantDraft {
   status: Tenant['status'];
 }
 
-const BED_OPTIONS = ['Studio', '1 BR', '2 BR', '3 BR', '4 BR'];
+const MAX_BED_OPTIONS = 10;
+const BED_OPTIONS = Array.from({ length: MAX_BED_OPTIONS + 1 }, (_, n) => bedsLabel(n));
 
 const CUSTOM_UNIT = '__custom';
 
@@ -31,6 +32,9 @@ export default function TenantFormModal({
   initial,
   properties,
   units,
+  tenants,
+  leases,
+  editingId,
   onClose,
   onSubmit,
 }: {
@@ -38,6 +42,10 @@ export default function TenantFormModal({
   initial: TenantDraft;
   properties: Property[];
   units: Unit[];
+  tenants: Tenant[];
+  leases: Lease[];
+  /** The tenant being edited, so their own unit never counts as taken. */
+  editingId?: string;
   onClose: () => void;
   onSubmit: (d: TenantDraft) => void;
 }) {
@@ -54,6 +62,8 @@ export default function TenantFormModal({
   const phoneCountry = callingCountryForName(selectedProperty?.country) ?? DEFAULT_CALLING_COUNTRY;
   // Only units of the selected property are ever offered — never other properties'.
   const propUnits = unitsForProperty(units, form.propertyId);
+  // A unit (or a legacy tenant) can carry a bed count past the stock list — keep it selectable.
+  const bedOptions = BED_OPTIONS.includes(form.beds) || form.beds === '' ? BED_OPTIONS : [...BED_OPTIONS, form.beds];
   const useUnitSelect = propUnits.length > 0 && !unitCustom;
 
   const errs = {
@@ -61,7 +71,7 @@ export default function TenantFormModal({
     email: form.email.trim() === '' ? 'Email is required.' : !/^\S+@\S+\.\S+$/.test(form.email.trim()) ? 'Enter a valid email address.' : '',
     phone: form.phone.trim() !== '' && !isPhoneValid(form.phone, phoneCountry) ? 'Enter a valid phone number.' : '',
     property: form.propertyId === '' ? 'Property is required.' : '',
-    unit: form.unit.trim() === '' ? 'Unit is required.' : '',
+    unit: form.unit.trim() === '' ? 'Unit is required.' : validateTenantUnit(form, units, tenants, leases, editingId) ?? '',
     rent: !(form.rent > 0) ? 'Enter a monthly rent greater than 0.' : '',
     leaseEnd: form.leaseEnd === '' ? 'Lease end date is required.' : '',
   };
@@ -146,13 +156,20 @@ export default function TenantFormModal({
                     // Picking a unit pulls in its own rent and bed count — that's the
                     // point of linking to a managed unit instead of typing one in.
                     rent: picked?.rent ?? form.rent,
-                    beds: picked && (BED_OPTIONS as string[]).includes(picked.type) ? picked.type : form.beds,
+                    beds: picked ? bedsLabel(picked.bedrooms) : form.beds,
                   });
                 }}
                 className={cls(errs.unit !== '')}
               >
                 <option value="">Select unit</option>
-                {propUnits.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.type} · ${u.rent.toLocaleString('en-US')}/mo</option>)}
+                {propUnits.map((u) => {
+                  const taken = form.status !== 'Inactive' && unitOccupant(u, tenants, leases, editingId) !== null;
+                  return (
+                    <option key={u.id} value={u.id} disabled={taken}>
+                      {u.name} · {u.type} · ${u.rent.toLocaleString('en-US')}/mo{taken ? ' · Occupied' : ''}
+                    </option>
+                  );
+                })}
                 <option value={CUSTOM_UNIT}>Other — enter manually</option>
               </select>
             ) : (
@@ -169,7 +186,7 @@ export default function TenantFormModal({
           <div className="field">
             <label htmlFor="tf-beds">Beds</label>
             <select id="tf-beds" value={form.beds} onChange={(e) => setForm({ ...form, beds: e.target.value })}>
-              {BED_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
+              {bedOptions.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
         </div>

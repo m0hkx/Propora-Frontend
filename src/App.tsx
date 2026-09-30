@@ -82,6 +82,7 @@ function AppShell() {
   const units = useStore((s) => s.units);
   const staff = useStore((s) => s.staff);
   const tenants = useStore((s) => s.tenants);
+  const leases = useStore((s) => s.leases);
   const notifications = useStore((s) => s.notifications);
   const conversations = useStore((s) => s.conversations);
   const { user, logout } = useAuth();
@@ -479,6 +480,8 @@ function AppShell() {
           }}
           properties={properties}
           units={units}
+          tenants={tenants}
+          leases={leases}
           onClose={() => setAddTenantOpen(false)}
           onSubmit={createTenant}
         />

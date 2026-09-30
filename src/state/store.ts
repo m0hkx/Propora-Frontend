@@ -16,7 +16,7 @@ import type {
 } from '../data/mock';
 import { conversations as seedConversations } from '../data/mock';
 
-import { validateUnit } from '../lib/units';
+import { validateTenantUnit, validateUnit } from '../lib/units';
 import { validateStaff } from '../lib/staff';
 import { validateMaintenanceTarget } from '../lib/maintenanceScope';
 import { sanitizeFileName, validateDocRecord } from '../lib/files';
@@ -191,11 +191,15 @@ export const useStore = create<StoreState>()((set, get) => ({
   tenants: [],
   fetchTenants: async () => set({ tenants: await tenantsApi.getTenants() }),
   addTenant: async (d) => {
+    const err = validateTenantUnit(d, get().units, get().tenants, get().leases);
+    if (err) throw new Error(err);
     const created = await tenantsApi.createTenant(d);
     set((s) => ({ tenants: [created, ...s.tenants] }));
     void get().fetchNotifications();
   },
   updateTenant: async (id, d) => {
+    const err = validateTenantUnit(d, get().units, get().tenants, get().leases, id);
+    if (err) throw new Error(err);
     const updated = await tenantsApi.updateTenant(id, d);
     set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? updated : t)) }));
   },

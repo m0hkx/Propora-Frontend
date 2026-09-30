@@ -27,6 +27,11 @@ export function bedroomsForType(type: UnitType): number | undefined {
   }
 }
 
+/** Tenant-facing bed label for a unit's bedroom count: 0 → "Studio", 5 → "5 BR". */
+export function bedsLabel(bedrooms: number): string {
+  return bedrooms === 0 ? 'Studio' : `${bedrooms} BR`;
+}
+
 /** A villa is a single dwelling, so it is created with no units to manage. */
 export function propertyHasUnits(type: string): boolean {
   return type !== 'Villa';
@@ -117,6 +122,57 @@ export function resolveUnitStatus(unit: Unit, tenants: Tenant[], leases: Lease[]
   const occupied =
     tenants.some((t) => tenantOccupiesUnit(t, unit)) || leases.some((l) => leaseCoversUnit(l, unit, tenants));
   return occupied ? 'Occupied' : unit.status;
+}
+
+/**
+ * Who currently holds a unit, ignoring one tenant (the one being edited, who
+ * must not conflict with themselves): an active tenant's name, or a live
+ * lease id. `null` means the unit is free to assign.
+ */
+export function unitOccupant(unit: Unit, tenants: Tenant[], leases: Lease[], excludeTenantId?: string): string | null {
+  const others = tenants.filter((t) => t.id !== excludeTenantId);
+  const holder = others.find((t) => tenantOccupiesUnit(t, unit));
+  if (holder) return holder.name;
+  const lease = leases.find((l) => l.tenantId !== excludeTenantId && leaseCoversUnit(l, unit, others));
+  return lease ? `lease ${lease.id}` : null;
+}
+
+export interface TenantUnitInput {
+  propertyId: string;
+  unit: string;
+  unitId?: string | undefined;
+  status: Tenant['status'];
+}
+
+/**
+ * Pre-flight check that a tenant is not being placed in a unit someone else
+ * already holds. Covers a managed unit (`unitId`), a free-text label that
+ * matches a unit record, and a free-text label another active tenant already
+ * uses in the same property. Inactive tenancies are history and never conflict.
+ */
+export function validateTenantUnit(
+  draft: TenantUnitInput,
+  units: Unit[],
+  tenants: Tenant[],
+  leases: Lease[],
+  excludeTenantId?: string
+): string | null {
+  const label = draft.unit.trim().toLowerCase();
+  if (draft.status === 'Inactive' || label === '') return null;
+
+  const match = draft.unitId
+    ? units.find((u) => u.id === draft.unitId)
+    : units.find((u) => u.propertyId === draft.propertyId && u.name.trim().toLowerCase() === label);
+
+  if (match) {
+    const occupant = unitOccupant(match, tenants, leases, excludeTenantId);
+    return occupant ? `Unit ${match.name} is already occupied (${occupant}).` : null;
+  }
+
+  const holder = tenants.find(
+    (t) => t.id !== excludeTenantId && t.status !== 'Inactive' && t.propertyId === draft.propertyId && t.unit.trim().toLowerCase() === label
+  );
+  return holder ? `Unit ${draft.unit.trim()} is already occupied by ${holder.name}.` : null;
 }
 
 /**

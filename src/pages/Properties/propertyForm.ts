@@ -28,11 +28,14 @@ export const EMPTY_PROPERTY_DRAFT: PropertyDraft = {
 
 /**
  * Map a saved property onto the form shape. The address is stored as
- * "street, city"; the country comes through verbatim. Fields the Property
- * model doesn't persist (postal, floors, finances detail, …) start blank.
+ * "street, city"; the country comes through verbatim. The frontend `Property`
+ * type doesn't carry postal/floors/finance-detail fields, so those start
+ * blank here — callers editing an existing property should merge in
+ * `getPropertyDraft(p)`'s result before using this as form state.
  */
 export function propertyToDraft(p: Property): PropertyDraft {
   const [street = '', ...rest] = p.address.split(',');
+
   return {
     name: p.name,
     type: p.type,

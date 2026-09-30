@@ -314,7 +314,7 @@ function AppShell() {
               aria-expanded={headerPanel === 'notif'}
               onClick={() => setHeaderPanel((v) => (v === 'notif' ? null : 'notif'))}
             >
-              <Icon d={Icons.bell} />
+              <Icon icon={Icons.bell} />
               {unreadNotifications > 0 ? <span className="count-badge">{unreadNotifications}</span> : null}
             </button>
             {headerPanel === 'notif' ? (
@@ -330,7 +330,7 @@ function AppShell() {
               aria-expanded={headerPanel === 'msg'}
               onClick={() => setHeaderPanel((v) => (v === 'msg' ? null : 'msg'))}
             >
-              <Icon d={Icons.card} />
+              <Icon icon={Icons.card} />
               {unreadMessages > 0 ? <span className="count-badge">{unreadMessages}</span> : null}
             </button>
             {headerPanel === 'msg' ? <MessagesPanel /> : null}
@@ -418,7 +418,7 @@ function AppShell() {
         <div className="flex items-center gap-2.5 flex-wrap">
           {DEDICATED_SEARCH.includes(currentRoute) ? null : (
             <label className="search max-md:min-w-full">
-              <Icon d={Icons.search} />
+              <Icon icon={Icons.search} />
               <input
                 placeholder={`Search ${currentPage.toLowerCase()}...`}
                 value={query}
@@ -428,7 +428,7 @@ function AppShell() {
             </label>
           )}
           {segments[0] === 'profile' ? null : (
-            <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon d={Icons.plus} /> {headerAction(currentPage)}</button>
+            <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon icon={Icons.plus} /> {headerAction(currentPage)}</button>
           )}
         </div>
       </div>

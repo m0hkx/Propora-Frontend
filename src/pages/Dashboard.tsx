@@ -40,7 +40,7 @@ export default function Dashboard() {
   const occPct = totalUnits === 0 ? 0 : Math.round((occupiedUnits / totalUnits) * 100);
   // Expected monthly revenue from currently occupied units — same formula the
   // Property Performance / Revenue by Property sections use per property.
-  const monthlyRevenue = properties.reduce((s, p) => s + p.occupied * p.rent, 0);
+  const monthlyRevenue = properties.reduce((s, p) => s + p.revenue, 0);
 
   const chart = useMemo(() => revenueByPeriod(payments, range), [payments, range]);
 
@@ -76,24 +76,24 @@ export default function Dashboard() {
   // Top properties by revenue, feeding both the performance table and the
   // revenue-by-property list below — same live store data, two views of it.
   const topProperties = [...properties]
-    .sort((a, b) => b.occupied * b.rent - a.occupied * a.rent)
+    .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 4);
-  const maxTopRevenue = Math.max(1, ...topProperties.map((p) => p.occupied * p.rent));
+  const maxTopRevenue = Math.max(1, ...topProperties.map((p) => p.revenue));
   const propertyRows = topProperties.map((p) => {
     const occPct = p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
     const healthy = occPct >= 95 ? 'Excellent' : occPct >= 85 ? 'Good' : 'Attention';
     return {
       name: p.name,
       occ: `${occPct}%`,
-      rev: fmtMoney(p.occupied * p.rent),
+      rev: fmtMoney(p.revenue),
       tone: occPct >= 85 ? ('success' as const) : ('warn' as const),
       status: healthy,
     };
   });
   const revenueBars = topProperties.map((p) => ({
     name: p.name,
-    pct: Math.round(((p.occupied * p.rent) / maxTopRevenue) * 100),
-    value: fmtMoney(p.occupied * p.rent),
+    pct: Math.round((p.revenue / maxTopRevenue) * 100),
+    value: fmtMoney(p.revenue),
   }));
 
   const recentPayments = [...payments]
@@ -142,7 +142,7 @@ export default function Dashboard() {
           delta={{ text: 'From occupied units', tone: 'flat' }}
           value={monthlyRevenue} format={fmtMoney}
           label="Monthly Revenue" sub="Current run-rate"
-          spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-3"
+          spark={properties.map((p) => p.revenue)} stagger="sd-3"
         />
         <KpiCard
           icon={Icons.bell} tint="rose"

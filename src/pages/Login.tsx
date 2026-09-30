@@ -58,7 +58,7 @@ export default function Login() {
                                 <label htmlFor="login-email">Email</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                                        <Icon d={Icons.mail} />
+                                        <Icon icon={Icons.mail} />
                                     </span>
                                     <input
                                         id="login-email"
@@ -77,7 +77,7 @@ export default function Login() {
                                 <label htmlFor="login-password">Password</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                                        <Icon d={Icons.lock} />
+                                        <Icon icon={Icons.lock} />
                                     </span>
                                     <input
                                         id="login-password"
@@ -95,7 +95,7 @@ export default function Login() {
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
-                                        <Icon d={showPassword ? Icons.eyeOff : Icons.eye} />
+                                        <Icon icon={showPassword ? Icons.eyeOff : Icons.eye} />
                                     </button>
                                 </div>
                             </div>

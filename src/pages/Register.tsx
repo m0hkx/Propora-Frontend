@@ -59,7 +59,7 @@ export default function Register() {
                                 <label htmlFor="register-username">Username</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                                        <Icon d={Icons.users} />
+                                        <Icon icon={Icons.users} />
                                     </span>
                                     <input
                                         id="register-username"
@@ -78,7 +78,7 @@ export default function Register() {
                                 <label htmlFor="register-email">Email</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                                        <Icon d={Icons.mail} />
+                                        <Icon icon={Icons.mail} />
                                     </span>
                                     <input
                                         id="register-email"
@@ -97,7 +97,7 @@ export default function Register() {
                                 <label htmlFor="register-password">Password</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                                        <Icon d={Icons.lock} />
+                                        <Icon icon={Icons.lock} />
                                     </span>
                                     <input
                                         id="register-password"
@@ -116,7 +116,7 @@ export default function Register() {
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
-                                        <Icon d={showPassword ? Icons.eyeOff : Icons.eye} />
+                                        <Icon icon={showPassword ? Icons.eyeOff : Icons.eye} />
                                     </button>
                                 </div>
                             </div>

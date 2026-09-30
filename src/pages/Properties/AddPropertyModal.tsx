@@ -4,8 +4,9 @@ import type { PropertyDraft } from './propertyForm';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { COUNTRY_OPTIONS, isValidCountryName } from '../../data/countries';
+import { propertyHasUnits } from '../../lib/units';
 
-const TYPES = ['Apartment Building', 'Villa', 'Office', 'Commercial', 'Mixed Use', 'Other'];
+const TYPES = ['Apartment Building', 'House', 'Villa', 'Office', 'Commercial', 'Mixed Use', 'Other'];
 const STATUSES: Property['status'][] = ['Active', 'Vacant', 'Under Maintenance'];
 
 /** Accepts `1200` or `1200.50`; rejects blanks, text and zero. */
@@ -33,12 +34,15 @@ export default function AddPropertyModal({
 
   const set = (patch: Partial<PropertyDraft>) => setForm({ ...form, ...patch });
 
+  // A legacy villa that already carries units keeps its count instead of being zeroed.
+  const hasUnits = propertyHasUnits(form.type) || Number(initial.units) > 0;
+
   const errors = {
     name: form.name.trim() === '' ? 'Property name is required.' : '',
     type: form.type === '' ? 'Property type is required.' : '',
     address: form.address.trim() === '' ? 'Address is required.' : '',
     city: form.city.trim() === '' ? 'City is required.' : '',
-    units: form.units.trim() === '' ? 'Number of units is required.' : !/^\d+$/.test(form.units.trim()) || Number(form.units) <= 0 ? 'Enter a valid number of units.' : '',
+    units: !hasUnits ? '' : form.units.trim() === '' ? 'Number of units is required.' : !/^\d+$/.test(form.units.trim()) || Number(form.units) <= 0 ? 'Enter a valid number of units.' : '',
     // The picker can only ever hand back a listed country; this is the guard
     // that keeps a stray value out if it ever gets set another way.
     country: form.country !== '' && !isValidCountryName(form.country) ? 'Select a country from the list.' : '',
@@ -68,7 +72,11 @@ export default function AddPropertyModal({
   const submit = () => {
     setSubmitted(true);
     if (invalid) return;
-    onSubmit({ ...form, name: form.name.trim(), address: form.address.trim(), city: form.city.trim() }, imageFile, imageUrl);
+    onSubmit(
+      { ...form, name: form.name.trim(), address: form.address.trim(), city: form.city.trim(), units: hasUnits ? form.units : '0' },
+      imageFile,
+      imageUrl
+    );
   };
 
   const field = (
@@ -147,7 +155,7 @@ export default function AddPropertyModal({
       <div className="modal-section">
         <h4>Property Details</h4>
         <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-          {field('units', 'Total Units', '24')}
+          {hasUnits && field('units', 'Total Units', '24')}
           <div className="field">
             <label htmlFor="ap-year">Year Built</label>
             <input id="ap-year" inputMode="numeric" value={form.yearBuilt} onChange={(e) => set({ yearBuilt: e.target.value })} placeholder="2018" />

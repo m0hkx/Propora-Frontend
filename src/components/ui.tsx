@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`card ${className}`}>{children}</div>;
@@ -23,10 +24,6 @@ export function Progress({ value, label }: { value: number; label?: string }) {
   );
 }
 
-export function Icon({ d }: { d: string }) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
+export function Icon({ icon: Glyph }: { icon: PhosphorIcon }) {
+  return <Glyph size={18} aria-hidden="true" />;
 }

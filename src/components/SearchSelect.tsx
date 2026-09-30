@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { CaretDown } from '@phosphor-icons/react';
 import type { KeyboardEvent } from 'react';
 import { indexOptions, matchOptions } from './searchSelectUtils';
 import type { SearchSelectOption } from './searchSelectUtils';
@@ -139,9 +140,7 @@ export default function SearchSelect({
         onKeyDown={onTriggerKey}
       >
         <span className={selected ? '' : 'combo-placeholder'}>{selected ? selected.label : placeholder}</span>
-        <svg className="combo-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
+        <CaretDown className="combo-caret" size={16} aria-hidden="true" />
       </button>
 
       {open ? (

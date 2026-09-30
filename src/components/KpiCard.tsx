@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 import { Card, Icon } from './ui';
 import { Spark } from './charts';
 import { useCountUp } from '../lib/useCountUp';
@@ -35,7 +36,7 @@ export default function KpiCard({
   spark,
   stagger,
 }: {
-  icon: string;
+  icon: PhosphorIcon;
   tint: ChipTint;
   delta?: KpiDelta;
   value: number;
@@ -50,7 +51,7 @@ export default function KpiCard({
     <Card className={`card-lift rise ${stagger ?? ''}`}>
       <div className="row">
         <span className={`kpi-chip tint-${tint}`}>
-          <Icon d={icon} />
+          <Icon icon={icon} />
         </span>
         {delta ? <span className={`delta ${delta.tone}`}>{delta.text}</span> : null}
       </div>

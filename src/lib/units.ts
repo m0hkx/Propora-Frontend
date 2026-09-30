@@ -27,6 +27,11 @@ export function bedroomsForType(type: UnitType): number | undefined {
   }
 }
 
+/** A villa is a single dwelling, so it is created with no units to manage. */
+export function propertyHasUnits(type: string): boolean {
+  return type !== 'Villa';
+}
+
 /** Units of one property, sorted by label. Never leaks other properties' units. */
 export function unitsForProperty(units: Unit[], propertyId: string): Unit[] {
   return units
@@ -155,11 +160,26 @@ export function occupiedCountForProperty(propertyId: string, tenants: Tenant[]):
   return tenants.filter((t) => t.propertyId === propertyId && t.status !== 'Inactive').length;
 }
 
-/** Properties with `occupied` recomputed live from `tenants` — use this instead of the raw store array anywhere occupancy or revenue is displayed or totaled. */
-export function withLiveOccupancy(properties: Property[], tenants: Tenant[]): Property[] {
+/**
+ * Monthly rent actually billed for a property: the sum of each active
+ * tenant's own rent. Units and tenants can carry different rents, so this
+ * must not be approximated as `occupied * Property.rent` (the base rent).
+ */
+export function monthlyRevenueForProperty(propertyId: string, tenants: Tenant[]): number {
+  return tenants
+    .filter((t) => t.propertyId === propertyId && t.status !== 'Inactive')
+    .reduce((sum, t) => sum + t.rent, 0);
+}
+
+/** A property with its occupancy and billed revenue recomputed live from `tenants`. */
+export type LiveProperty = Property & { revenue: number };
+
+/** Properties with `occupied` and `revenue` recomputed live from `tenants` — use this instead of the raw store array anywhere occupancy or revenue is displayed or totaled. */
+export function withLiveOccupancy(properties: Property[], tenants: Tenant[]): LiveProperty[] {
   return properties.map((p) => ({
     ...p,
     occupied: Math.min(p.units, occupiedCountForProperty(p.id, tenants)),
+    revenue: monthlyRevenueForProperty(p.id, tenants),
   }));
 }
 

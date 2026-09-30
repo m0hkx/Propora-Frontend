@@ -63,7 +63,7 @@ export default function Modal({
         <div className="row modal-head">
           <strong>{title}</strong>
           <button className="icon-btn icon-btn-sm" type="button" onClick={onClose} aria-label="Close dialog">
-            <Icon d={Icons.close} />
+            <Icon icon={Icons.close} />
           </button>
         </div>
         <div className="modal-body">{children}</div>

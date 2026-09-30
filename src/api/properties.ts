@@ -17,6 +17,26 @@ interface PropertyDoc {
     image?: string | null;
 }
 
+type PropertyDraftResponse = {
+    property: {
+        description?: string | null;
+        postal?: string | null;
+        floors?: number | null;
+        size?: number | null;
+        buyPrice?: number | null;
+        monthlyExpenses?: number | null;
+    };
+};
+
+interface MissingPropertyData {
+    description: string;
+    postal: string;
+    floors: string;
+    size: string;
+    purchasePrice: string;
+    expenses: string;
+}
+
 function initials(name: string): string {
     return name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase();
 }
@@ -72,9 +92,41 @@ function toFormData(d: PropertyDraft, image: File | undefined): FormData {
     return formData;
 }
 
+const PAGE_SIZE = 50;
+
+/**
+ * The API caps how many properties one call returns, so pull every page. The
+ * rest of the app (KPIs, filters, dropdowns) works on the full list.
+ */
 export async function getProperties(): Promise<Property[]> {
-    const data = await apiFetch<{ properties: PropertyDoc[] }>('/properties');
-    return data.properties.map(toProperty);
+    const docs: PropertyDoc[] = [];
+    let page = 1;
+
+    let totalPages: number;
+    do {
+        const data = await apiFetch<{ properties: PropertyDoc[]; totalPages?: number }>(
+            `/properties?page=${page}&limit=${PAGE_SIZE}`
+        );
+        docs.push(...data.properties);
+        totalPages = data.totalPages ?? 1;
+        page += 1;
+    } while (page <= totalPages);
+
+    return docs.map(toProperty);
+}
+
+export async function getPropertyDraft(p: Property): Promise<MissingPropertyData> {
+    const data = await apiFetch<PropertyDraftResponse>(`/properties/${p.id}`);
+    const property = stripNulls(data.property);
+
+    return {
+        description: property.description ?? '',
+        postal: property.postal ?? '',
+        floors: property.floors?.toString() ?? '',
+        size: property.size?.toString() ?? '',
+        purchasePrice: property.buyPrice?.toString() ?? '',
+        expenses: property.monthlyExpenses?.toString() ?? '',
+    };
 }
 
 export async function createProperty(d: PropertyDraft, image: File | undefined): Promise<Property> {

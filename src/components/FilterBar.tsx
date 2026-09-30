@@ -60,7 +60,7 @@ export function SearchField({
 }) {
   return (
     <label className={`search ${variant === 'grow' ? 'search-grow' : 'search-sm'}`}>
-      <Icon d={Icons.search} />
+      <Icon icon={Icons.search} />
       <input
         placeholder={placeholder}
         value={value}

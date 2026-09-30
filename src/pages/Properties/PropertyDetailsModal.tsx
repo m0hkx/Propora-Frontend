@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { formatMoney } from '../../data/mock';
-import type { Property } from '../../data/mock';
+import type { LiveProperty } from '../../lib/units';
 import { Badge, Progress } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { propertyTone } from '../../lib/tone';
+import { propertyHasUnits } from '../../lib/units';
 import UnitsSection from './UnitsSection';
 
 export default function PropertyDetailsModal({
@@ -11,7 +12,7 @@ export default function PropertyDetailsModal({
   onClose,
   onEdit,
 }: {
-  property: Property;
+  property: LiveProperty;
   onClose: () => void;
   onEdit: () => void;
 }) {
@@ -21,9 +22,11 @@ export default function PropertyDetailsModal({
   // A blank imageUrl must not reach <img src="">, which makes the browser
   // re-request the page. No image and a failed image are the same state here.
   const hasPhoto = !imgFailed && p.imageUrl.trim() !== '';
+  // A villa is one dwelling; legacy ones that already have units keep the unit tools.
+  const tracksUnits = propertyHasUnits(p.type) || p.units > 0;
   const hasUnits = p.units > 0;
   const occ = hasUnits ? Math.round((p.occupied / p.units) * 100) : 0;
-  const monthlyRevenue = p.occupied * p.rent;
+  const monthlyRevenue = p.revenue;
 
   return (
     <Modal title={p.name} onClose={onClose} wide>
@@ -59,7 +62,9 @@ export default function PropertyDetailsModal({
       </div>
 
       <div className="pd-block">
-        {hasUnits ? (
+        {!tracksUnits ? (
+          <p className="pd-note">This property is a single dwelling, so it has no units to manage.</p>
+        ) : hasUnits ? (
           <>
             <p className="pd-occupancy">
               <span className="pd-occupancy-count">{p.occupied}</span>
@@ -89,14 +94,16 @@ export default function PropertyDetailsModal({
         </div>
         <p className="pd-note">
           {monthlyRevenue > 0
-            ? `Estimated from ${p.occupied} occupied ${p.occupied === 1 ? 'unit' : 'units'} at ${formatMoney(p.rent)} base rent.`
+            ? `Estimated from ${p.occupied} occupied ${p.occupied === 1 ? 'unit' : 'units'} based on each tenant's own rent.`
             : 'Nothing is occupied yet, so no revenue is expected.'}
         </p>
       </div>
 
-      <div className="pd-block">
-        <UnitsSection propertyId={p.id} />
-      </div>
+      {tracksUnits && (
+        <div className="pd-block">
+          <UnitsSection propertyId={p.id} />
+        </div>
+      )}
 
       <div className="modal-foot">
         <button className="btn btn-teal" type="button" onClick={onEdit}>Edit Property</button>

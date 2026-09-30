@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { formatMoney } from '../data/mock';
 import type { Property } from '../data/mock';
 import { Badge, Card, Progress } from '../components/ui';
@@ -10,9 +10,11 @@ import PropertyDetailsModal from './Properties/PropertyDetailsModal';
 import AddPropertyModal from './Properties/AddPropertyModal';
 import { propertyToDraft } from './Properties/propertyForm';
 import type { PropertyDraft } from './Properties/propertyForm';
+import { getPropertyDraft } from '../api/properties';
 import { useStore } from '../state/useStore';
 import { propertyTone as tone } from '../lib/tone';
-import { withLiveOccupancy } from '../lib/units';
+import { propertyHasUnits, withLiveOccupancy } from '../lib/units';
+import type { LiveProperty } from '../lib/units';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
 type SortKey = 'featured' | 'name' | 'revenue' | 'occupancy';
@@ -30,10 +32,6 @@ function occupancy(p: Property): number {
   return p.units === 0 ? 0 : Math.round((p.occupied / p.units) * 100);
 }
 
-function revenue(p: Property): number {
-  return p.occupied * p.rent;
-}
-
 const tabs: StatusFilter[] = ['All', 'Active', 'Vacant', 'Maintenance'];
 
 export default function Properties({ query }: { query: string }) {
@@ -47,7 +45,7 @@ export default function Properties({ query }: { query: string }) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All types');
   const [sort, setSort] = useState<SortKey>('featured');
-  const [selected, setSelected] = useState<Property | null>(null);
+  const [selected, setSelected] = useState<LiveProperty | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
 
@@ -55,7 +53,7 @@ export default function Properties({ query }: { query: string }) {
   const occupiedUnits = properties.reduce((s, p) => s + p.occupied, 0);
   const availableUnits = Math.max(0, totalUnits - occupiedUnits);
   const occPct = totalUnits === 0 ? 0 : Math.round((occupiedUnits / totalUnits) * 100);
-  const monthlyRevenue = properties.reduce((s, p) => s + p.occupied * p.rent, 0);
+  const monthlyRevenue = properties.reduce((s, p) => s + p.revenue, 0);
 
   const types = useMemo(() => ['All types', ...Array.from(new Set(properties.map((p) => p.type)))], [properties]);
 
@@ -84,12 +82,43 @@ export default function Properties({ query }: { query: string }) {
     out = [...out];
 
     if (sort === 'name') out.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === 'revenue') out.sort((a, b) => revenue(b) - revenue(a));
+    if (sort === 'revenue') out.sort((a, b) => b.revenue - a.revenue);
     if (sort === 'occupancy') out.sort((a, b) => occupancy(b) - occupancy(a));
     return out;
   }, [query, search, status, typeFilter, sort, properties]);
 
   const editing = editId ? properties.find((p) => p.id === editId) ?? null : null;
+  const [editDraft, setEditDraft] = useState<{ id: string; draft: PropertyDraft } | null>(null);
+  const readyEditDraft = editing && editDraft?.id === editing.id ? editDraft.draft : null;
+
+  // The frontend `Property` type doesn't carry postal/floors/finance-detail
+  // fields, so the edit form needs a follow-up fetch for those before it can
+  // show real values instead of blanks. Wait for it (rather than merging into
+  // an already-mounted modal) since AddPropertyModal only reads `initial` once;
+  // a stale/absent `editDraft.id` match (handled above) is what "resets" this
+  // when `editing` changes, so the effect itself never needs to clear state.
+  useEffect(() => {
+    if (!editing) return;
+
+    let cancelled = false;
+    const base = propertyToDraft(editing);
+
+    getPropertyDraft(editing)
+      .then((extra) => {
+        if (!cancelled) setEditDraft({ id: editing.id, draft: { ...base, ...extra } });
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!cancelled) {
+          setEditDraft({ id: editing.id, draft: base });
+          pushToast('Could not load full property details — some fields may be blank.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editing, pushToast]);
 
   const saveEdit = async (id: string, d: PropertyDraft, image: File | undefined) => {
     try {
@@ -132,7 +161,7 @@ export default function Properties({ query }: { query: string }) {
           delta={{ text: 'From occupied units', tone: 'flat' }}
           value={monthlyRevenue} format={(n) => '$' + Math.round(n).toLocaleString('en-US')}
           label="Monthly Revenue"
-          spark={properties.map((p) => p.occupied * p.rent)} stagger="sd-4"
+          spark={properties.map((p) => p.revenue)} stagger="sd-4"
         />
       </div>
 
@@ -185,6 +214,7 @@ export default function Properties({ query }: { query: string }) {
           {list.map((p, i) => {
             const occ = occupancy(p);
             const avail = p.units - p.occupied;
+            const tracksUnits = propertyHasUnits(p.type) || p.units > 0;
             return (
               <Card key={p.id} className="prop-card">
                 <div className="prop-image" style={{ background: gradients[i % gradients.length] }}>
@@ -205,16 +235,22 @@ export default function Properties({ query }: { query: string }) {
                     <div className="small muted">{p.address}</div>
                     <div className="small muted">{p.type}</div>
                   </div>
-                  <div className="row small">
-                    <span>{p.units} Units</span>
-                    <span>{p.occupied} Occupied</span>
-                    <span>{avail} Available</span>
-                  </div>
-                  <div><strong>{formatMoney(revenue(p))}</strong> <span className="small muted">/ month</span></div>
-                  <div>
-                    <div className="row small"><span className="muted">Occupancy</span><strong>{occ}%</strong></div>
-                    <Progress value={occ} />
-                  </div>
+                  {tracksUnits ? (
+                    <>
+                      <div className="row small">
+                        <span>{p.units} Units</span>
+                        <span>{p.occupied} Occupied</span>
+                        <span>{avail} Available</span>
+                      </div>
+                      <div><strong>{formatMoney(p.revenue)}</strong> <span className="small muted">/ month</span></div>
+                      <div>
+                        <div className="row small"><span className="muted">Occupancy</span><strong>{occ}%</strong></div>
+                        <Progress value={occ} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="row small"><span>Single dwelling</span><span className="muted">No units</span></div>
+                  )}
                   <div className="row">
                     <Badge tone={tone(p.status)}>{p.status}</Badge>
                     <span className="flex gap-1.5">
@@ -241,11 +277,11 @@ export default function Properties({ query }: { query: string }) {
         />
       )}
 
-      {editing && (
+      {editing && readyEditDraft && (
         <AddPropertyModal
           mode="edit"
           title={`Edit Property — ${editing.name}`}
-          initial={propertyToDraft(editing)}
+          initial={readyEditDraft}
           initialImageUrl={editing.imageUrl}
           onClose={() => setEditId(null)}
           onSubmit={(d, image) => saveEdit(editing.id, d, image)}

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Property, Tenant, Unit } from '../../data/mock';
 import { unitsForProperty } from '../../lib/units';
 import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';
+import SearchSelect from '../../components/SearchSelect';
 import PhoneInput from '../../components/PhoneInput';
 import { DEFAULT_CALLING_COUNTRY, callingCountryForName, isPhoneValid } from '../../data/phone';
 
@@ -45,6 +46,10 @@ export default function TenantFormModal({
   // Free-text mode only when editing a legacy tenant whose label has no unit record.
   const [unitCustom, setUnitCustom] = useState(initial.unitId === undefined && initial.unit !== '');
 
+  const propertyOptions = useMemo(
+    () => properties.map((p) => ({ value: p.id, label: p.name, detail: p.address })),
+    [properties]
+  );
   const selectedProperty = properties.find((p) => p.id === form.propertyId);
   const phoneCountry = callingCountryForName(selectedProperty?.country) ?? DEFAULT_CALLING_COUNTRY;
   // Only units of the selected property are ever offered — never other properties'.
@@ -104,19 +109,20 @@ export default function TenantFormModal({
         <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <div className="field">
             <label htmlFor="tf-prop">Property *</label>
-            <select
+            <SearchSelect
               id="tf-prop"
               value={form.propertyId}
-              onChange={(e) => {
+              onChange={(propertyId) => {
                 // A unit link never survives a property switch — units belong to exactly one property.
-                setForm({ ...form, propertyId: e.target.value, unit: '', unitId: undefined });
+                setForm({ ...form, propertyId, unit: '', unitId: undefined });
                 setUnitCustom(false);
               }}
-              className={cls(errs.property !== '')}
-            >
-              <option value="">Select property</option>
-              {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+              options={propertyOptions}
+              placeholder="Select property"
+              searchPlaceholder="Search by name or address..."
+              emptyLabel="No property matches that search"
+              invalid={submitted && errs.property !== ''}
+            />
             {err(errs.property)}
           </div>
           <div className="field">

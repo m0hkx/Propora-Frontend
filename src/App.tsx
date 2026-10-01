@@ -65,7 +65,6 @@ function headerAction(page: string): string {
   if (page === 'Maintenance') return 'New Request';
   if (page === 'Documents') return 'Upload Document';
   if (page === 'Tenants') return 'Add Tenant';
-  if (page === 'Profile') return 'New Entry';
   return `New ${page.slice(0, -1)}`;
 }
 
@@ -97,7 +96,8 @@ function AppShell() {
 
   const segments = location.pathname.split('/').filter(Boolean);
   const currentRoute: NavPage = (segments[0] ?? 'dashboard') as NavPage;
-  const currentPage = routeToLabel[currentRoute] ?? 'Dashboard';
+  const isProfile = segments[0] === 'profile';
+  const currentPage = isProfile ? 'Profile' : routeToLabel[currentRoute] ?? 'Dashboard';
 
   const [addPropOpen, setAddPropOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -359,7 +359,7 @@ function AppShell() {
                   </div>
                 </div>
                 <button className="btn btn-teal dropdown-full" type="button" onClick={openFullProfile}>
-                  Open full profile
+                  Profile
                 </button>
                 <div className="dropdown-section">
                   <div className="dropdown-title">Settings</div>
@@ -410,28 +410,27 @@ function AppShell() {
         </div>
       </header>
 
-      {/* Page header -> Title, Description */}
       <div className="flex items-center justify-between gap-3 flex-wrap mx-1 mt-[22px] mb-4">
         <div>
           <h1 className="font-display text-[26px] m-0 max-md:text-[22px]">{currentRoute === 'dashboard' ? 'Property Management Overview' : currentPage}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">{subtitles[currentPage]}</p>
         </div>
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {DEDICATED_SEARCH.includes(currentRoute) ? null : (
-            <label className="search max-md:min-w-full">
-              <Icon icon={Icons.search} />
-              <input
-                placeholder={`Search ${currentPage.toLowerCase()}...`}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                aria-label={`Search ${currentPage}`}
-              />
-            </label>
-          )}
-          {segments[0] === 'profile' ? null : (
+        {isProfile ? null : (
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {DEDICATED_SEARCH.includes(currentRoute) ? null : (
+              <label className="search max-md:min-w-full">
+                <Icon icon={Icons.search} />
+                <input
+                  placeholder={`Search ${currentPage.toLowerCase()}...`}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  aria-label={`Search ${currentPage}`}
+                />
+              </label>
+            )}
             <button className="btn btn-primary" type="button" onClick={onHeaderAction}><Icon icon={Icons.plus} /> {headerAction(currentPage)}</button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <main>

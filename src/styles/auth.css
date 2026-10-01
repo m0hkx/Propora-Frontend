@@ -1,0 +1,223 @@
+/* --- Auth screens (login / register) ---
+   Split layout: a deep-teal brand panel with a self-drawing floor plan on
+   wide screens, and a plain left-aligned form column that stands alone on
+   phones. */
+.auth-shell {
+  @apply min-h-screen grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)];
+}
+
+.auth-panel {
+  @apply relative hidden lg:flex flex-col justify-between m-4 rounded-[28px] p-10 overflow-hidden text-white;
+  background:
+    radial-gradient(520px 380px at 88% 8%, rgb(20 184 166 / 0.3), transparent 65%),
+    radial-gradient(420px 320px at 0% 100%, rgb(3 105 161 / 0.22), transparent 70%),
+    linear-gradient(160deg, #0B3431 0%, #134E4A 55%, #0F5F58 100%);
+}
+
+.auth-plan-wrap {
+  @apply relative flex-1 min-h-0 my-8 flex items-center;
+}
+
+.auth-plan {
+  @apply w-full h-full max-h-110;
+}
+
+.plan-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.auth-plan .plan-outer { stroke: rgb(153 246 228 / 0.85); stroke-width: 3.5; }
+.auth-plan .plan-wall { stroke: rgb(153 246 228 / 0.55); stroke-width: 2; }
+.auth-plan .plan-door { stroke: rgb(153 246 228 / 0.35); stroke-width: 1.25; }
+.auth-plan .plan-window { stroke: rgb(94 234 212 / 0.75); stroke-width: 1.5; }
+.auth-plan .plan-dim { stroke: rgb(204 251 241 / 0.3); stroke-width: 1; }
+
+.plan-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  fill: rgb(153 246 228 / 0.75);
+}
+
+.plan-area,
+.plan-dim-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  fill: rgb(204 251 241 / 0.45);
+}
+
+.auth-roll {
+  @apply absolute right-0 bottom-0 w-68 rounded-card p-4 text-white border border-white/15 bg-white/[0.07] shadow-[0_24px_60px_rgb(0_0_0/0.35)] backdrop-blur-[14px];
+}
+
+.auth-roll-row {
+  @apply grid grid-cols-[1fr_auto_auto] items-center gap-3 py-1.5 text-[13px] border-t border-white/10;
+}
+
+.auth-roll-pill {
+  @apply text-[11px] font-bold px-2 py-0.5 rounded-full min-w-15 text-center;
+}
+
+.auth-roll-pill.paid { @apply bg-[#34D399]/15 text-[#A7F3D0]; }
+.auth-roll-pill.pending { @apply bg-[#FBBF24]/15 text-[#FDE68A]; }
+.auth-roll-pill.overdue { @apply bg-[#F87171]/15 text-[#FECACA]; }
+
+/* Lines start hidden only when motion is allowed, so reduced-motion users
+   (whose animations are switched off in base.css) still see the drawing. */
+@keyframes plan-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes plan-fade {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .plan-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: plan-draw 1.1s var(--ease-spring) forwards;
+  }
+
+  .plan-label,
+  .plan-dim-label {
+    opacity: 0;
+    animation: plan-fade 0.6s ease 1.3s forwards;
+  }
+
+  .auth-roll {
+    animation: rise 0.6s var(--ease-spring) 0.9s backwards;
+  }
+}
+
+.auth-main {
+  @apply relative flex items-center px-6 py-12 sm:px-10;
+}
+
+/* Faint blueprint grid behind the form, echoing the floor plan on the left. */
+.auth-main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(15 118 110 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 118 110 / 0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(closest-side at 50% 50%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, black 30%, transparent 100%);
+}
+
+/* Sign in / Create account switch: two route links with a sliding pill. */
+.auth-switch {
+  @apply relative grid grid-cols-2 p-1 mb-10 rounded-full bg-white/80 border border-[#D5E6E3] shadow-[0_4px_14px_rgb(15_118_110/0.06)];
+}
+
+.auth-switch-indicator {
+  @apply absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-foreground shadow-[0_6px_16px_rgb(19_78_74/0.25)];
+  transition: transform 0.32s var(--ease-spring);
+}
+
+.auth-switch-indicator.right {
+  transform: translateX(100%);
+}
+
+.auth-switch-link {
+  @apply relative z-1 h-10 inline-flex items-center justify-center rounded-full text-[14px] font-bold text-muted-foreground no-underline transition-colors duration-200 hover:text-foreground;
+}
+
+.auth-switch-link.active {
+  @apply text-white hover:text-white;
+}
+
+.auth-swap {
+  animation: rise 0.36s var(--ease-spring) backwards;
+}
+
+.auth-title {
+  @apply font-display text-[30px] leading-tight font-extrabold tracking-[-0.02em] m-0 text-foreground;
+}
+
+.auth-sub {
+  @apply text-[15px] text-muted-foreground mt-2 mb-7;
+}
+
+.auth-link {
+  @apply font-semibold text-primary underline-offset-4 hover:underline;
+}
+
+.auth-alt {
+  @apply text-[14px] text-muted-foreground text-center mt-6 mb-0;
+}
+
+/* Fields as rows of one ledger card. The input fills its whole row (the label
+   sits on top of its padding) so clicking anywhere in a row focuses it; focus
+   shows on the row as a teal bar and tint. */
+.auth-fields {
+  @apply bg-white rounded-card border border-[#D5E6E3] overflow-hidden shadow-[0_1px_0_rgb(15_118_110/0.04),0_14px_34px_rgb(15_118_110/0.09)] transition-[border-color] duration-200;
+}
+
+.auth-fields:focus-within {
+  border-color: rgb(15 118 110 / 0.45);
+}
+
+.auth-row {
+  @apply relative border-t border-[#E3EFED] first:border-t-0 transition-colors duration-150;
+}
+
+.auth-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+  transform: scaleY(0);
+  transition: transform 0.2s var(--ease-feedback);
+}
+
+.auth-row:focus-within {
+  background: #F4FCFA;
+}
+
+.auth-row:focus-within::before {
+  transform: scaleY(1);
+}
+
+.auth-row-label {
+  @apply absolute left-4 top-3 text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground pointer-events-none transition-colors duration-150;
+}
+
+.auth-row:focus-within .auth-row-label {
+  @apply text-primary;
+}
+
+.auth-row-input {
+  @apply block w-full h-16 pt-6 pb-1 px-4 bg-transparent border-0 text-[16px] font-semibold text-foreground placeholder:font-normal placeholder:text-[#9FB3B0];
+}
+
+.auth-toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 h-8 px-2.5 rounded-[10px] border-0 bg-transparent text-[13px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted;
+}
+
+.auth-submit {
+  @apply w-full h-13 mt-5 rounded-[14px] border-0 bg-foreground text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 shadow-[0_10px_24px_rgb(19_78_74/0.22)] transition-[background-color,transform,box-shadow] duration-150 hover:bg-primary hover:-translate-y-px hover:shadow-[0_14px_28px_rgb(15_118_110/0.28)] disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0;
+}
+
+.auth-submit svg {
+  transition: transform 0.18s var(--ease-feedback);
+}
+
+.auth-submit:hover:not(:disabled) svg {
+  transform: translateX(3px);
+}
+
+.auth-error {
+  @apply mt-4 text-[13px] font-semibold text-[#B91C1C] bg-[#FEF2F2] border-l-[3px] border-destructive rounded-r-[10px] px-3 py-2.5;
+}

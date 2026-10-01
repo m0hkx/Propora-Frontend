@@ -1,0 +1,265 @@
+/* App chrome and feature surfaces: charts, topbar/shell, notifications and chat, timeline,
+   property cards and the property details modal. */
+
+/* --- Charts (Phase 6) --- */
+.chart-box {
+  @apply bg-white border border-[#F1F5F9] rounded-chip p-3 mt-3;
+}
+
+.chart-wrap {
+  @apply relative;
+}
+
+/* Keep the SVG's intrinsic aspect ratio at every width so the plot
+   geometry, hover mapping, and x-labels stay exact (no letterboxing). */
+.chart-wrap svg {
+  @apply block w-full h-auto;
+}
+
+.chart-tip {
+  @apply absolute bg-foreground text-white rounded-chip px-3 py-2 text-[13px] whitespace-nowrap shadow-[0_10px_24px_rgba(0,0,0,0.22)] pointer-events-none z-5;
+  transform: translate(-50%, -115%);
+}
+
+.chart-tip .small {
+  @apply text-border;
+}
+
+.x-labels {
+  @apply relative h-4.5 mt-1;
+}
+
+.x-label {
+  @apply absolute top-0 text-xs text-muted-foreground whitespace-nowrap;
+}
+
+@media (max-width: 480px) {
+  .x-labels .x-label:not(:first-child):not(:last-child):nth-child(even) {
+    display: none;
+  }
+}
+
+/* --- Shell / chrome (Phase 5) --- */
+.topbar {
+  @apply flex items-center justify-between gap-4 bg-[rgba(255,255,255,0.82)] backdrop-blur-[14px] border border-[rgba(153,246,228,0.7)] rounded-[22px] px-3.5 py-2.5 shadow-card sticky top-3 z-20;
+}
+
+.brand {
+  @apply flex items-center gap-2.5 font-bold;
+}
+
+.brand-mark {
+  @apply size-8.5 rounded-chip grid place-items-center bg-white border border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)];
+}
+
+.brand-mark .logo-img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  display: block;
+}
+
+.brand-name {
+  @apply font-display tracking-[0.2px];
+}
+
+.nav-pills {
+  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden;
+}
+
+.nav-pill {
+  @apply border-0 bg-transparent px-3.5 py-2 rounded-full text-muted-foreground font-semibold whitespace-nowrap transition-all duration-180 hover:bg-white hover:text-foreground;
+}
+
+.nav-pill.active {
+  @apply bg-white text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.06)];
+}
+
+.icon-btn {
+  @apply size-9 rounded-full border border-border bg-white grid place-items-center text-foreground transition-[transform,background-color] duration-180 hover:bg-muted hover:-translate-y-px;
+}
+
+.icon-btn-sm {
+  @apply size-7.5;
+}
+
+/* --- Notifications / chat (Phase 5) --- */
+.notif-item {
+  @apply border-0 bg-transparent text-left flex gap-2.5 w-full px-2 py-2.5 rounded-chip text-foreground hover:bg-muted;
+}
+
+.notif-item.unread {
+  @apply bg-background;
+}
+
+.chat-thread {
+  @apply flex flex-col gap-2 mt-2.5 max-h-65 overflow-y-auto;
+}
+
+.chat-bubble {
+  @apply max-w-[85%] px-3 py-2 rounded-chip text-sm bg-muted;
+}
+
+.chat-bubble.me {
+  @apply self-end bg-primary text-white;
+}
+
+.chat-bubble.them {
+  @apply self-start;
+}
+
+.chat-time {
+  @apply opacity-70 mt-0.5;
+}
+
+.chat-reply {
+  @apply flex gap-2 mt-2.5;
+}
+
+.chat-reply input {
+  @apply flex-1 min-w-0 px-3 py-2.25 rounded-chip border border-border;
+}
+
+/* --- Timeline (Phase 5) --- */
+.timeline {
+  @apply flex flex-col gap-0 mt-3;
+}
+
+.timeline-item {
+  @apply flex gap-3 px-1 py-2.5 border-l-2 border-border ml-1.5 pl-4 relative;
+}
+
+.timeline-dot {
+  @apply size-2.5 rounded-full bg-primary absolute -left-1.5 top-3.5 border-2 border-white shadow-[0_0_0_2px_var(--color-border)];
+}
+
+/* --- Property cards (Phase 5; ::after stays raw CSS) --- */
+.prop-card {
+  @apply overflow-hidden p-0 flex flex-col;
+}
+
+.prop-image {
+  @apply h-42.5 flex items-end justify-between p-3 text-white relative overflow-hidden;
+}
+
+.prop-image img {
+  @apply absolute inset-0 w-full h-full object-cover z-0;
+}
+
+.prop-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Details-modal header image: no legibility scrim — that treatment belongs
+   to cards carrying overlay text. Without it the photo renders clean. */
+.prop-image.no-scrim::after {
+  display: none;
+}
+
+.prop-initials {
+  @apply text-[44px] font-extrabold tracking-[-1px] opacity-95 relative z-2 [text-shadow:0_2px_10px_rgba(0,0,0,0.35)];
+}
+
+/* --- Property details modal ---
+   A building's record reads as a narrative (what it is → how full → what it
+   earns → its units), so these classes deliberately break the uniform
+   label/value row rhythm the rest of the modals use. Figures are tabular so
+   digits line up the way they do in the rest of the property/finance UI. */
+.pd-photo {
+  @apply h-42 rounded-chip overflow-hidden relative grid place-items-center bg-primary max-md:h-33;
+}
+
+.pd-photo img {
+  @apply absolute inset-0 w-full h-full object-cover;
+}
+
+/* The monogram is the fallback identity, not an overlay on a photo. */
+.pd-monogram {
+  @apply font-display text-[40px] font-extrabold tracking-[-1px] text-white/90;
+}
+
+.pd-identity {
+  @apply flex items-start justify-between gap-3 flex-wrap;
+}
+
+.pd-address {
+  @apply m-0 text-[15px] font-semibold text-foreground wrap-break-word;
+}
+
+.pd-facts {
+  @apply m-0 grid grid-cols-3 gap-x-4 gap-y-2.5 max-md:grid-cols-2;
+}
+
+.pd-facts dt {
+  @apply text-[13px] text-muted-foreground;
+}
+
+.pd-facts dd {
+  @apply m-0 text-sm font-semibold text-foreground tabular-nums;
+}
+
+/* Hairline-separated blocks; the block directly under the photo omits it. */
+.pd-block {
+  @apply flex flex-col gap-2.5 pt-3.5 border-t border-[#F1F5F9];
+}
+
+.pd-block-flush {
+  @apply flex flex-col gap-2.5;
+}
+
+.pd-heading {
+  @apply m-0 text-sm font-bold text-foreground;
+}
+
+.pd-occupancy {
+  @apply m-0 flex items-baseline gap-2 flex-wrap;
+}
+
+.pd-occupancy-count {
+  @apply font-display text-[38px] leading-none font-extrabold tracking-[-0.03em] text-foreground tabular-nums;
+}
+
+.pd-occupancy-text {
+  @apply text-[15px] text-muted-foreground;
+}
+
+.pd-meter {
+  @apply flex items-center gap-3;
+}
+
+.pd-meter .progress {
+  @apply flex-1;
+}
+
+.pd-meter-value {
+  @apply text-[13px] font-bold text-primary tabular-nums w-10 text-right shrink-0;
+}
+
+.pd-figures {
+  @apply flex items-baseline gap-x-7 gap-y-1 flex-wrap;
+}
+
+.pd-figure {
+  @apply font-display text-[26px] leading-none font-extrabold tracking-[-0.02em] text-foreground tabular-nums;
+}
+
+.pd-figure-sub {
+  @apply text-[17px] font-bold text-muted-foreground tabular-nums;
+}
+
+.pd-unit {
+  @apply text-[13px] text-muted-foreground ml-1.5;
+}
+
+.pd-note {
+  @apply m-0 text-[13px] text-muted-foreground;
+}
+
+.prop-body {
+  @apply px-4 pt-3.5 pb-4 flex flex-col gap-2;
+}

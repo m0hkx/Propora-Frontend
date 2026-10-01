@@ -1,0 +1,56 @@
+/* --- Loading screen (session check) ---
+   The login floor plan again, in ink on the app's mint wash so nothing flashes
+   when the app appears. Walls draw once; then the rooms light up one after
+   another, clockwise, for as long as the wait lasts. */
+.loader-screen {
+  @apply relative min-h-screen grid place-items-center px-6 py-16;
+}
+
+.loader-brand {
+  @apply absolute top-5 left-6 flex items-center gap-2.5 text-lg;
+}
+
+.loader-center {
+  @apply flex flex-col items-center text-center max-w-90;
+}
+
+.loader-plan {
+  @apply w-70 max-w-full h-auto mb-7;
+}
+
+.loader-plan .plan-outer { stroke: var(--color-primary); stroke-width: 6; }
+.loader-plan .plan-wall { stroke: rgb(15 118 110 / 0.7); stroke-width: 4; }
+.loader-plan .plan-door { stroke: rgb(15 118 110 / 0.4); stroke-width: 3; }
+
+.loader-plan .plan-room {
+  fill: rgb(20 184 166 / 0.2);
+  opacity: 0.55;
+}
+
+.loader-message {
+  @apply m-0 text-[16px] font-semibold text-foreground;
+}
+
+.loader-note-slot {
+  @apply min-h-13 mt-2;
+}
+
+.loader-note {
+  @apply m-0 text-[14px] leading-relaxed text-muted-foreground text-balance;
+  animation: rise 0.4s var(--ease-spring) backwards;
+}
+
+@keyframes room-light {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  40% { opacity: 1; }
+  60%,
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .loader-plan .plan-room {
+    opacity: 0;
+    animation: room-light 2.5s ease-in-out infinite;
+  }
+}

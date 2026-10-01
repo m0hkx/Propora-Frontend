@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Properties from './pages/Properties';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Properties from './pages/Properties/Properties';
 import Tenants from './pages/Tenants/Tenants';
-import Leases from './pages/Leases';
-import Payments from './pages/Payments';
+import Leases from './pages/Leases/Leases';
+import Payments from './pages/Payments/Payments';
 import Maintenance from './pages/Maintenance/Maintenance';
 import Documents from './pages/Documents/Documents';
 import Profile from './pages/Profile';

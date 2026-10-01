@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AreaChart, Donut } from '../components/charts';
-import { Badge, Card, Progress } from '../components/ui';
-import { Icons } from '../components/icons';
-import KpiCard from '../components/KpiCard';
-import Modal from '../components/Modal';
-import { useStore } from '../state/useStore';
-import { fmtDate, formatMoney } from '../lib/format';
-import { revenueByPeriod, spreadByProperty } from '../lib/stats';
-import type { RevenueRange } from '../lib/stats';
-import { maintenancePriorityTone, paymentTone } from '../lib/tone';
-import { withLiveOccupancy } from '../lib/units';
-import { scopeLabel } from './Maintenance/maintenanceUtils';
-import { propertyName, tenantName } from '../lib/lookup';
+import { AreaChart, Donut } from '../../components/charts';
+import { Badge, Card, Progress } from '../../components/ui';
+import { Icons } from '../../components/icons';
+import KpiCard from '../../components/KpiCard';
+import { useStore } from '../../state/useStore';
+import { fmtDate, formatMoney } from '../../lib/format';
+import { revenueByPeriod, spreadByProperty } from '../../lib/stats';
+import type { RevenueRange } from '../../lib/stats';
+import { maintenancePriorityTone, paymentTone } from '../../lib/tone';
+import { withLiveOccupancy } from '../../lib/units';
+import { scopeLabel } from '../Maintenance/maintenanceUtils';
+import { propertyName, tenantName } from '../../lib/lookup';
+import ActionRequiredModal from './ActionRequiredModal';
 
 type Range = RevenueRange;
 
@@ -55,7 +55,6 @@ export default function Dashboard() {
   const outstanding = overdue.reduce((s, p) => s + p.amount, 0);
   const openMaint = maintenance.filter((m) => m.status === 'Open');
   const expiring = tenants.filter((t) => t.leaseStatus === 'Expiring Soon');
-  const tenantOf = (id: string) => tenants.find((t) => t.id === id)?.name ?? id;
 
   // Merges every dated event this account actually has — maintenance history
   // entries, paid payments, document uploads — sorted newest-first. Tenants
@@ -225,7 +224,7 @@ export default function Dashboard() {
           <div className="list">
             <div className="list-row">
               <span><span className="dot dot-live" style={{ background: 'var(--color-destructive)' }} /> {overdue.length} Overdue Payments</span>
-              <strong>${overdue.reduce((s, p) => s + p.amount, 0).toLocaleString('en-US')} outstanding</strong>
+              <strong>{fmtMoney(outstanding)} outstanding</strong>
             </div>
             <div className="list-row">
               <span><span className="dot" style={{ background: 'var(--color-category-lease)' }} /> {expiring.length} Leases Expiring Soon</span>
@@ -291,53 +290,13 @@ export default function Dashboard() {
       </Card>
 
       {actionOpen && (
-        <Modal title="Action Required" onClose={() => setActionOpen(false)} wide>
-          <div className="modal-section">
-            <h4>Overdue Payments ({overdue.length})</h4>
-            {overdue.length === 0 ? <p className="small muted m-0">Nothing overdue.</p> : (
-              <div className="list">
-                {overdue.slice(0, 5).map((p) => (
-                  <div key={p.id} className="list-row">
-                    <span>{tenantOf(p.tenantId)} · ${p.amount.toLocaleString('en-US')}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/payments'); }}>
-                      Review →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="modal-section">
-            <h4>Leases Expiring Soon ({expiring.length})</h4>
-            {expiring.length === 0 ? <p className="small muted m-0">No upcoming expirations.</p> : (
-              <div className="list">
-                {expiring.slice(0, 5).map((t) => (
-                  <div key={t.id} className="list-row">
-                    <span>{t.name} · ends {fmtDate(t.leaseEnd)}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/leases'); }}>
-                      Review →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="modal-section">
-            <h4>Open Maintenance ({openMaint.length})</h4>
-            {openMaint.length === 0 ? <p className="small muted m-0">Queue is clear.</p> : (
-              <div className="list">
-                {openMaint.slice(0, 5).map((m) => (
-                  <div key={m.id} className="list-row">
-                    <span>{m.title}</span>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setActionOpen(false); navigate('/maintenance'); }}>
-                      Review →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Modal>
+        <ActionRequiredModal
+          overdue={overdue}
+          expiring={expiring}
+          openMaintenance={openMaint}
+          tenants={tenants}
+          onClose={() => setActionOpen(false)}
+        />
       )}
     </div>
   );

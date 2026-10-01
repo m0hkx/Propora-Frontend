@@ -27,14 +27,7 @@ type PropertyDraftResponse = {
     };
 };
 
-interface MissingPropertyData {
-    description: string;
-    postal: string;
-    floors: string;
-    size: string;
-    purchasePrice: string;
-    expenses: string;
-}
+type MissingPropertyData = Pick<PropertyDraft, 'description' | 'postal' | 'floors' | 'size' | 'purchasePrice' | 'expenses'>;
 
 function initials(name: string): string {
     return name.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase();

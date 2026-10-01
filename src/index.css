@@ -10,6 +10,11 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "./styles/components.css" layer(components);
+@import "./styles/chrome.css" layer(components);
+@import "./styles/motion.css" layer(components);
+@import "./styles/mobile-nav.css" layer(components);
+@import "./styles/auth.css" layer(components);
+@import "./styles/loader.css" layer(components);
 @import "./styles/base.css";
 
 /* Project tokens: the single source of truth (D4). The legacy :root block

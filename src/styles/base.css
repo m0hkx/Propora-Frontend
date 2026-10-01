@@ -64,6 +64,13 @@ button {
   border-radius: 8px;
 }
 
+/* Auth-screen inputs show focus on their whole row (teal bar + tint, see
+   .auth-row). The ring above is unlayered, so only an unlayered rule can turn
+   it off for them; without this the row would get two focus indicators. */
+.auth-row-input:focus-visible {
+  outline: none;
+}
+
 select {
   padding: 8px 10px;
   border-radius: 10px;

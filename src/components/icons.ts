@@ -1,17 +1,14 @@
 import {
+  ArrowRight,
   Bell,
   Buildings,
   ChartLineUp,
   Check,
   CreditCard,
-  Envelope,
-  Eye,
-  EyeSlash,
   FileText,
   Folder,
   House,
   Key,
-  Lock,
   MagnifyingGlass,
   Plus,
   User,
@@ -21,6 +18,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const Icons = {
+  arrowRight: ArrowRight,
   home: House,
   users: Users,
   lease: FileText,
@@ -36,8 +34,4 @@ export const Icons = {
   key: Key,
   close: X,
   check: Check,
-  mail: Envelope,
-  lock: Lock,
-  eye: Eye,
-  eyeOff: EyeSlash,
 };

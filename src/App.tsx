@@ -29,6 +29,7 @@ import MessagesPanel from './components/MessagesPanel';
 import { useStore } from './state/useStore';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AuthLayout from "./components/AuthLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/useAuth";
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary';
@@ -534,8 +535,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
 
         <Route
           path="/*"

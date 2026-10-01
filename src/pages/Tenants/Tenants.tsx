@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Tenant } from '../../types';
+import type { Tenant, TenantDraft } from '../../types';
 import { Card } from '../../components/ui';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EmptyState from '../../components/EmptyState';
 import { Icons } from '../../components/icons';
 import { useStore } from '../../state/useStore';
+import { useAsyncAction } from '../../lib/useAsyncAction';
 import TenantStats from './TenantStats';
 import TenantFilters from './TenantFilters';
 import TenantTable from './TenantTable';
 import Pagination from '../../components/Pagination';
 import TenantDetailsModal from './TenantDetailsModal';
 import TenantFormModal from './TenantFormModal';
-import type { TenantDraft } from './TenantFormModal';
 import { matchesTab } from './tenantUtils';
 import type { TenantAction, TenantSort, TenantTab } from './tenantUtils';
 import { PAYMENT_STATUS_ORDER, TENANT_STATUS_ORDER } from './tenantUtils';
@@ -32,6 +32,7 @@ export default function Tenants({
   const updateTenant = useStore((s) => s.updateTenant);
   const deleteTenant = useStore((s) => s.deleteTenant);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
   const tenants = useStore((s) => s.tenants);
   const properties = useStore((s) => s.properties);
   const units = useStore((s) => s.units);
@@ -94,27 +95,17 @@ export default function Tenants({
   const deleted = deleteId ? tenants.find((t) => t.id === deleteId) ?? null : null;
 
   const saveEdit = async (id: string, draft: TenantDraft) => {
-    try {
-      await updateTenant(id, draft);
-      setEditId(null);
-      pushToast(`Saved changes for ${draft.name}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to save tenant');
-    }
+    if (!(await run(() => updateTenant(id, draft), 'Failed to save tenant'))) return;
+    setEditId(null);
+    pushToast(`Saved changes for ${draft.name}`);
   };
 
   const confirmDelete = async () => {
     if (!deleted) return;
-    try {
-      await deleteTenant(deleted.id);
-      setDeleteId(null);
-      if (viewId === deleted.id) setViewId(null);
-      pushToast(`Deleted tenant ${deleted.name}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to delete tenant');
-    }
+    if (!(await run(() => deleteTenant(deleted.id), 'Failed to delete tenant'))) return;
+    setDeleteId(null);
+    if (viewId === deleted.id) setViewId(null);
+    pushToast(`Deleted tenant ${deleted.name}`);
   };
 
   const onAction = (a: TenantAction, t: Tenant) => {

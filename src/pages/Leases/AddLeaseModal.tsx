@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Property, Tenant, Unit } from '../../types';
+import type { LeaseDraft, Property, Tenant, Unit } from '../../types';
 import { leaseTone, orDash, tenantOption, tenantPrefill } from './leaseUtils';
 import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE, formatMoney } from '../../lib/format';
 import { unitsForProperty } from '../../lib/units';
@@ -7,17 +7,6 @@ import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { Badge } from '../../components/ui';
 import { propertyName, tenantById } from '../../lib/lookup';
-
-export interface LeaseDraft {
-  propertyId: string;
-  tenantId: string;
-  /** Leased unit within `propertyId`; undefined when the lease covers no specific unit. */
-  unitId?: string;
-  rent: number;
-  deposit: number;
-  start: string;
-  end: string;
-}
 
 export default function AddLeaseModal({
   properties,

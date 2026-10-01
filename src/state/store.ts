@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { AppNotification, ChatMessage, Conversation, DocFile, Lease, MaintenanceRequest, MaintenanceStaff, MaintenanceStatus, Payment, Property, Tenant, Unit } from '../types';
+import type { AppNotification, ChatMessage, Conversation, DocFile, Lease, LeaseDraft, MaintenanceRequest, MaintenanceStaff, MaintenanceStatus, NewDocDraft, NewMaintenanceDraft, Payment, PaymentDraft, Property, PropertyDraft, Tenant, TenantDraft, Unit } from '../types';
 
 import { validateTenantUnit, validateUnit } from '../lib/units';
 import { validateStaff } from '../lib/staff';
@@ -19,12 +19,6 @@ import * as staffApi from '../api/maintenanceStaff';
 import * as documentsApi from '../api/documents';
 import * as notificationsApi from '../api/notifications';
 
-import type { PropertyDraft } from '../pages/Properties/propertyForm';
-import type { TenantDraft } from '../pages/Tenants/TenantFormModal';
-import type { LeaseDraft } from '../pages/Leases/AddLeaseModal';
-import type { PaymentDraft } from '../pages/Payments/RecordPaymentModal';
-import type { NewMaintenanceDraft } from '../pages/Maintenance/NewMaintenanceModal';
-import type { NewDocDraft } from '../pages/Documents/UploadDocumentModal';
 import { conversations as seedConversations } from '../data/conversations';
 
 export interface Toast {

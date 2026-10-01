@@ -1,24 +1,4 @@
-import type { Property } from '../../types';
-
-/** Form shape shared by the add and edit property flows. */
-export interface PropertyDraft {
-  name: string;
-  type: string;
-  description: string;
-  address: string;
-  city: string;
-  country: string;
-  postal: string;
-  units: string;
-  baseRent: string;
-  yearBuilt: string;
-  floors: string;
-  size: string;
-  purchasePrice: string;
-  revenue: string;
-  expenses: string;
-  status: Property['status'];
-}
+import type { Property, PropertyDraft } from '../../types';
 
 export const EMPTY_PROPERTY_DRAFT: PropertyDraft = {
   name: '', type: '', description: '', address: '', city: '', country: '', postal: '',

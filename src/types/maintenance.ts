@@ -41,3 +41,19 @@ export interface MaintenanceRequest {
   actualCost?: number;
   history: MaintenanceHistory[];
 }
+
+export interface NewMaintenanceDraft {
+  title: string;
+  description: string;
+  propertyId: string;
+  scope: MaintenanceScope;
+  /** Populated only when scope === 'units'. */
+  unitIds: string[];
+  /** Populated only when scope === 'tenants'. */
+  tenantIds: string[];
+  category: MaintenanceRequest['category'];
+  priority: MaintenancePriority;
+  assigneeId?: string;
+  scheduledDate?: string;
+  estimatedCost: number;
+}

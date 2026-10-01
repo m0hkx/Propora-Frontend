@@ -1,5 +1,4 @@
-import type { Payment } from '../types';
-import type { PaymentDraft } from '../pages/Payments/RecordPaymentModal';
+import type { Payment, PaymentDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type PaymentDoc = Payment;

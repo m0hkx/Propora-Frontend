@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Property } from '../types';
+import type { Property, PropertyDraft } from '../types';
 import { Badge, Card, Progress } from '../components/ui';
 import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
 import EmptyState from '../components/EmptyState';
@@ -8,9 +8,9 @@ import KpiCard from '../components/KpiCard';
 import PropertyDetailsModal from './Properties/PropertyDetailsModal';
 import AddPropertyModal from './Properties/AddPropertyModal';
 import { propertyToDraft } from './Properties/propertyForm';
-import type { PropertyDraft } from './Properties/propertyForm';
 import { getPropertyDraft } from '../api/properties';
 import { useStore } from '../state/useStore';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import { propertyTone as tone } from '../lib/tone';
 import { propertyHasUnits, withLiveOccupancy } from '../lib/units';
 import type { LiveProperty } from '../lib/units';
@@ -41,6 +41,7 @@ export default function Properties({ query }: { query: string }) {
   const properties = useMemo(() => withLiveOccupancy(rawProperties, tenants), [rawProperties, tenants]);
   const updateProperty = useStore((s) => s.updateProperty);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
   const [status, setStatus] = useState<StatusFilter>('All');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All types');
@@ -121,14 +122,9 @@ export default function Properties({ query }: { query: string }) {
   }, [editing, pushToast]);
 
   const saveEdit = async (id: string, d: PropertyDraft, image: File | undefined) => {
-    try {
-      await updateProperty(id, d, image);
-      setEditId(null);
-      pushToast(`Saved changes for ${d.name}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to save property');
-    }
+    if (!(await run(() => updateProperty(id, d, image), 'Failed to save property'))) return;
+    setEditId(null);
+    pushToast(`Saved changes for ${d.name}`);
   };
 
   return (

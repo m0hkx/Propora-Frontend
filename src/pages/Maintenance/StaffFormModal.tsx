@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MaintenanceRequest, MaintenanceStaff, MaintenanceStaffStatus } from '../../types';
 import { DEFAULT_CALLING_COUNTRY, isPhoneValid } from '../../data/phone';
 import { useStore } from '../../state/useStore';
+import { attempt } from '../../lib/useAsyncAction';
 import Modal from '../../components/Modal';
 import PhoneInput from '../../components/PhoneInput';
 
@@ -45,18 +46,16 @@ export default function StaffFormModal({
     const patch = { name: name.trim(), email: email.trim(), phone, specialty, status };
     // The store re-validates (name, email format, phone) so bad data can
     // never persist, even if the form check is bypassed.
-    try {
-      const rejected = editing ? await updateStaff(editing.id, patch) : await addStaff(patch);
-      if (rejected) {
-        setServerError(rejected);
-        return;
-      }
-      pushToast(editing ? `Saved changes for ${patch.name}` : `${patch.name} added to maintenance staff`);
-      onClose();
-    } catch (error) {
-      console.error(error);
-      setServerError(error instanceof Error ? error.message : 'Failed to save staff member');
+    const error = await attempt(
+      () => (editing ? updateStaff(editing.id, patch) : addStaff(patch)),
+      'Failed to save staff member',
+    );
+    if (error) {
+      setServerError(error);
+      return;
     }
+    pushToast(editing ? `Saved changes for ${patch.name}` : `${patch.name} added to maintenance staff`);
+    onClose();
   };
 
   return (

@@ -26,3 +26,15 @@ export interface DocFile {
   status: DocumentStatus;
   description: string;
 }
+
+export interface NewDocDraft {
+  name: string;
+  propertyId: string;
+  tenantId?: string;
+  type: DocumentType;
+  size: string;
+  /** Real byte count — enforced again by the storage layer. */
+  sizeBytes: number;
+  /** Browser-supplied MIME — advisory only, re-checked by the storage layer. */
+  mime: string;
+}

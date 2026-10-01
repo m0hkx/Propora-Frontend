@@ -3,6 +3,7 @@ import type { Unit, UnitStatus } from '../../types';
 import { getUnitBlockers, resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { unitStatusTone as statusTone } from '../../lib/tone';
 import { useStore } from '../../state/useStore';
+import { useAsyncAction } from '../../lib/useAsyncAction';
 import { Badge } from '../../components/ui';
 import SortableTh from '../../components/SortableTh';
 import { byNumber, byRank, byText, nextSort, sortRows } from '../../lib/sort';
@@ -30,6 +31,7 @@ export default function UnitsSection({ propertyId }: { propertyId: string }) {
   const maintenance = useStore((s) => s.maintenance);
   const deleteUnit = useStore((s) => s.deleteUnit);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -59,14 +61,9 @@ export default function UnitsSection({ propertyId }: { propertyId: string }) {
 
   const confirmDelete = async () => {
     if (!deleting) return;
-    try {
-      await deleteUnit(deleting.id);
-      setDeleteId(null);
-      pushToast(`Deleted unit ${deleting.name}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to delete unit');
-    }
+    if (!(await run(() => deleteUnit(deleting.id), 'Failed to delete unit'))) return;
+    setDeleteId(null);
+    pushToast(`Deleted unit ${deleting.name}`);
   };
 
   return (

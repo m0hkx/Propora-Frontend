@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { DocumentType, Property, Tenant } from '../../types';
+import type { DocumentType, NewDocDraft, Property, Tenant } from '../../types';
 import {
   DOC_ACCEPT,
   MAX_DOC_LABEL,
@@ -12,18 +12,6 @@ import {
 import Modal from '../../components/Modal';
 
 const TYPES: DocumentType[] = ['Lease', 'Contract', 'Invoice', 'Property Document', 'Tenant Document', 'Maintenance', 'Insurance', 'Legal', 'Other'];
-
-export interface NewDocDraft {
-  name: string;
-  propertyId: string;
-  tenantId?: string;
-  type: DocumentType;
-  size: string;
-  /** Real byte count — enforced again by the storage layer. */
-  sizeBytes: number;
-  /** Browser-supplied MIME — advisory only, re-checked by the storage layer. */
-  mime: string;
-}
 
 export default function UploadDocumentModal({
   properties,

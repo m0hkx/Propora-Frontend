@@ -16,3 +16,18 @@ export interface Tenant {
   paymentDate: string;
   status: 'Active' | 'Pending' | 'Inactive';
 }
+
+export interface TenantDraft {
+  name: string;
+  email: string;
+  phone: string;
+  propertyId: string;
+  unit: string;
+  /** Link to a managed unit of the selected property; undefined for free-text units. */
+  unitId?: string;
+  beds: string;
+  rent: number;
+  leaseStart: string;
+  leaseEnd: string;
+  status: Tenant['status'];
+}

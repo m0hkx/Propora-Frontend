@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MaintenanceStaffStatus } from '../../types';
 import { getStaffBlockers } from '../../lib/staff';
 import { useStore } from '../../state/useStore';
+import { useAsyncAction } from '../../lib/useAsyncAction';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -17,6 +18,7 @@ export default function StaffModal({ onClose }: { onClose: () => void }) {
   const updateStaff = useStore((s) => s.updateStaff);
   const deleteStaff = useStore((s) => s.deleteStaff);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -28,29 +30,16 @@ export default function StaffModal({ onClose }: { onClose: () => void }) {
 
   const toggleStatus = async (id: string, status: MaintenanceStaffStatus) => {
     const next: MaintenanceStaffStatus = status === 'Active' ? 'Inactive' : 'Active';
-    try {
-      const rejected = await updateStaff(id, { status: next });
-      if (rejected) {
-        pushToast(rejected);
-        return;
-      }
+    if (await run(() => updateStaff(id, { status: next }), 'Failed to update status')) {
       pushToast(`Marked ${next}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to update status');
     }
   };
 
   const confirmDelete = async () => {
     if (!deleting) return;
-    try {
-      await deleteStaff(deleting.id);
-      setDeleteId(null);
-      pushToast(`Removed ${deleting.name} from maintenance staff`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to delete staff member');
-    }
+    if (!(await run(() => deleteStaff(deleting.id), 'Failed to delete staff member'))) return;
+    setDeleteId(null);
+    pushToast(`Removed ${deleting.name} from maintenance staff`);
   };
 
   return (

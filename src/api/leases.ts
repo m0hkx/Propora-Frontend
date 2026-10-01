@@ -1,5 +1,4 @@
-import type { Lease } from '../types';
-import type { LeaseDraft } from '../pages/Leases/AddLeaseModal';
+import type { Lease, LeaseDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type LeaseDoc = Lease;

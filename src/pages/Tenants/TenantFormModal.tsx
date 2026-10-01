@@ -1,26 +1,11 @@
 import { useMemo, useState } from 'react';
-import type { Lease, Property, Tenant, Unit } from '../../types';
+import type { Lease, Property, Tenant, TenantDraft, Unit } from '../../types';
 import { bedsLabel, unitOccupant, unitsForProperty, validateTenantUnit } from '../../lib/units';
 import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import PhoneInput from '../../components/PhoneInput';
 import { DEFAULT_CALLING_COUNTRY, callingCountryForName, isPhoneValid } from '../../data/phone';
-
-export interface TenantDraft {
-  name: string;
-  email: string;
-  phone: string;
-  propertyId: string;
-  unit: string;
-  /** Link to a managed unit of the selected property; undefined for free-text units. */
-  unitId?: string;
-  beds: string;
-  rent: number;
-  leaseStart: string;
-  leaseEnd: string;
-  status: Tenant['status'];
-}
 
 const MAX_BED_OPTIONS = 10;
 const BED_OPTIONS = Array.from({ length: MAX_BED_OPTIONS + 1 }, (_, n) => bedsLabel(n));

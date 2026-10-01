@@ -15,3 +15,23 @@ export interface Property {
   imageUrl: string;
   yearBuilt: number;
 }
+
+/** Form shape shared by the add and edit property flows. */
+export interface PropertyDraft {
+  name: string;
+  type: string;
+  description: string;
+  address: string;
+  city: string;
+  country: string;
+  postal: string;
+  units: string;
+  baseRent: string;
+  yearBuilt: string;
+  floors: string;
+  size: string;
+  purchasePrice: string;
+  revenue: string;
+  expenses: string;
+  status: Property['status'];
+}

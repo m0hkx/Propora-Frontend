@@ -13,3 +13,12 @@ export interface Payment {
   /** Billing period (YYYY-MM) for auto-generated rent rows; manual records use `date`. */
   period?: string;
 }
+
+export interface PaymentDraft {
+  tenantId: string;
+  propertyId: string;
+  amount: number;
+  date: string;
+  method: Payment['method'];
+  status: Payment['status'];
+}

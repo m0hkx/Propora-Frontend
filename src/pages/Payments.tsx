@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { Payment } from '../types';
+import type { Payment, PaymentDraft } from '../types';
 import { Badge, Card } from '../components/ui';
 import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
 import Pagination from '../components/Pagination';
@@ -8,8 +8,8 @@ import EmptyState from '../components/EmptyState';
 import { Icons } from '../components/icons';
 import KpiCard from '../components/KpiCard';
 import RecordPaymentModal from './Payments/RecordPaymentModal';
-import type { PaymentDraft } from './Payments/RecordPaymentModal';
 import { useStore } from '../state/useStore';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import { fmtDate, toIsoDay, formatMoney } from '../lib/format';
 import { spreadByProperty } from '../lib/stats';
 import { paymentTone as tone } from '../lib/tone';
@@ -34,6 +34,7 @@ export default function Payments() {
   const properties = useStore((s) => s.properties);
   const updatePayment = useStore((s) => s.updatePayment);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
   const [tab, setTab] = useState<PayTab>('All');
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState('all');
@@ -132,14 +133,9 @@ export default function Payments() {
   const editing = editId ? payments.find((p) => p.id === editId) ?? null : null;
 
   const saveEdit = async (id: string, d: PaymentDraft) => {
-    try {
-      await updatePayment(id, d);
-      setEditId(null);
-      pushToast(`Saved changes for ${id}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to save payment');
-    }
+    if (!(await run(() => updatePayment(id, d), 'Failed to save payment'))) return;
+    setEditId(null);
+    pushToast(`Saved changes for ${id}`);
   };
 
   return (

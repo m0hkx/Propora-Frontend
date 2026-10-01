@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Payment, Property, Tenant } from '../../types';
+import type { Payment, PaymentDraft, Property, Tenant } from '../../types';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { tenantOption } from '../Leases/leaseUtils';
@@ -8,15 +8,6 @@ import { tenantById } from '../../lib/lookup';
 
 // Payments can't be backdated — only today or a future date is accepted.
 const today = new Date().toISOString().slice(0, 10);
-
-export interface PaymentDraft {
-  tenantId: string;
-  propertyId: string;
-  amount: number;
-  date: string;
-  method: Payment['method'];
-  status: Payment['status'];
-}
 
 export default function RecordPaymentModal({
   mode,

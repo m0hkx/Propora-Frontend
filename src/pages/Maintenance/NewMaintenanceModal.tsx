@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } from '../../types';
+import type { MaintenanceRequest, MaintenanceStaff, NewMaintenanceDraft, Property, Tenant, Unit } from '../../types';
 import { tenantOption } from '../Leases/leaseUtils';
 import { resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { validateMaintenanceTarget } from '../../lib/maintenanceScope';
@@ -19,22 +19,6 @@ const SCOPES: { value: Scope; label: string }[] = [
   { value: 'units', label: 'Specific Units' },
   { value: 'tenants', label: 'Specific Tenants' },
 ];
-
-export interface NewMaintenanceDraft {
-  title: string;
-  description: string;
-  propertyId: string;
-  scope: Scope;
-  /** Populated only when scope === 'units'. */
-  unitIds: string[];
-  /** Populated only when scope === 'tenants'. */
-  tenantIds: string[];
-  category: Category;
-  priority: Priority;
-  assigneeId?: string;
-  scheduledDate?: string;
-  estimatedCost: number;
-}
 
 export default function NewMaintenanceModal({
   properties,

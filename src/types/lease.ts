@@ -12,3 +12,14 @@ export interface Lease {
   deposit: number;
   status: LeaseStatus;
 }
+
+export interface LeaseDraft {
+  propertyId: string;
+  tenantId: string;
+  /** Leased unit within `propertyId`; undefined when the lease covers no specific unit. */
+  unitId?: string;
+  rent: number;
+  deposit: number;
+  start: string;
+  end: string;
+}

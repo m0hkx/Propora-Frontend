@@ -1,5 +1,4 @@
-import type { DocFile } from '../types';
-import type { NewDocDraft } from '../pages/Documents/UploadDocumentModal';
+import type { DocFile, NewDocDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type DocDoc = DocFile;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Unit, UnitStatus, UnitType } from '../../types';
 import { bedroomsForType, isDuplicateUnitName } from '../../lib/units';
 import { useStore } from '../../state/useStore';
+import { attempt } from '../../lib/useAsyncAction';
 import Modal from '../../components/Modal';
 
 const TYPES: UnitType[] = ['Studio', '1 BR', '2 BR', '3 BR', '4 BR', 'Other'];
@@ -94,20 +95,16 @@ export default function UnitFormModal({
     // The store re-validates (required name, per-property uniqueness,
     // non-negative numbers) so bad data can never persist, even if the
     // form check is bypassed.
-    try {
-      const rejected = editing
-        ? await updateUnit(editing.id, { ...patch, propertyId })
-        : await addUnit(propertyId, patch);
-      if (rejected) {
-        setServerError(rejected);
-        return;
-      }
-      pushToast(editing ? `Saved changes for unit ${patch.name}` : `Unit ${patch.name} added to ${property?.name ?? 'property'}`);
-      onClose();
-    } catch (error) {
-      console.error(error);
-      setServerError(error instanceof Error ? error.message : 'Failed to save unit');
+    const error = await attempt(
+      () => (editing ? updateUnit(editing.id, { ...patch, propertyId }) : addUnit(propertyId, patch)),
+      'Failed to save unit',
+    );
+    if (error) {
+      setServerError(error);
+      return;
     }
+    pushToast(editing ? `Saved changes for unit ${patch.name}` : `Unit ${patch.name} added to ${property?.name ?? 'property'}`);
+    onClose();
   };
 
   return (

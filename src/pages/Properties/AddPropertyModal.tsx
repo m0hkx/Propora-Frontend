@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { Property } from '../../types';
-import type { PropertyDraft } from './propertyForm';
+import type { Property, PropertyDraft } from '../../types';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { COUNTRY_OPTIONS, isValidCountryName } from '../../data/countries';

@@ -1,5 +1,4 @@
-import type { Tenant } from '../types';
-import type { TenantDraft } from '../pages/Tenants/TenantFormModal';
+import type { Tenant, TenantDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type TenantDoc = Tenant;

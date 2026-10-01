@@ -1,5 +1,4 @@
-import type { Property } from '../types';
-import type { PropertyDraft } from '../pages/Properties/propertyForm';
+import type { Property, PropertyDraft } from '../types';
 import { apiFetch, assetUrl, stripNulls } from './config';
 
 interface PropertyDoc {

@@ -4,6 +4,7 @@ import { Card } from '../../components/ui';
 import EmptyState from '../../components/EmptyState';
 import { Icons } from '../../components/icons';
 import { useStore } from '../../state/useStore';
+import { useAsyncAction } from '../../lib/useAsyncAction';
 import MaintenanceStats from './MaintenanceStats';
 import MaintenanceFilters from './MaintenanceFilters';
 import MaintenanceTable from './MaintenanceTable';
@@ -17,6 +18,7 @@ export default function Maintenance() {
   const updateMaintenanceStatus = useStore((s) => s.updateMaintenanceStatus);
   const updateMaintenanceAssignee = useStore((s) => s.updateMaintenanceAssignee);
   const pushToast = useStore((s) => s.pushToast);
+  const run = useAsyncAction();
   const maintenance = useStore((s) => s.maintenance);
   const properties = useStore((s) => s.properties);
   const units = useStore((s) => s.units);
@@ -58,23 +60,15 @@ export default function Maintenance() {
   const selected = selectedId ? maintenance.find((m) => m.id === selectedId) ?? null : null;
 
   const changeStatus = async (m: MaintenanceRequest, status: MaintenanceStatus) => {
-    try {
-      await updateMaintenanceStatus(m.id, status);
+    if (await run(() => updateMaintenanceStatus(m.id, status), 'Failed to update status')) {
       pushToast(`${m.id} marked as ${status}`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to update status');
     }
   };
 
   const changeAssignee = async (m: MaintenanceRequest, staffId: string) => {
     const assigneeId = staffId === '' ? undefined : staffId;
-    try {
-      await updateMaintenanceAssignee(m.id, assigneeId);
+    if (await run(() => updateMaintenanceAssignee(m.id, assigneeId), 'Failed to update assignee')) {
       pushToast(assigneeId ? `Assigned to ${staffName(assigneeId, staff)}` : `${m.id} unassigned`);
-    } catch (error) {
-      console.error(error);
-      pushToast(error instanceof Error ? error.message : 'Failed to update assignee');
     }
   };
 

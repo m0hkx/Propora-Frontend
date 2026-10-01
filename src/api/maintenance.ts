@@ -1,5 +1,4 @@
-import type { MaintenanceRequest, MaintenanceStatus } from '../types';
-import type { NewMaintenanceDraft } from '../pages/Maintenance/NewMaintenanceModal';
+import type { MaintenanceRequest, MaintenanceStatus, NewMaintenanceDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type RequestDoc = MaintenanceRequest;

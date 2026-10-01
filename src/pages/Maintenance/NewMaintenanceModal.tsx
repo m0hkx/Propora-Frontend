@@ -3,7 +3,7 @@ import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } fro
 import { tenantOption } from '../Leases/leaseUtils';
 import { resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { validateMaintenanceTarget } from '../../lib/maintenanceScope';
-import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
+import { isValidIsoDate, MAX_DATE, toIsoDay } from '../../lib/format';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import MultiSearchSelect from '../../components/MultiSearchSelect';
@@ -91,11 +91,15 @@ export default function NewMaintenanceModal({
     setTenantIds([]);
   };
 
+  const today = toIsoDay(new Date());
+
   const targetErr = validateMaintenanceTarget({ propertyId, scope, unitIds, tenantIds }, units, tenants);
   const errs = {
     title: title.trim() === '' ? 'Title is required.' : '',
     description: description.trim() === '' ? 'Description is required.' : '',
     target: targetErr ?? '',
+    // `min` on the date input doesn't stop a typed past date, so check it here too.
+    scheduledDate: scheduledDate !== '' && scheduledDate < today ? 'Scheduled date cannot be in the past.' : '',
   };
   const invalid = Object.values(errs).some((e) => e !== '');
 
@@ -226,7 +230,8 @@ export default function NewMaintenanceModal({
           </div>
           <div className="field">
             <label htmlFor="nm-date">Scheduled Date</label>
-            <input id="nm-date" type="date" min={MIN_DATE} max={MAX_DATE} value={scheduledDate} onChange={(e) => { if (isValidIsoDate(e.target.value)) setScheduledDate(e.target.value); }} />
+            <input id="nm-date" type="date" min={today} max={MAX_DATE} value={scheduledDate} onChange={(e) => { if (isValidIsoDate(e.target.value)) setScheduledDate(e.target.value); }} className={submitted && errs.scheduledDate !== '' ? 'invalid' : ''} />
+            {err(errs.scheduledDate)}
           </div>
         </div>
         <div className="field">

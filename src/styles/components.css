@@ -7,7 +7,6 @@
 /* --- Card --- */
 .card {
   @apply bg-card border border-border/60 rounded-card p-4.5 shadow-card backdrop-blur-[10px];
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .card.tint {
@@ -370,7 +369,6 @@
 /* --- Modals --- */
 .modal-overlay {
   @apply fixed inset-0 z-100 flex items-center justify-center px-4 py-8 bg-[rgba(19,78,74,0.45)] backdrop-blur-md;
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .modal {
@@ -589,7 +587,6 @@
 /* --- Shell / chrome (Phase 5) --- */
 .topbar {
   @apply flex items-center justify-between gap-4 bg-[rgba(255,255,255,0.82)] backdrop-blur-[14px] border border-[rgba(153,246,228,0.7)] rounded-[22px] px-3.5 py-2.5 shadow-card sticky top-3 z-20;
-  -webkit-backdrop-filter: blur(14px);
 }
 
 .brand {
@@ -1159,7 +1156,6 @@
 
 .auth-roll {
   @apply absolute right-0 bottom-0 w-68 rounded-card p-4 text-white border border-white/15 bg-white/[0.07] shadow-[0_24px_60px_rgb(0_0_0/0.35)] backdrop-blur-[14px];
-  -webkit-backdrop-filter: blur(14px);
 }
 
 .auth-roll-row {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { formatMoney } from '../data/mock';
 import type { Payment } from '../data/mock';
@@ -43,13 +43,6 @@ export default function Payments() {
   // Default view is unchanged: newest payments first.
   const [sort, setSort] = useState<SortState<PaySort>>({ key: 'date', dir: 'desc' });
 
-  // Catch-up for long-open sessions (idempotent; silent when nothing is due).
-  useEffect(() => {
-    useStore
-      .getState()
-      .runPaymentAutomation()
-      .catch((err) => console.error('[payments:auto] catch-up failed', err));
-  }, []);
   const [editId, setEditId] = useState<string | null>(null);
 
   const tenantOf = (id: string) => tenants.find((t) => t.id === id);

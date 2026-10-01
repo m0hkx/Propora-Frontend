@@ -23,14 +23,6 @@ import { sanitizeFileName, validateDocRecord } from '../lib/files';
 
 import { DEFAULT_CALLING_COUNTRY } from '../data/phone';
 
-import {
-  APP_TIMEZONE,
-  logAutomationReport,
-  planAutomationRun,
-  zonedToday,
-} from '../lib/paymentAutomation';
-import type { PaymentAutomationReport } from '../lib/paymentAutomation';
-
 import * as propertiesApi from '../api/properties';
 import * as unitsApi from '../api/units';
 import * as tenantsApi from '../api/tenants';
@@ -86,13 +78,6 @@ export interface StoreState {
   fetchPayments: () => Promise<void>;
   addPayment: (d: PaymentDraft) => Promise<void>;
   updatePayment: (id: string, patch: Partial<PaymentDraft>) => Promise<void>;
-  /**
-   * Idempotent rent-automation job: generates due billing periods as Pending
-   * and flips Pending rows past due date + grace to Overdue, persisting each
-   * change through the API. Safe to run any number of times; accepts an
-   * explicit clock for testing (defaults to now).
-   */
-  runPaymentAutomation: (now?: Date) => Promise<PaymentAutomationReport>;
 
   maintenance: MaintenanceRequest[];
   fetchMaintenance: () => Promise<void>;
@@ -226,51 +211,6 @@ export const useStore = create<StoreState>()((set, get) => ({
     set((s) => ({ payments: s.payments.map((p) => (p.id === id ? updated : p)) }));
     if (patch.status === 'Overdue') void get().fetchNotifications();
   },
-  runPaymentAutomation: async (now) => {
-    const { leases, tenants, payments } = get();
-    let today: string;
-    try {
-      today = zonedToday(APP_TIMEZONE, now ?? new Date());
-    } catch (err) {
-      console.error('[payments:auto] clock/timezone failure — run aborted', err);
-      return {
-        ranAt: 'unknown',
-        timeZone: APP_TIMEZONE,
-        periods: [],
-        createdIds: [],
-        duplicatesSkipped: 0,
-        ineligibleSkipped: 0,
-        markedOverdueIds: [],
-        errors: ['Clock/timezone failure — run aborted.'],
-      };
-    }
-    const { toCreate, toMarkOverdue, report } = planAutomationRun({ leases, tenants, payments }, today);
-    if (toCreate.length === 0 && toMarkOverdue.length === 0) return report;
-
-    await Promise.all(
-      toCreate.map((p) =>
-        paymentsApi.createPayment({
-          tenantId: p.tenantId,
-          propertyId: p.propertyId,
-          amount: p.amount,
-          date: p.date,
-          method: p.method,
-          status: p.status,
-          leaseId: p.leaseId,
-          period: p.period,
-        })
-      )
-    );
-    await Promise.all(toMarkOverdue.map((id) => paymentsApi.updatePayment(id, { status: 'Overdue' })));
-    await get().fetchPayments();
-
-    logAutomationReport(report);
-    get().pushToast(
-      `Rent automation: ${report.createdIds.length} payment(s) generated, ${report.markedOverdueIds.length} marked overdue.`
-    );
-    void get().fetchNotifications();
-    return report;
-  },
 
   maintenance: [],
   fetchMaintenance: async () => set({ maintenance: await maintenanceApi.getMaintenanceRequests() }),
@@ -383,10 +323,5 @@ export const useStore = create<StoreState>()((set, get) => ({
       get().fetchDocuments(),
       get().fetchNotifications(),
     ]);
-    try {
-      await get().runPaymentAutomation();
-    } catch (err) {
-      console.error('[payments:auto] boot catch-up failed', err);
-    }
   },
 }));

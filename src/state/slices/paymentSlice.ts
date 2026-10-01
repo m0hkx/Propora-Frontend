@@ -20,6 +20,6 @@ export const createPaymentSlice: StateCreator<StoreState, [], [], PaymentSlice> 
   updatePayment: async (id, patch) => {
     const updated = await paymentsApi.updatePayment(id, patch);
     set((s) => ({ payments: s.payments.map((p) => (p.id === id ? updated : p)) }));
-    if (patch.status === 'Overdue') void get().fetchNotifications();
+    if (patch.status === 'Overdue') get().refreshNotifications();
   },
 });

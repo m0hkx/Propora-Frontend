@@ -18,10 +18,27 @@ export function stripNulls<T extends object>(obj: T): T {
 }
 
 /**
+ * A non-ok API response. `serverMessage` is the backend's own `message` (specific,
+ * user-facing — e.g. a validation reason); it's undefined when the server sent none,
+ * in which case `message` is a generic "Request failed (N)".
+ */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly serverMessage: string | undefined;
+
+  constructor(status: number, serverMessage: string | undefined) {
+    super(serverMessage || `Request failed (${status})`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.serverMessage = serverMessage || undefined;
+  }
+}
+
+/**
  * Shared fetch wrapper: sends cookies (`credentials: include`, required for the
  * session cookie across the 5173 → 3000 origin split), JSON-encodes a plain
- * object body (FormData bodies pass through untouched), and throws with the
- * server's `message` on a non-ok response.
+ * object body (FormData bodies pass through untouched), and throws an `ApiError`
+ * on a non-ok response.
  */
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData;
@@ -37,7 +54,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || `Request failed (${response.status})`);
+    throw new ApiError(response.status, typeof data.message === 'string' ? data.message : undefined);
   }
 
   return data as T;

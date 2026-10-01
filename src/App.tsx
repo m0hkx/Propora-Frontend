@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Properties from './pages/Properties/Properties';
@@ -23,19 +23,42 @@ function AppShell() {
   const loadAll = useStore((s) => s.loadAll);
 
   const location = useLocation();
+  const [openModal, setOpenModal] = useState<GlobalModal | null>(null);
+  // Without this, a failed boot load looks like an empty account rather than an error.
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  const load = useCallback(
+    () =>
+      loadAll().catch((err) => {
+        console.error('[boot] failed to load account data', err);
+        setLoadFailed(true);
+      }),
+    [loadAll],
+  );
 
   useEffect(() => {
-    loadAll().catch((err) => console.error('[boot] failed to load account data', err));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void load();
+  }, [load]);
 
-  const [openModal, setOpenModal] = useState<GlobalModal | null>(null);
-  const [query, setQuery] = useState('');
+  const retryLoad = () => {
+    setLoadFailed(false);
+    void load();
+  };
 
   return (
     <div className="mx-auto w-full max-w-360 px-5.5 pt-4.5 pb-12 max-md:px-3 max-md:pb-10">
       <TopBar />
-      <PageHeader query={query} onQueryChange={setQuery} onAction={setOpenModal} />
+      <PageHeader onAction={setOpenModal} />
+
+      {loadFailed ? (
+        <div
+          role="alert"
+          className="mx-1 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-card border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-semibold text-destructive"
+        >
+          <span>Couldn't load your account data, so some pages may look empty.</span>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={retryLoad}>Retry</button>
+        </div>
+      ) : null}
 
       <main>
         <div key={location.pathname} className="page-enter">
@@ -50,8 +73,8 @@ function AppShell() {
           >
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/properties" element={<Properties query={query} />} />
-              <Route path="/tenants" element={<Tenants query={query} />} />
+              <Route path="/properties" element={<Properties />} />
+              <Route path="/tenants" element={<Tenants />} />
               <Route path="/leases" element={<Leases />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/maintenance" element={<Maintenance />} />

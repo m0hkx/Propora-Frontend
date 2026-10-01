@@ -34,7 +34,7 @@ function occupancy(p: Property): number {
 
 const tabs: StatusFilter[] = ['All', 'Active', 'Vacant', 'Maintenance'];
 
-export default function Properties({ query }: { query: string }) {
+export default function Properties() {
   const rawProperties = useStore((s) => s.properties);
   const tenants = useStore((s) => s.tenants);
   // Nothing keeps the stored `occupied` field in sync — see withLiveOccupancy.
@@ -69,7 +69,7 @@ export default function Properties({ query }: { query: string }) {
   );
 
   const list = useMemo(() => {
-    const q = `${query} ${search}`.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
     let out = properties.filter((p) => {
       if (status === 'Active' && p.status !== 'Active') return false;
@@ -86,7 +86,7 @@ export default function Properties({ query }: { query: string }) {
     if (sort === 'revenue') out.sort((a, b) => b.revenue - a.revenue);
     if (sort === 'occupancy') out.sort((a, b) => occupancy(b) - occupancy(a));
     return out;
-  }, [query, search, status, typeFilter, sort, properties]);
+  }, [search, status, typeFilter, sort, properties]);
 
   const editing = editId ? properties.find((p) => p.id === editId) ?? null : null;
   const [editDraft, setEditDraft] = useState<{ id: string; draft: PropertyDraft } | null>(null);

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import type { AppNotification } from '../types';
 
 const KIND_DOT: Record<AppNotification['kind'], string> = {
@@ -18,6 +19,7 @@ export default function NotificationsPanel({
   const markNotificationRead = useStore((s) => s.markNotificationRead);
   const markAllNotificationsRead = useStore((s) => s.markAllNotificationsRead);
   const notifications = useStore((s) => s.notifications);
+  const run = useAsyncAction();
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
@@ -25,7 +27,7 @@ export default function NotificationsPanel({
       <div className="row">
         <strong>Notifications {unread > 0 ? <span className="badge danger">{unread} new</span> : null}</strong>
         {unread > 0 ? (
-          <button className="link-btn small" type="button" onClick={markAllNotificationsRead}>Mark all read</button>
+          <button className="link-btn small" type="button" onClick={() => run(markAllNotificationsRead, 'Failed to mark notifications as read')}>Mark all read</button>
         ) : null}
       </div>
       {notifications.length === 0 ? (
@@ -39,7 +41,7 @@ export default function NotificationsPanel({
               role="menuitem"
               className={`notif-item ${n.read ? '' : 'unread'}`}
               onClick={() => {
-                markNotificationRead(n.id);
+                run(() => markNotificationRead(n.id), 'Failed to mark notification as read');
                 onClose();
                 navigate(`/${n.link.toLowerCase()}`);
               }}

@@ -1,7 +1,7 @@
 /* App chrome and feature surfaces: charts, topbar/shell, notifications and chat, timeline,
    property cards and the property details modal. */
 
-/* --- Charts (Phase 6) --- */
+/* --- Charts --- */
 .chart-box {
   @apply bg-white border border-[#F1F5F9] rounded-chip p-3 mt-3;
 }
@@ -39,7 +39,7 @@
   }
 }
 
-/* --- Shell / chrome (Phase 5) --- */
+/* --- Shell / chrome --- */
 .topbar {
   @apply flex items-center justify-between gap-4 bg-[rgba(255,255,255,0.82)] backdrop-blur-[14px] border border-[rgba(153,246,228,0.7)] rounded-[22px] px-3.5 py-2.5 shadow-card sticky top-3 z-20;
 }
@@ -83,7 +83,7 @@
   @apply size-7.5;
 }
 
-/* --- Notifications / chat (Phase 5) --- */
+/* --- Notifications / chat --- */
 .notif-item {
   @apply border-0 bg-transparent text-left flex gap-2.5 w-full px-2 py-2.5 rounded-chip text-foreground hover:bg-muted;
 }
@@ -120,7 +120,7 @@
   @apply flex-1 min-w-0 px-3 py-2.25 rounded-chip border border-border;
 }
 
-/* --- Timeline (Phase 5) --- */
+/* --- Timeline --- */
 .timeline {
   @apply flex flex-col gap-0 mt-3;
 }
@@ -133,7 +133,7 @@
   @apply size-2.5 rounded-full bg-primary absolute -left-1.5 top-3.5 border-2 border-white shadow-[0_0_0_2px_var(--color-border)];
 }
 
-/* --- Property cards (Phase 5; ::after stays raw CSS) --- */
+/* --- Property cards (::after stays raw CSS) --- */
 .prop-card {
   @apply overflow-hidden p-0 flex flex-col;
 }

@@ -25,7 +25,7 @@ export const createTenantSlice: StateCreator<StoreState, [], [], TenantSlice> = 
     if (err) throw new Error(err);
     const created = await tenantsApi.createTenant(d);
     set((s) => ({ tenants: [created, ...s.tenants] }));
-    void get().fetchNotifications();
+    get().refreshNotifications();
   },
   updateTenant: async (id, d) => {
     const err = validateTenantUnit(d, get().units, get().tenants, get().leases, id);

@@ -23,11 +23,7 @@ import { propertyName } from '../../lib/lookup';
 
 const PAGE_SIZE = 10;
 
-export default function Tenants({
-  query,
-}: {
-  query: string;
-}) {
+export default function Tenants() {
   const navigate = useNavigate();
   const updateTenant = useStore((s) => s.updateTenant);
   const deleteTenant = useStore((s) => s.deleteTenant);
@@ -58,7 +54,7 @@ export default function Tenants({
   }, [tenants]);
 
   const filtered = useMemo(() => {
-    const q = `${query} ${search}`.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
     const out = tenants.filter((t) => {
       if (!matchesTab(t, tab)) return false;
       if (
@@ -79,7 +75,7 @@ export default function Tenants({
       payment: byRank((t) => t.paymentStatus, PAYMENT_STATUS_ORDER),
       status: byRank((t) => t.status, TENANT_STATUS_ORDER),
     });
-  }, [tenants, properties, tab, search, sort, query]);
+  }, [tenants, properties, tab, search, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);

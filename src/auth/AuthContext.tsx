@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { logoutRequest, sessionRequest, type AuthUser } from "../api/auth";
 import { AuthContext } from "./useAuth";
+import { resetStore } from "../state/useStore";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -31,6 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    // The store is module-level and outlives AppShell; clear it so the next login starts empty.
+    resetStore();
     void logoutRequest().catch((err) => console.error("[auth] logout request failed", err));
   };
 

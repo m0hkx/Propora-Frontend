@@ -4,6 +4,7 @@ import { useAuth } from "../auth/useAuth";
 import { registerRequest } from "../api/auth";
 import { Icon } from "../components/ui";
 import { Icons } from "../components/icons";
+import { attempt } from "../lib/useAsyncAction";
 
 export default function Register() {
     const { login } = useAuth();
@@ -21,18 +22,16 @@ export default function Register() {
         setError(null);
         setSubmitting(true);
 
-        try {
-            const user = await registerRequest(username, email, password);
-
-            login(user);
-
-            navigate("/dashboard");
-        } catch (error) {
-            console.error(error);
-            setError(error instanceof Error ? error.message : "Registration failed");
-        } finally {
-            setSubmitting(false);
+        const failure = await attempt(
+            async () => login(await registerRequest(username, email, password)),
+            "Registration failed",
+        );
+        setSubmitting(false);
+        if (failure) {
+            setError(failure);
+            return;
         }
+        navigate("/dashboard");
     };
 
     return (

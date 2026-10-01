@@ -1,5 +1,6 @@
 import type { DocFile, NewDocDraft } from '../types';
 import { apiFetch, stripNulls } from './config';
+import { toIsoDay } from '../lib/format';
 
 type DocDoc = DocFile;
 
@@ -18,7 +19,7 @@ export async function createDocument(d: NewDocDraft, file: File): Promise<DocFil
     formData.append('propertyId', d.propertyId);
     if (d.tenantId) formData.append('tenantId', d.tenantId);
     formData.append('type', d.type);
-    formData.append('description', `${d.type} uploaded ${new Date().toISOString().slice(0, 10)}.`);
+    formData.append('description', `${d.type} uploaded ${toIsoDay(new Date())}.`);
     formData.append('file', file);
 
     const data = await apiFetch<{ document: DocDoc }>('/documents', {

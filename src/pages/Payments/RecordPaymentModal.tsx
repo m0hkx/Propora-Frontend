@@ -3,11 +3,8 @@ import type { Payment, PaymentDraft, Property, Tenant } from '../../types';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { tenantOption } from '../Leases/leaseUtils';
-import { isValidIsoDate, MAX_DATE } from '../../lib/format';
+import { isValidIsoDate, MAX_DATE, toIsoDay } from '../../lib/format';
 import { tenantById } from '../../lib/lookup';
-
-// Payments can't be backdated — only today or a future date is accepted.
-const today = new Date().toISOString().slice(0, 10);
 
 export default function RecordPaymentModal({
   mode,
@@ -26,6 +23,8 @@ export default function RecordPaymentModal({
   onClose: () => void;
   onSubmit: (d: PaymentDraft) => void;
 }) {
+  // Payments can't be backdated — only today (local day, read per render) or a future date is accepted.
+  const today = toIsoDay(new Date());
   const [tenantId, setTenantId] = useState(initial.tenantId);
   const [propertyId, setPropertyId] = useState(initial.propertyId);
   const [amount, setAmount] = useState(initial.amount);

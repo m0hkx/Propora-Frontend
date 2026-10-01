@@ -17,7 +17,10 @@ export type StoreState = PropertySlice &
   DocumentSlice &
   InboxSlice &
   UiSlice & {
-    /** Fetches every server-backed resource once a session is confirmed, then runs the automation catch-up. */
+    /**
+     * Fetches every server-backed resource. AppShell calls it on mount, i.e. after
+     * every login (and twice in dev under StrictMode). Rejects if any fetch fails.
+     */
     loadAll: () => Promise<void>;
   };
 
@@ -44,3 +47,13 @@ export const useStore = create<StoreState>()((set, get, api) => ({
     ]);
   },
 }));
+
+const initialState = useStore.getState();
+
+/**
+ * Puts every slice back to its starting state (empty resources, seed conversations,
+ * no toasts). Called on logout so the next account never sees the previous one's data.
+ */
+export function resetStore() {
+  useStore.setState(initialState, true);
+}

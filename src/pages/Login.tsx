@@ -4,6 +4,7 @@ import { useAuth } from "../auth/useAuth";
 import { loginRequest } from "../api/auth";
 import { Icon } from "../components/ui";
 import { Icons } from "../components/icons";
+import { attempt } from "../lib/useAsyncAction";
 
 export default function Login() {
     const { login } = useAuth();
@@ -20,18 +21,13 @@ export default function Login() {
         setError(null);
         setSubmitting(true);
 
-        try {
-            const user = await loginRequest(email, password);
-
-            login(user);
-
-            navigate("/dashboard");
-        } catch (error) {
-            console.error(error);
-            setError(error instanceof Error ? error.message : "Login failed");
-        } finally {
-            setSubmitting(false);
+        const failure = await attempt(async () => login(await loginRequest(email, password)), "Login failed");
+        setSubmitting(false);
+        if (failure) {
+            setError(failure);
+            return;
         }
+        navigate("/dashboard");
     };
 
     return (

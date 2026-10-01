@@ -35,7 +35,7 @@ export const createMaintenanceSlice: StateCreator<StoreState, [], [], Maintenanc
     if (err) return err;
     const created = await maintenanceApi.createMaintenanceRequest(d);
     set((s) => ({ maintenance: [created, ...s.maintenance] }));
-    void get().fetchNotifications();
+    get().refreshNotifications();
     return null;
   },
   updateMaintenanceStatus: async (id, status) => {

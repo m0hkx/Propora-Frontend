@@ -145,8 +145,6 @@
   @apply opacity-100;
 }
 
-/* Tailwind's built-in sr-only replaces the legacy copy (equivalent). */
-
 /* --- Forms --- */
 .field {
   @apply flex flex-col gap-1.5;
@@ -317,9 +315,6 @@
 .search-grow {
   @apply flex-1 min-w-55;
 }
-
-/* .controls-row / .controls-side stay in the legacy sheet until Phase 3
-   converts them to JSX utilities (their search-width fix lives there). */
 
 /* --- Row menus --- */
 .row-menu-wrap {

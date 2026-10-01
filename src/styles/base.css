@@ -1,4 +1,4 @@
-/* Propora global base rules (migration plan D8).
+/* Propora global base rules.
    Unlayered import ON PURPOSE: element-level concerns that cannot be
    utilities (box model, page background, inherited fonts, focus ring,
    reduced-motion kill-switch, native select styling). Keep this file tiny —

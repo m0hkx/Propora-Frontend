@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
 import { useAsyncAction } from '../lib/useAsyncAction';
+import { toIsoDay } from '../lib/format';
 import AddPropertyModal from '../pages/Properties/AddPropertyModal';
 import { EMPTY_PROPERTY_DRAFT } from '../pages/Properties/propertyForm';
 import TenantFormModal from '../pages/Tenants/TenantFormModal';
@@ -92,7 +93,7 @@ export default function GlobalModals({ open, onClose }: GlobalModalsProps) {
           title="Record Payment"
           initial={{
             tenantId: '', propertyId: properties[0]?.id ?? '', amount: 0,
-            date: new Date().toISOString().slice(0, 10), method: 'Bank', status: 'Paid',
+            date: toIsoDay(new Date()), method: 'Bank', status: 'Paid',
           }}
           properties={properties}
           tenants={tenants}

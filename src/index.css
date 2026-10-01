@@ -1,7 +1,8 @@
-/* Propora Tailwind entry (migration plan Phase 1).
-   Layer order: legacy sits above Preflight (off until Phase 4) and below
-   utilities, so new utilities always win over legacy rules. See
-   docs/tailwind-migration-plan.md §3 D1. */
+/* Propora Tailwind entry.
+   Layer order theme → base → components → utilities: utilities always win over
+   the @apply composites in styles/*.css. Those files share the components layer
+   and are imported in cascade order (a later file wins at equal specificity), so
+   keep the import order below. base.css is deliberately unlayered (see its header). */
 @layer theme, base, components, utilities;
 
 /* All @import rules must be contiguous and follow only the @layer statement. */
@@ -17,8 +18,7 @@
 @import "./styles/loader.css" layer(components);
 @import "./styles/base.css";
 
-/* Project tokens: the single source of truth (D4). The legacy :root block
-   was deleted in the same change so these variables resolve exactly once. */
+/* Project tokens: the single source of truth for colors, radii, shadows and fonts. */
 @theme {
   --color-primary: #0F766E;
   --color-on-primary: #FFFFFF;

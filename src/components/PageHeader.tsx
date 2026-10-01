@@ -4,9 +4,6 @@ import { Icons } from './icons';
 import type { GlobalModal } from './GlobalModals';
 import { routeToLabel, type NavPage } from '../lib/nav';
 
-// Pages with their own dedicated search field; the global search stays hidden there
-const DEDICATED_SEARCH: NavPage[] = ['properties', 'tenants', 'documents', 'maintenance'];
-
 const SUBTITLES: Record<string, string> = {
   Dashboard: 'Portfolio overview, rent pulse and activity',
   Properties: 'Manage and monitor all properties in your portfolio.',
@@ -30,12 +27,10 @@ const HEADER_ACTIONS: Record<NavPage, { label: string; modal: GlobalModal }> = {
 };
 
 interface PageHeaderProps {
-  query: string;
-  onQueryChange: (query: string) => void;
   onAction: (modal: GlobalModal) => void;
 }
 
-export default function PageHeader({ query, onQueryChange, onAction }: PageHeaderProps) {
+export default function PageHeader({ onAction }: PageHeaderProps) {
   const segment = useLocation().pathname.split('/').filter(Boolean)[0] ?? 'dashboard';
   const isProfile = segment === 'profile';
   const route = segment as NavPage;
@@ -50,26 +45,11 @@ export default function PageHeader({ query, onQueryChange, onAction }: PageHeade
         </h1>
         <p className="text-muted-foreground text-sm mt-0.5">{SUBTITLES[page]}</p>
       </div>
-      {isProfile ? null : (
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {DEDICATED_SEARCH.includes(route) ? null : (
-            <label className="search max-md:min-w-full">
-              <Icon icon={Icons.search} />
-              <input
-                placeholder={`Search ${page.toLowerCase()}...`}
-                value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
-                aria-label={`Search ${page}`}
-              />
-            </label>
-          )}
-          {action ? (
-            <button className="btn btn-primary" type="button" onClick={() => onAction(action.modal)}>
-              <Icon icon={Icons.plus} /> {action.label}
-            </button>
-          ) : null}
-        </div>
-      )}
+      {action ? (
+        <button className="btn btn-primary" type="button" onClick={() => onAction(action.modal)}>
+          <Icon icon={Icons.plus} /> {action.label}
+        </button>
+      ) : null}
     </div>
   );
 }

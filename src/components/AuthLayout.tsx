@@ -23,7 +23,7 @@ export default function AuthLayout() {
   return (
     <div className="auth-shell">
       <aside className="auth-panel">
-        <div className="flex items-center gap-2.5 relative z-[1]">
+        <div className="flex items-center gap-2.5 relative z-1">
           <div className="brand-mark"><LogoMark /></div>
           <span className="font-display font-bold text-lg tracking-[0.2px]">Propora</span>
         </div>
@@ -33,7 +33,7 @@ export default function AuthLayout() {
           <div className="auth-roll" aria-hidden="true">
             <div className="flex items-center justify-between mb-2.5">
               <span className="text-[13px] font-bold">{month} rent roll</span>
-              <span className="text-[11px] text-[#99F6E4]">Due on the 1st</span>
+              <span className="text-[11px] text-border">Due on the 1st</span>
             </div>
             {ROLL.map((r) => (
               <div key={r.unit} className="auth-roll-row">
@@ -45,7 +45,7 @@ export default function AuthLayout() {
           </div>
         </div>
 
-        <div className="relative z-[1] max-w-[440px]">
+        <div className="relative z-1 max-w-110">
           <p className="text-[12px] font-bold tracking-[0.14em] uppercase text-[#5EEAD4] m-0">Property management</p>
           <h2 className="font-display text-[30px] leading-[1.15] font-extrabold tracking-[-0.02em] mt-3 mb-3">
             Every unit, lease and rent payment in one ledger.
@@ -57,7 +57,7 @@ export default function AuthLayout() {
       </aside>
 
       <main className="auth-main">
-        <div className="relative z-[1] w-full max-w-[400px] mx-auto rise">
+        <div className="relative z-1 w-full max-w-100 mx-auto rise">
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
             <div className="brand-mark"><LogoMark /></div>
             <span className="brand-name font-bold text-lg">Propora</span>

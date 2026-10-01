@@ -6,17 +6,17 @@
 
 /* --- Card --- */
 .card {
-  @apply bg-card border border-border/60 rounded-card p-[18px] shadow-card backdrop-blur-[10px];
+  @apply bg-card border border-border/60 rounded-card p-4.5 shadow-card backdrop-blur-[10px];
   -webkit-backdrop-filter: blur(10px);
 }
 
 .card.tint {
-  @apply bg-gradient-to-br from-white via-[#ECFDF5_60%] to-[#FEF9C3];
+  @apply bg-linear-to-br from-white via-[#ECFDF5_60%] to-[#FEF9C3];
 }
 
 /* --- Buttons (base first: .btn-ghost overrides border) --- */
 .btn {
-  @apply border-0 rounded-full px-4 py-2.5 font-bold inline-flex items-center gap-2 transition-[transform,box-shadow,background-color] duration-[180ms];
+  @apply border-0 rounded-full px-4 py-2.5 font-bold inline-flex items-center gap-2 transition-[transform,box-shadow,background-color] duration-180;
 }
 
 .btn-primary {
@@ -32,11 +32,11 @@
 }
 
 .btn-sm {
-  @apply px-3 py-[7px] text-[13px];
+  @apply px-3 py-1.75 text-[13px];
 }
 
 .icon-btn-sm {
-  @apply size-[30px];
+  @apply size-7.5;
 }
 
 .link-btn {
@@ -49,7 +49,7 @@
 
 /* --- Badges (tone classes stay composites; no Badge.tsx change needed) --- */
 .badge {
-  @apply inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-[5px] rounded-full border border-transparent whitespace-nowrap;
+  @apply inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.25 rounded-full border border-transparent whitespace-nowrap;
 }
 
 .badge.success {
@@ -74,14 +74,14 @@
 
 /* --- Type helpers, KPI, rows, lists, progress --- */
 .small {
-  @apply text-[13px] mb-[5px];
+  @apply text-[13px] mb-1.25;
 }
 
 .muted {
   @apply text-muted-foreground;
 }
 .small {
-  @apply text-[13px] mb-[5px];
+  @apply text-[13px] mb-1.25;
 }
 
 .muted {
@@ -113,7 +113,7 @@
 }
 
 .progress>div {
-  @apply h-full rounded-full bg-gradient-to-r from-secondary to-primary;
+  @apply h-full rounded-full bg-linear-to-r from-secondary to-primary;
 }
 
 .clickable {
@@ -125,7 +125,7 @@
 }
 
 .th-sort {
-  @apply border-0 bg-transparent p-0 font-semibold text-inherit text-[inherit] font-[inherit] inline-flex items-center gap-1 rounded-md cursor-pointer hover:text-accent;
+  @apply border-0 bg-transparent p-0 font-semibold text-inherit font-[inherit] inline-flex items-center gap-1 rounded-md cursor-pointer hover:text-accent;
 }
 
 .th-sort.is-sorted {
@@ -165,7 +165,7 @@
 }
 
 .field textarea {
-  @apply px-3 py-2.5 rounded-chip border border-border bg-white text-inherit font-[inherit] resize-y min-h-[76px];
+  @apply px-3 py-2.5 rounded-chip border border-border bg-white text-inherit font-[inherit] resize-y min-h-19;
 }
 
 .field-error {
@@ -212,7 +212,7 @@
 }
 
 .combo-list {
-  @apply list-none m-0 p-0 max-h-[240px] overflow-y-auto flex flex-col;
+  @apply list-none m-0 p-0 max-h-60 overflow-y-auto flex flex-col;
 }
 
 .combo-option {
@@ -250,7 +250,7 @@
 
 /* --- Multi-select (MultiSearchSelect) --- */
 .ms-check {
-  @apply grid place-items-center size-[18px] shrink-0 rounded-[5px] border border-border bg-white text-[11px] font-bold text-primary;
+  @apply grid place-items-center size-4.5 shrink-0 rounded-[5px] border border-border bg-white text-[11px] font-bold text-primary;
 }
 
 .combo-option.selected .ms-check {
@@ -266,7 +266,7 @@
 }
 
 .chip-remove {
-  @apply grid place-items-center size-[18px] rounded-full border-0 bg-transparent text-muted-foreground leading-none cursor-pointer hover:bg-white hover:text-foreground;
+  @apply grid place-items-center size-4.5 rounded-full border-0 bg-transparent text-muted-foreground leading-none cursor-pointer hover:bg-white hover:text-foreground;
 }
 
 /* --- Phone field (PhoneInput): dial-code SearchSelect + national number input --- */
@@ -275,7 +275,7 @@
 }
 
 .phone-country {
-  @apply w-[136px] shrink-0;
+  @apply w-34 shrink-0;
 }
 
 .phone-country .combo-trigger span {
@@ -283,7 +283,7 @@
 }
 
 .phone-country .combo-panel {
-  @apply w-[300px];
+  @apply w-75;
 }
 
 .phone-number {
@@ -296,7 +296,7 @@
 }
 
 .tab {
-  @apply border border-transparent bg-muted text-muted-foreground px-3.5 py-2 rounded-full font-bold text-[13px] transition-all duration-[150ms] hover:bg-white hover:border-border hover:text-foreground;
+  @apply border border-transparent bg-muted text-muted-foreground px-3.5 py-2 rounded-full font-bold text-[13px] transition-all duration-150 hover:bg-white hover:border-border hover:text-foreground;
 }
 
 .tab.active {
@@ -305,7 +305,7 @@
 
 /* --- Search --- */
 .search {
-  @apply flex items-center gap-2 bg-white border border-border rounded-full px-3.5 py-2 min-w-[220px];
+  @apply flex items-center gap-2 bg-white border border-border rounded-full px-3.5 py-2 min-w-55;
 }
 
 .search input {
@@ -314,11 +314,11 @@
 }
 
 .search-sm {
-  @apply min-w-[180px] px-3 py-[7px];
+  @apply min-w-45 px-3 py-1.75;
 }
 
 .search-grow {
-  @apply flex-1 min-w-[220px];
+  @apply flex-1 min-w-55;
 }
 
 /* .controls-row / .controls-side stay in the legacy sheet until Phase 3
@@ -330,11 +330,11 @@
 }
 
 .row-menu {
-  @apply absolute right-0 top-9 min-w-[170px] z-30 bg-white border border-border rounded-chip shadow-menu p-1.5 flex flex-col;
+  @apply absolute right-0 top-9 min-w-42.5 z-30 bg-white border border-border rounded-chip shadow-menu p-1.5 flex flex-col;
 }
 
 .row-menu-item {
-  @apply border-0 bg-transparent text-left px-2.5 py-[9px] rounded-lg text-sm text-foreground hover:bg-muted;
+  @apply border-0 bg-transparent text-left px-2.5 py-2.25 rounded-lg text-sm text-foreground hover:bg-muted;
 }
 
 .row-menu-item.danger {
@@ -343,7 +343,7 @@
 
 /* --- Avatars, badges on icons --- */
 .avatar {
-  @apply size-9 rounded-full grid place-items-center font-bold text-white border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] bg-gradient-to-br from-[#F59E0B] to-[#0F766E];
+  @apply size-9 rounded-full grid place-items-center font-bold text-white border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] bg-linear-to-br from-[#F59E0B] to-[#0F766E];
 }
 
 .avatar-lg {
@@ -351,7 +351,7 @@
 }
 
 .avatar-sm {
-  @apply size-[34px] rounded-full shrink-0 text-white grid place-items-center font-bold text-[13px];
+  @apply size-8.5 rounded-full shrink-0 text-white grid place-items-center font-bold text-[13px];
 }
 
 .avatar-wrap,
@@ -360,11 +360,11 @@
 }
 
 .count-badge {
-  @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-destructive text-white text-[11px] font-extrabold grid place-items-center px-1 border-2 border-white;
+  @apply absolute -top-1 -right-1 min-w-4.5 h-4.5 rounded-full bg-destructive text-white text-[11px] font-extrabold grid place-items-center px-1 border-2 border-white;
 }
 
 .unread-dot {
-  @apply size-[9px] rounded-full bg-primary shrink-0 mt-1.5;
+  @apply size-2.25 rounded-full bg-primary shrink-0 mt-1.5;
 }
 
 /* --- Modals --- */
@@ -374,19 +374,19 @@
 }
 
 .modal {
-  @apply bg-white rounded-card w-full max-w-[560px] max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden shadow-modal border border-border;
+  @apply bg-white rounded-card w-full max-w-140 max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden shadow-modal border border-border;
 }
 
 .modal-wide {
-  @apply max-w-[760px];
+  @apply max-w-190;
 }
 
 .modal-head {
-  @apply px-[18px] pt-4 shrink-0;
+  @apply px-4.5 pt-4 shrink-0;
 }
 
 .modal-body {
-  @apply px-[18px] pt-4 pb-[18px] flex flex-col gap-3.5 overflow-y-auto min-h-0;
+  @apply px-4.5 pt-4 pb-4.5 flex flex-col gap-3.5 overflow-y-auto min-h-0;
 }
 
 .modal-section {
@@ -402,24 +402,24 @@
 }
 
 .upload-zone {
-  @apply border-2 border-dashed border-border rounded-chip px-4 py-[26px] text-center bg-[#F8FAFC] cursor-pointer flex flex-col gap-1.5 items-center hover:border-primary hover:bg-[#F0FDFA];
+  @apply border-2 border-dashed border-border rounded-chip px-4 py-6.5 text-center bg-[#F8FAFC] cursor-pointer flex flex-col gap-1.5 items-center hover:border-primary hover:bg-background;
 }
 
 .upload-preview {
-  @apply w-full max-h-[220px] object-cover rounded-chip;
+  @apply w-full max-h-55 object-cover rounded-chip;
 }
 
 /* --- Toasts --- */
 .toasts {
-  @apply fixed right-[18px] bottom-[18px] z-[200] flex flex-col gap-2.5;
+  @apply fixed right-4.5 bottom-4.5 z-200 flex flex-col gap-2.5;
 }
 
 .toast {
-  @apply flex items-center gap-2.5 bg-foreground text-white rounded-chip px-3.5 py-3 shadow-toast font-semibold max-w-[340px];
+  @apply flex items-center gap-2.5 bg-foreground text-white rounded-chip px-3.5 py-3 shadow-toast font-semibold max-w-85;
 }
 
 .toast-check {
-  @apply grid place-items-center rounded-full bg-secondary text-[13px] shrink-0 text-[#0F172A] size-[22px];
+  @apply grid place-items-center rounded-full bg-secondary text-[13px] shrink-0 text-on-secondary size-5.5;
 }
 
 .toast-close {
@@ -493,11 +493,11 @@
 
 /* --- Dropdowns, settings, switches --- */
 .dropdown {
-  @apply absolute right-0 top-[46px] w-[320px] bg-white border border-border rounded-card shadow-popover p-3.5 z-50;
+  @apply absolute right-0 top-11.5 w-[320px] bg-white border border-border rounded-card shadow-popover p-3.5 z-50;
 }
 
 .dropdown-wide {
-  @apply w-[340px] max-h-[70vh] overflow-y-auto;
+  @apply w-85 max-h-[70vh] overflow-y-auto;
 }
 
 .dropdown-head {
@@ -525,7 +525,7 @@
 }
 
 .switch {
-  @apply w-10 h-[22px] rounded-full border-0 bg-[#E2E8F0] relative transition-colors duration-[180ms];
+  @apply w-10 h-5.5 rounded-full border-0 bg-[#E2E8F0] relative transition-colors duration-180;
 }
 
 .switch.on {
@@ -533,11 +533,11 @@
 }
 
 .switch .knob {
-  @apply absolute top-[3px] left-[3px] size-4 rounded-full bg-white transition-[left] duration-[180ms];
+  @apply absolute top-0.75 left-0.75 size-4 rounded-full bg-white transition-[left] duration-180;
 }
 
 .switch.on .knob {
-  @apply left-[21px];
+  @apply left-5.25;
 }
 
 .dropdown-foot {
@@ -564,7 +564,7 @@
 }
 
 .chart-tip {
-  @apply absolute bg-foreground text-white rounded-chip px-3 py-2 text-[13px] whitespace-nowrap shadow-[0_10px_24px_rgba(0,0,0,0.22)] pointer-events-none z-[5];
+  @apply absolute bg-foreground text-white rounded-chip px-3 py-2 text-[13px] whitespace-nowrap shadow-[0_10px_24px_rgba(0,0,0,0.22)] pointer-events-none z-5;
   transform: translate(-50%, -115%);
 }
 
@@ -573,7 +573,7 @@
 }
 
 .x-labels {
-  @apply relative h-[18px] mt-1;
+  @apply relative h-4.5 mt-1;
 }
 
 .x-label {
@@ -597,7 +597,7 @@
 }
 
 .brand-mark {
-  @apply size-[34px] rounded-chip grid place-items-center bg-white border border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)];
+  @apply size-8.5 rounded-chip grid place-items-center bg-white border border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)];
 }
 
 .brand-mark .logo-img {
@@ -612,11 +612,11 @@
 }
 
 .nav-pills {
-  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden;
 }
 
 .nav-pill {
-  @apply border-0 bg-transparent px-3.5 py-2 rounded-full text-muted-foreground font-semibold whitespace-nowrap transition-all duration-[180ms] hover:bg-white hover:text-foreground;
+  @apply border-0 bg-transparent px-3.5 py-2 rounded-full text-muted-foreground font-semibold whitespace-nowrap transition-all duration-180 hover:bg-white hover:text-foreground;
 }
 
 .nav-pill.active {
@@ -624,11 +624,11 @@
 }
 
 .icon-btn {
-  @apply size-9 rounded-full border border-border bg-white grid place-items-center text-foreground transition-[transform,background-color] duration-[180ms] hover:bg-muted hover:-translate-y-px;
+  @apply size-9 rounded-full border border-border bg-white grid place-items-center text-foreground transition-[transform,background-color] duration-180 hover:bg-muted hover:-translate-y-px;
 }
 
 .icon-btn-sm {
-  @apply size-[30px];
+  @apply size-7.5;
 }
 
 /* --- Notifications / chat (Phase 5) --- */
@@ -637,11 +637,11 @@
 }
 
 .notif-item.unread {
-  @apply bg-[#F0FDFA];
+  @apply bg-background;
 }
 
 .chat-thread {
-  @apply flex flex-col gap-2 mt-2.5 max-h-[260px] overflow-y-auto;
+  @apply flex flex-col gap-2 mt-2.5 max-h-65 overflow-y-auto;
 }
 
 .chat-bubble {
@@ -665,7 +665,7 @@
 }
 
 .chat-reply input {
-  @apply flex-1 min-w-0 px-3 py-[9px] rounded-chip border border-border;
+  @apply flex-1 min-w-0 px-3 py-2.25 rounded-chip border border-border;
 }
 
 /* --- Timeline (Phase 5) --- */
@@ -687,7 +687,7 @@
 }
 
 .prop-image {
-  @apply h-[170px] flex items-end justify-between p-3 text-white relative overflow-hidden;
+  @apply h-42.5 flex items-end justify-between p-3 text-white relative overflow-hidden;
 }
 
 .prop-image img {
@@ -710,7 +710,7 @@
 }
 
 .prop-initials {
-  @apply text-[44px] font-extrabold tracking-[-1px] opacity-95 relative z-[2] [text-shadow:0_2px_10px_rgba(0,0,0,0.35)];
+  @apply text-[44px] font-extrabold tracking-[-1px] opacity-95 relative z-2 [text-shadow:0_2px_10px_rgba(0,0,0,0.35)];
 }
 
 /* --- Property details modal ---
@@ -719,7 +719,7 @@
    label/value row rhythm the rest of the modals use. Figures are tabular so
    digits line up the way they do in the rest of the property/finance UI. */
 .pd-photo {
-  @apply h-[168px] rounded-chip overflow-hidden relative grid place-items-center bg-primary max-md:h-[132px];
+  @apply h-42 rounded-chip overflow-hidden relative grid place-items-center bg-primary max-md:h-33;
 }
 
 .pd-photo img {
@@ -736,7 +736,7 @@
 }
 
 .pd-address {
-  @apply m-0 text-[15px] font-semibold text-foreground break-words;
+  @apply m-0 text-[15px] font-semibold text-foreground wrap-break-word;
 }
 
 .pd-facts {
@@ -809,7 +809,7 @@
 }
 
 .prop-body {
-  @apply px-4 pt-[14px] pb-4 flex flex-col gap-2;
+  @apply px-4 pt-3.5 pb-4 flex flex-col gap-2;
 }
 
 /* ============================================================
@@ -861,7 +861,7 @@
 
 /* KPI icon chips — tinted per metric, quiet backgrounds */
 .kpi-chip {
-  @apply grid size-[38px] place-items-center rounded-chip shrink-0;
+  @apply grid size-9.5 place-items-center rounded-chip shrink-0;
 }
 
 .kpi-chip.tint-teal { @apply bg-primary/10 text-primary; }
@@ -877,7 +877,7 @@
 
 /* Delta pills — change indicators with directional glyph */
 .delta {
-  @apply inline-flex items-center gap-1 text-xs font-bold px-2 py-[3px] rounded-full whitespace-nowrap;
+  @apply inline-flex items-center gap-1 text-xs font-bold px-2 py-0.75 rounded-full whitespace-nowrap;
 }
 
 .delta.up { @apply bg-success-bg text-success; }
@@ -1125,7 +1125,7 @@
 }
 
 .auth-plan {
-  @apply w-full h-full max-h-[440px];
+  @apply w-full h-full max-h-110;
 }
 
 .plan-line {
@@ -1158,7 +1158,7 @@
 }
 
 .auth-roll {
-  @apply absolute right-0 bottom-0 w-[272px] rounded-[18px] p-4 text-white border border-white/15 bg-white/[0.07] shadow-[0_24px_60px_rgb(0_0_0/0.35)] backdrop-blur-[14px];
+  @apply absolute right-0 bottom-0 w-68 rounded-card p-4 text-white border border-white/15 bg-white/[0.07] shadow-[0_24px_60px_rgb(0_0_0/0.35)] backdrop-blur-[14px];
   -webkit-backdrop-filter: blur(14px);
 }
 
@@ -1167,7 +1167,7 @@
 }
 
 .auth-roll-pill {
-  @apply text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[60px] text-center;
+  @apply text-[11px] font-bold px-2 py-0.5 rounded-full min-w-15 text-center;
 }
 
 .auth-roll-pill.paid { @apply bg-[#34D399]/15 text-[#A7F3D0]; }
@@ -1235,7 +1235,7 @@
 }
 
 .auth-switch-link {
-  @apply relative z-[1] h-10 inline-flex items-center justify-center rounded-full text-[14px] font-bold text-muted-foreground no-underline transition-colors duration-200 hover:text-foreground;
+  @apply relative z-1 h-10 inline-flex items-center justify-center rounded-full text-[14px] font-bold text-muted-foreground no-underline transition-colors duration-200 hover:text-foreground;
 }
 
 .auth-switch-link.active {
@@ -1266,7 +1266,7 @@
    sits on top of its padding) so clicking anywhere in a row focuses it; focus
    shows on the row as a teal bar and tint. */
 .auth-fields {
-  @apply bg-white rounded-[18px] border border-[#D5E6E3] overflow-hidden shadow-[0_1px_0_rgb(15_118_110/0.04),0_14px_34px_rgb(15_118_110/0.09)] transition-[border-color] duration-200;
+  @apply bg-white rounded-card border border-[#D5E6E3] overflow-hidden shadow-[0_1px_0_rgb(15_118_110/0.04),0_14px_34px_rgb(15_118_110/0.09)] transition-[border-color] duration-200;
 }
 
 .auth-fields:focus-within {
@@ -1314,7 +1314,7 @@
 }
 
 .auth-submit {
-  @apply w-full h-[52px] mt-5 rounded-[14px] border-0 bg-foreground text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 shadow-[0_10px_24px_rgb(19_78_74/0.22)] transition-[background-color,transform,box-shadow] duration-150 hover:bg-primary hover:-translate-y-px hover:shadow-[0_14px_28px_rgb(15_118_110/0.28)] disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0;
+  @apply w-full h-13 mt-5 rounded-[14px] border-0 bg-foreground text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 shadow-[0_10px_24px_rgb(19_78_74/0.22)] transition-[background-color,transform,box-shadow] duration-150 hover:bg-primary hover:-translate-y-px hover:shadow-[0_14px_28px_rgb(15_118_110/0.28)] disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0;
 }
 
 .auth-submit svg {
@@ -1342,11 +1342,11 @@
 }
 
 .loader-center {
-  @apply flex flex-col items-center text-center max-w-[360px];
+  @apply flex flex-col items-center text-center max-w-90;
 }
 
 .loader-plan {
-  @apply w-[280px] max-w-full h-auto mb-7;
+  @apply w-70 max-w-full h-auto mb-7;
 }
 
 .loader-plan .plan-outer { stroke: var(--color-primary); stroke-width: 6; }
@@ -1363,7 +1363,7 @@
 }
 
 .loader-note-slot {
-  @apply min-h-[52px] mt-2;
+  @apply min-h-13 mt-2;
 }
 
 .loader-note {

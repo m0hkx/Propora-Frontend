@@ -17,7 +17,7 @@ export default function EmptyState({
     <div className="flex flex-col items-center text-center gap-2 py-10 px-4">
       <span className="kpi-chip tint-teal" aria-hidden="true"><Icon icon={icon} /></span>
       <div className="font-display font-bold">{title}</div>
-      {description ? <p className="small muted m-0 max-w-[380px]">{description}</p> : null}
+      {description ? <p className="small muted m-0 max-w-95">{description}</p> : null}
       {action ? <div className="mt-1">{action}</div> : null}
     </div>
   );

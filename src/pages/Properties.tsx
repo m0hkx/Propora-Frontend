@@ -227,7 +227,7 @@ export default function Properties({ query }: { query: string }) {
                     />
                   )}
                   <span className="prop-initials">{p.image}</span>
-                  <span className="z-[2]"><Badge tone={tone(p.status)}>{p.status}</Badge></span>
+                  <span className="z-2"><Badge tone={tone(p.status)}>{p.status}</Badge></span>
                 </div>
                 <div className="prop-body">
                   <div>

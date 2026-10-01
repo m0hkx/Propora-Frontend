@@ -51,7 +51,7 @@ export default function MaintenanceDetails({
         {m.scope === 'tenants' ? <div className="list-row"><span>Tenant(s)</span><strong>{tenantsLabel(m, tenants)}</strong></div> : null}
         <div className="list-row">
           <span>Assigned Technician</span>
-          <div className="min-w-[220px]">
+          <div className="min-w-55">
             <SearchSelect
               id="md-assignee"
               value={m.assigneeId ?? ''}

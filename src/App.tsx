@@ -252,7 +252,7 @@ function AppShell() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-[22px] pt-[18px] pb-12 max-md:px-3 max-md:pb-10">
+    <div className="mx-auto w-full max-w-360 px-5.5 pt-4.5 pb-12 max-md:px-3 max-md:pb-10">
       <header className="topbar">
         <div ref={navRef} className="flex items-center gap-3 compact:contents">
           <button
@@ -411,7 +411,7 @@ function AppShell() {
         </div>
       </header>
 
-      <div className="flex items-center justify-between gap-3 flex-wrap mx-1 mt-[22px] mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap mx-1 mt-5.5 mb-4">
         <div>
           <h1 className="font-display text-[26px] m-0 max-md:text-[22px]">{currentRoute === 'dashboard' ? 'Property Management Overview' : currentPage}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">{subtitles[currentPage]}</p>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MaintenanceRequest, MaintenanceStaff, MaintenanceStaffStatus } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, MaintenanceStaffStatus } from '../../types';
 import { DEFAULT_CALLING_COUNTRY, isPhoneValid } from '../../data/phone';
 import { useStore } from '../../state/useStore';
 import Modal from '../../components/Modal';

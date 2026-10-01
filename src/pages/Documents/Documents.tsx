@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { propertyName, tenantName } from '../../data/mock';
-import type { DocFile } from '../../data/mock';
+import type { DocFile } from '../../types';
 import { Badge, Card } from '../../components/ui';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EmptyState from '../../components/EmptyState';
@@ -13,6 +12,7 @@ import type { DocAction } from './DocumentTable';
 import DocumentDetails from './DocumentDetails';
 import { EMPTY_FILTERS, docSearchText, docStatusTone, filtersActive, matchesDateFilter } from './documentUtils';
 import type { DocFilters } from './documentUtils';
+import { propertyName, tenantName } from '../../lib/lookup';
 
 export default function Documents() {
   const updateDocument = useStore((s) => s.updateDocument);
@@ -20,6 +20,7 @@ export default function Documents() {
   const pushToast = useStore((s) => s.pushToast);
   const documents = useStore((s) => s.documents);
   const properties = useStore((s) => s.properties);
+  const tenants = useStore((s) => s.tenants);
   const [filters, setFilters] = useState<DocFilters>(EMPTY_FILTERS);
   const [grouped, setGrouped] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -42,10 +43,10 @@ export default function Documents() {
       if (filters.tenant !== 'all' && d.tenantId !== filters.tenant) return false;
       if (filters.status !== 'All' && d.status !== filters.status) return false;
       if (!matchesDateFilter(d.uploadDate, filters.date, now)) return false;
-      if (q && !docSearchText(d, propertyName(d.propertyId), d.tenantId ? tenantName(d.tenantId) : '').includes(q)) return false;
+      if (q && !docSearchText(d, propertyName(d.propertyId, properties), d.tenantId ? tenantName(d.tenantId, tenants) : '').includes(q)) return false;
       return true;
     });
-  }, [documents, filters, now]);
+  }, [documents, filters, now, properties, tenants]);
 
   const openDetails = (d: DocFile, edit: boolean) => {
     setSelectedId(d.id);
@@ -108,6 +109,7 @@ export default function Documents() {
         filters={filters}
         properties={properties}
         tenantIds={tenantIds}
+        tenants={tenants}
         onChange={setFilters}
         onClear={() => setFilters(EMPTY_FILTERS)}
       />
@@ -134,7 +136,7 @@ export default function Documents() {
             />
           </Card>
         ) : (
-          <DocumentTable rows={filtered} onAction={onAction} />
+          <DocumentTable rows={filtered} properties={properties} tenants={tenants} onAction={onAction} />
         )
       ) : (
         <div className="flex flex-col gap-4">
@@ -184,6 +186,7 @@ export default function Documents() {
         <DocumentDetails
           doc={selected}
           properties={properties}
+          tenants={tenants}
           startEditing={startEdit}
           onClose={() => setSelectedId(null)}
           onSave={(patch) => {

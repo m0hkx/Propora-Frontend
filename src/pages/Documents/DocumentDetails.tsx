@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { propertyName, tenantName, tenants } from '../../data/mock';
-import type { DocFile, DocumentStatus, DocumentType, Property } from '../../data/mock';
+import type { DocFile, DocumentStatus, DocumentType, Property, Tenant } from '../../types';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import { docStatusTone } from './documentUtils';
+import { propertyName, tenantName } from '../../lib/lookup';
 
 const TYPES: DocumentType[] = ['Lease', 'Contract', 'Invoice', 'Property Document', 'Tenant Document', 'Maintenance', 'Insurance', 'Legal', 'Other'];
 const STATUSES: DocumentStatus[] = ['Active', 'Expiring Soon', 'Expired', 'Archived'];
@@ -12,6 +12,7 @@ const STATUSES: DocumentStatus[] = ['Active', 'Expiring Soon', 'Expired', 'Archi
 export default function DocumentDetails({
   doc,
   properties,
+  tenants,
   startEditing,
   onClose,
   onSave,
@@ -21,6 +22,7 @@ export default function DocumentDetails({
 }: {
   doc: DocFile;
   properties: Property[];
+  tenants: Tenant[];
   startEditing: boolean;
   onClose: () => void;
   onSave: (patch: Partial<DocFile>) => void;
@@ -39,6 +41,9 @@ export default function DocumentDetails({
     expirationDate: doc.expirationDate ?? '',
     description: doc.description,
   });
+
+  // Only tenants of the chosen property can be linked to the document.
+  const propertyTenants = tenants.filter((t) => t.propertyId === form.propertyId);
 
   const save = () => {
     if (form.name.trim() === '') return;
@@ -64,9 +69,9 @@ export default function DocumentDetails({
             <Badge tone={docStatusTone(doc.status)}>{doc.status}</Badge>
           </div>
           <div className="list">
-            <div className="list-row"><span>Property</span><strong>{propertyName(doc.propertyId)}</strong></div>
+            <div className="list-row"><span>Property</span><strong>{propertyName(doc.propertyId, properties)}</strong></div>
             {doc.unit ? <div className="list-row"><span>Unit</span><strong>{doc.unit}</strong></div> : null}
-            {doc.tenantId ? <div className="list-row"><span>Tenant</span><strong>{tenantName(doc.tenantId)}</strong></div> : null}
+            {doc.tenantId ? <div className="list-row"><span>Tenant</span><strong>{tenantName(doc.tenantId, tenants)}</strong></div> : null}
             {doc.leaseId ? <div className="list-row"><span>Lease</span><strong>{doc.leaseId}</strong></div> : null}
             <div className="list-row"><span>Uploaded By</span><strong>{doc.uploadedBy}</strong></div>
             <div className="list-row"><span>Upload Date</span><strong>{fmtDate(doc.uploadDate)}</strong></div>
@@ -96,7 +101,12 @@ export default function DocumentDetails({
             </div>
             <div className="field">
               <label htmlFor="dd-prop">Property (Move / Assign)</label>
-              <select id="dd-prop" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value })}>
+              <select id="dd-prop" value={form.propertyId} onChange={(e) => {
+                const propertyId = e.target.value;
+                // A tenant link never survives a move to another property.
+                const keepTenant = tenants.some((t) => t.id === form.tenantId && t.propertyId === propertyId);
+                setForm({ ...form, propertyId, tenantId: keepTenant ? form.tenantId : '' });
+              }}>
                 {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -104,7 +114,7 @@ export default function DocumentDetails({
               <label htmlFor="dd-tenant">Tenant</label>
               <select id="dd-tenant" value={form.tenantId} onChange={(e) => setForm({ ...form, tenantId: e.target.value })}>
                 <option value="">No tenant</option>
-                {tenants.slice(0, 30).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {propertyTenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
             <div className="field">

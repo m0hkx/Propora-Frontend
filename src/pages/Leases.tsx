@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { formatMoney } from '../data/mock';
-import type { Lease } from '../data/mock';
+import type { Lease } from '../types';
 import { Badge, Card } from '../components/ui';
 import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
 import KpiCard from '../components/KpiCard';
@@ -9,7 +8,7 @@ import Pagination from '../components/Pagination';
 import EmptyState from '../components/EmptyState';
 import { Icons } from '../components/icons';
 import { useStore } from '../state/useStore';
-import { fmtDate } from '../lib/format';
+import { fmtDate, formatMoney } from '../lib/format';
 import { leaseUnitLabel } from '../lib/units';
 import { leaseTone as tone } from '../lib/tone';
 import { spreadByProperty } from '../lib/stats';

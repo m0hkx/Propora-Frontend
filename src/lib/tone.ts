@@ -1,13 +1,13 @@
-import type {
-  DocumentStatus,
-  Lease,
-  MaintenancePriority,
-  MaintenanceStatus,
-  Payment,
-  PropertyStatus,
-  Tenant,
-  UnitStatus,
-} from '../data/mock';
+import type { 
+  DocumentStatus, 
+  Lease, 
+  MaintenancePriority, 
+  MaintenanceStatus, 
+  Payment, 
+  PropertyStatus, 
+  Tenant, 
+  UnitStatus 
+} from '../types';
 
 /** Single badge-tone vocabulary every status/priority mapping in the app resolves to. */
 export type Tone = 'success' | 'warn' | 'info' | 'danger' | 'neutral';

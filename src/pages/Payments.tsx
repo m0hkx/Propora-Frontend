@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { formatMoney } from '../data/mock';
-import type { Payment } from '../data/mock';
+import type { Payment } from '../types';
 import { Badge, Card } from '../components/ui';
 import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
 import Pagination from '../components/Pagination';
@@ -11,7 +10,7 @@ import KpiCard from '../components/KpiCard';
 import RecordPaymentModal from './Payments/RecordPaymentModal';
 import type { PaymentDraft } from './Payments/RecordPaymentModal';
 import { useStore } from '../state/useStore';
-import { fmtDate, toIsoDay } from '../lib/format';
+import { fmtDate, toIsoDay, formatMoney } from '../lib/format';
 import { spreadByProperty } from '../lib/stats';
 import { paymentTone as tone } from '../lib/tone';
 import SortableTh from '../components/SortableTh';

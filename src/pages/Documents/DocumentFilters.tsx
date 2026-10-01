@@ -1,9 +1,9 @@
-import { tenantName } from '../../data/mock';
-import type { Property } from '../../data/mock';
+import type { Property, Tenant } from '../../types';
 import { Card } from '../../components/ui';
 import { FilterRow, SearchField } from '../../components/FilterBar';
 import type { DateFilter, DocFilters } from './documentUtils';
 import { filtersActive } from './documentUtils';
+import { tenantName } from '../../lib/lookup';
 
 const TYPES = [
   'All Types', 'Lease', 'Contract', 'Invoice', 'Property Document',
@@ -14,12 +14,14 @@ export default function DocumentFilters({
   filters,
   properties,
   tenantIds,
+  tenants,
   onChange,
   onClear,
 }: {
   filters: DocFilters;
   properties: Property[];
   tenantIds: string[];
+  tenants: Tenant[];
   onChange: (f: DocFilters) => void;
   onClear: () => void;
 }) {
@@ -52,7 +54,7 @@ export default function DocumentFilters({
         <select value={filters.tenant} onChange={(e) => set({ tenant: e.target.value })} aria-label="Filter by tenant">
           <option value="all">All Tenants</option>
           {tenantIds.map((id) => (
-            <option key={id} value={id}>{tenantName(id)}</option>
+            <option key={id} value={id}>{tenantName(id, tenants)}</option>
           ))}
         </select>
         <select value={filters.status} onChange={(e) => set({ status: e.target.value as DocFilters['status'] })} aria-label="Filter by status">

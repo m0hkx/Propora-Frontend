@@ -253,9 +253,9 @@ function AppShell() {
   return (
     <div className="mx-auto w-full max-w-[1440px] px-[22px] pt-[18px] pb-12 max-md:px-3 max-md:pb-10">
       <header className="topbar">
-        <div ref={navRef} className="flex items-center gap-3 md:contents">
+        <div ref={navRef} className="flex items-center gap-3 compact:contents">
           <button
-            className={`icon-btn nav-toggle md:hidden ${navOpen ? 'open' : ''}`}
+            className={`icon-btn nav-toggle compact:hidden ${navOpen ? 'open' : ''}`}
             type="button"
             aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
             aria-expanded={navOpen}
@@ -271,7 +271,7 @@ function AppShell() {
             <span className="brand-name max-sm:hidden">Propora</span>
           </div>
           {navOpen ? (
-            <nav id="mobile-nav" className="mobile-nav md:hidden" aria-label="Primary">
+            <nav id="mobile-nav" className="mobile-nav compact:hidden" aria-label="Primary">
               {navPages.map((p) => (
                 <NavLink
                   key={p}
@@ -294,7 +294,7 @@ function AppShell() {
             </nav>
           ) : null}
         </div>
-        <nav className="nav-pills max-compact:max-w-[46vw] max-md:hidden" aria-label="Primary">
+        <nav className="nav-pills max-compact:hidden" aria-label="Primary">
           {navPages.map((p) => (
             <NavLink
               key={p}
@@ -523,7 +523,7 @@ function AppShell() {
       )}
 
       {uploadOpen && (
-        <UploadDocumentModal properties={properties} onClose={() => setUploadOpen(false)} onCreate={createDocument} />
+        <UploadDocumentModal properties={properties} tenants={tenants} onClose={() => setUploadOpen(false)} onCreate={createDocument} />
       )}
       <Toasts />
     </div>

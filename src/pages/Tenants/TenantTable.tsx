@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { propertyCity, propertyName } from '../../data/mock';
-import type { Property, Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../types';
 import { Badge, Card } from '../../components/ui';
 import MobileRowCard from '../../components/MobileRowCard';
 import TenantRow, { TenantAvatar } from './TenantRow';
@@ -9,6 +8,7 @@ import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
 import type { TenantAction, TenantSort } from './tenantUtils';
 import SortableTh from '../../components/SortableTh';
 import type { SortState } from '../../lib/sort';
+import { propertyCity, propertyName } from '../../lib/lookup';
 
 export default function TenantTable({
   rows,

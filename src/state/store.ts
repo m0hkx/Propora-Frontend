@@ -1,20 +1,6 @@
 import { create } from 'zustand';
 
-import type {
-  AppNotification,
-  ChatMessage,
-  Conversation,
-  DocFile,
-  Lease,
-  MaintenanceRequest,
-  MaintenanceStaff,
-  MaintenanceStatus,
-  Payment,
-  Property,
-  Tenant,
-  Unit,
-} from '../data/mock';
-import { conversations as seedConversations } from '../data/mock';
+import type { AppNotification, ChatMessage, Conversation, DocFile, Lease, MaintenanceRequest, MaintenanceStaff, MaintenanceStatus, Payment, Property, Tenant, Unit } from '../types';
 
 import { validateTenantUnit, validateUnit } from '../lib/units';
 import { validateStaff } from '../lib/staff';
@@ -39,6 +25,7 @@ import type { LeaseDraft } from '../pages/Leases/AddLeaseModal';
 import type { PaymentDraft } from '../pages/Payments/RecordPaymentModal';
 import type { NewMaintenanceDraft } from '../pages/Maintenance/NewMaintenanceModal';
 import type { NewDocDraft } from '../pages/Documents/UploadDocumentModal';
+import { conversations as seedConversations } from '../data/conversations';
 
 export interface Toast {
   id: number;
@@ -113,7 +100,7 @@ export interface StoreState {
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
 
-  // Inbox/chat stays on local mock data — no backend resource exists for it.
+  // Inbox/chat has no backend resource yet; it seeds from src/data/conversations.ts.
   conversations: Conversation[];
   markConversationRead: (id: string) => void;
   sendMessage: (conversationId: string, text: string) => void;

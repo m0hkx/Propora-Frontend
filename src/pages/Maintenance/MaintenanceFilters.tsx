@@ -1,4 +1,4 @@
-import type { MaintenanceStaff, Property } from '../../data/mock';
+import type { MaintenanceStaff, Property } from '../../types';
 import { Card } from '../../components/ui';
 import { FilterRow, FilterTabs, SearchField } from '../../components/FilterBar';
 import type { MaintenanceFilters, MaintenanceTab } from './maintenanceUtils';

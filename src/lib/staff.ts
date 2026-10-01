@@ -1,4 +1,4 @@
-import type { MaintenanceRequest, MaintenanceStaff } from '../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff } from '../types';
 import { isPhoneValid } from '../data/phone';
 import type { CountryCode } from '../data/phone';
 

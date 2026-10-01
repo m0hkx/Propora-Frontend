@@ -1,4 +1,4 @@
-import type { Tenant } from '../../data/mock';
+import type { Tenant } from '../../types';
 
 export { paymentTone, tenantLeaseTone as leaseTone, tenantStatusTone as tenantTone } from '../../lib/tone';
 

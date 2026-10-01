@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { formatMoney, propertyName } from '../../data/mock';
-import type { Tenant } from '../../data/mock';
+import type { Tenant } from '../../types';
 import { Card } from '../../components/ui';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EmptyState from '../../components/EmptyState';
@@ -19,6 +18,8 @@ import type { TenantAction, TenantSort, TenantTab } from './tenantUtils';
 import { PAYMENT_STATUS_ORDER, TENANT_STATUS_ORDER } from './tenantUtils';
 import { byDate, byNumber, byRank, byText, nextSort, sortRows } from '../../lib/sort';
 import type { SortState } from '../../lib/sort';
+import { formatMoney } from '../../lib/format';
+import { propertyName } from '../../lib/lookup';
 
 const PAGE_SIZE = 10;
 

@@ -80,7 +80,7 @@ export function sanitizeFileName(raw: string): string {
   return clean.replace(/\s+/g, ' ').trim().slice(0, 180);
 }
 
-/** "2.4 MB" / "880 KB" / "512 B" — matches the seed data style. */
+/** Human-readable file size: "2.4 MB" / "880 KB" / "512 B". */
 export function formatBytes(n: number): string {
   if (!Number.isFinite(n) || n < 0) return '—';
   if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;

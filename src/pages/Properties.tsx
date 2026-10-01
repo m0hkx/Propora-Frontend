@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { formatMoney } from '../data/mock';
-import type { Property } from '../data/mock';
+import type { Property } from '../types';
 import { Badge, Card, Progress } from '../components/ui';
 import { FilterControls, FilterRow, FilterTabs, SearchField } from '../components/FilterBar';
 import EmptyState from '../components/EmptyState';
@@ -15,6 +14,7 @@ import { useStore } from '../state/useStore';
 import { propertyTone as tone } from '../lib/tone';
 import { propertyHasUnits, withLiveOccupancy } from '../lib/units';
 import type { LiveProperty } from '../lib/units';
+import { formatMoney } from '../lib/format';
 
 type StatusFilter = 'All' | 'Active' | 'Vacant' | 'Maintenance';
 type SortKey = 'featured' | 'name' | 'revenue' | 'occupancy';

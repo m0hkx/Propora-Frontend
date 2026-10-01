@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
-import { tenants } from '../../data/mock';
-import type { DocumentType, Property } from '../../data/mock';
+import type { DocumentType, Property, Tenant } from '../../types';
 import {
   DOC_ACCEPT,
   MAX_DOC_LABEL,
@@ -28,10 +27,12 @@ export interface NewDocDraft {
 
 export default function UploadDocumentModal({
   properties,
+  tenants,
   onClose,
   onCreate,
 }: {
   properties: Property[];
+  tenants: Tenant[];
   onClose: () => void;
   onCreate: (d: NewDocDraft, file: File) => void;
 }) {
@@ -48,6 +49,8 @@ export default function UploadDocumentModal({
 
   const nameInvalid = submitted && name.trim() === '';
   const propertyInvalid = submitted && propertyId === '';
+  // Only tenants of the chosen property can be linked to the document.
+  const propertyTenants = tenants.filter((t) => t.propertyId === propertyId);
   const uploadInvalid = submitted && (file === null || fileError !== null);
 
   const resetPicker = () => {
@@ -164,7 +167,7 @@ export default function UploadDocumentModal({
         </div>
         <div className="field">
           <label htmlFor="up-prop">Property *</label>
-          <select id="up-prop" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={propertyInvalid ? 'invalid' : ''}>
+          <select id="up-prop" value={propertyId} onChange={(e) => { setPropertyId(e.target.value); setTenantId(''); }} className={propertyInvalid ? 'invalid' : ''}>
             <option value="">Select property</option>
             {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
@@ -180,7 +183,7 @@ export default function UploadDocumentModal({
           <label htmlFor="up-tenant">Tenant (optional)</label>
           <select id="up-tenant" value={tenantId} onChange={(e) => setTenantId(e.target.value)}>
             <option value="">No tenant</option>
-            {tenants.slice(0, 30).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {propertyTenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
         </div>
       </div>

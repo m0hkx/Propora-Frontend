@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import type { Property, Tenant, Unit } from '../../data/mock';
-import { formatMoney, propertyName, tenantById } from '../../data/mock';
+import type { Property, Tenant, Unit } from '../../types';
 import { leaseTone, orDash, tenantOption, tenantPrefill } from './leaseUtils';
-import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
+import { fmtDate, isValidIsoDate, MAX_DATE, MIN_DATE, formatMoney } from '../../lib/format';
 import { unitsForProperty } from '../../lib/units';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { Badge } from '../../components/ui';
+import { propertyName, tenantById } from '../../lib/lookup';
 
 export interface LeaseDraft {
   propertyId: string;

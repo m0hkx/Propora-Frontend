@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { staffName } from '../../data/mock';
-import type { MaintenanceRequest, MaintenanceStatus } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStatus } from '../../types';
 import { Card } from '../../components/ui';
 import EmptyState from '../../components/EmptyState';
 import { Icons } from '../../components/icons';
@@ -12,6 +11,7 @@ import MaintenanceDetails from './MaintenanceDetails';
 import StaffModal from './StaffModal';
 import { EMPTY_MFILTERS, maintenanceSearchText } from './maintenanceUtils';
 import type { MaintenanceFilters as Filters, MaintenanceTab } from './maintenanceUtils';
+import { staffName } from '../../lib/lookup';
 
 export default function Maintenance() {
   const updateMaintenanceStatus = useStore((s) => s.updateMaintenanceStatus);
@@ -114,12 +114,13 @@ export default function Maintenance() {
           />
         </Card>
       ) : (
-        <MaintenanceTable rows={filtered} units={units} tenants={tenants} staff={staff} onSelect={(m) => setSelectedId(m.id)} />
+        <MaintenanceTable rows={filtered} properties={properties} units={units} tenants={tenants} staff={staff} onSelect={(m) => setSelectedId(m.id)} />
       )}
 
       {selected && (
         <MaintenanceDetails
           request={selected}
+          properties={properties}
           units={units}
           tenants={tenants}
           staff={staff}

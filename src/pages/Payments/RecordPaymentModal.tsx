@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Payment, Property, Tenant } from '../../data/mock';
-import { tenantById } from '../../data/mock';
+import type { Payment, Property, Tenant } from '../../types';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';
 import { tenantOption } from '../Leases/leaseUtils';
 import { isValidIsoDate, MAX_DATE } from '../../lib/format';
+import { tenantById } from '../../lib/lookup';
 
 // Payments can't be backdated — only today or a future date is accepted.
 const today = new Date().toISOString().slice(0, 10);

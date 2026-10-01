@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { formatMoney, propertyName } from '../../data/mock';
-import type { MaintenanceRequest, MaintenanceStaff, MaintenanceStatus, Tenant, Unit } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, MaintenanceStatus, Property, Tenant, Unit } from '../../types';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchSelect from '../../components/SearchSelect';
-import { fmtDate } from '../../lib/format';
+import { fmtDate, formatMoney } from '../../lib/format';
 import { priorityTone, scopeLabel, statusTone, tenantsLabel } from './maintenanceUtils';
+import { propertyName } from '../../lib/lookup';
 
 export default function MaintenanceDetails({
   request,
+  properties,
   units,
   tenants,
   staff,
@@ -18,6 +19,7 @@ export default function MaintenanceDetails({
   onAssigneeChange,
 }: {
   request: MaintenanceRequest;
+  properties: Property[];
   units: Unit[];
   tenants: Tenant[];
   staff: MaintenanceStaff[];
@@ -43,7 +45,7 @@ export default function MaintenanceDetails({
       </div>
       <p className="m-0">{m.description}</p>
       <div className="list">
-        <div className="list-row"><span>Property</span><strong>{propertyName(m.propertyId)}</strong></div>
+        <div className="list-row"><span>Property</span><strong>{propertyName(m.propertyId, properties)}</strong></div>
         <div className="list-row"><span>Scope</span><strong>{m.scope === 'property' ? 'Entire Property' : m.scope === 'units' ? 'Specific Unit(s)' : 'Specific Tenant(s)'}</strong></div>
         {m.scope === 'units' ? <div className="list-row"><span>Unit(s)</span><strong>{scopeLabel(m, units)}</strong></div> : null}
         {m.scope === 'tenants' ? <div className="list-row"><span>Tenant(s)</span><strong>{tenantsLabel(m, tenants)}</strong></div> : null}

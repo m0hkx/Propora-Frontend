@@ -1,4 +1,4 @@
-import type { Payment } from '../data/mock';
+import type { Payment } from '../types';
 import type { PaymentDraft } from '../pages/Payments/RecordPaymentModal';
 import { apiFetch, stripNulls } from './config';
 

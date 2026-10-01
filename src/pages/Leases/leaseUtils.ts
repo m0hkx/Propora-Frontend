@@ -1,6 +1,6 @@
-import type { Tenant } from '../../data/mock';
-import { tenantById } from '../../data/mock';
+import type { Tenant } from '../../types';
 import type { SearchSelectOption } from '../../components/searchSelectUtils';
+import { tenantById } from '../../lib/lookup';
 
 /** The lease fields that a selected tenant's record can fill in. */
 export interface TenantPrefill {

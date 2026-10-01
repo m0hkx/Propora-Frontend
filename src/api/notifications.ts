@@ -1,4 +1,4 @@
-import type { AppNotification } from '../data/mock';
+import type { AppNotification } from '../types';
 import { relativeTime } from '../lib/format';
 import { apiFetch, stripNulls } from './config';
 

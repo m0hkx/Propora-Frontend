@@ -1,4 +1,4 @@
-import type { MaintenanceStaff } from '../data/mock';
+import type { MaintenanceStaff } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type StaffDoc = MaintenanceStaff;

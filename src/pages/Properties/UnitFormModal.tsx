@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Unit, UnitStatus, UnitType } from '../../data/mock';
+import type { Unit, UnitStatus, UnitType } from '../../types';
 import { bedroomsForType, isDuplicateUnitName } from '../../lib/units';
 import { useStore } from '../../state/useStore';
 import Modal from '../../components/Modal';

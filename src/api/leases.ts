@@ -1,4 +1,4 @@
-import type { Lease } from '../data/mock';
+import type { Lease } from '../types';
 import type { LeaseDraft } from '../pages/Leases/AddLeaseModal';
 import { apiFetch, stripNulls } from './config';
 

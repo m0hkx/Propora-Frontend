@@ -1,4 +1,4 @@
-import type { Property, Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../types';
 import { Icons } from '../../components/icons';
 import KpiCard from '../../components/KpiCard';
 import { spreadByProperty } from '../../lib/stats';

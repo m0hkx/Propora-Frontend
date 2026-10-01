@@ -1,5 +1,5 @@
-import type { MaintenanceRequest, MaintenanceStatus, Property, Tenant, Unit } from '../../data/mock';
-import { staffName, tenantName } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStatus, Property, Tenant, Unit } from '../../types';
+import { staffName, tenantName } from '../../lib/lookup';
 
 export { maintenanceStatusTone as statusTone, maintenancePriorityTone as priorityTone } from '../../lib/tone';
 

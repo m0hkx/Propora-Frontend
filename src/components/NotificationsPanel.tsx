@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
-import type { AppNotification } from '../data/mock';
+import type { AppNotification } from '../types';
 
 const KIND_DOT: Record<AppNotification['kind'], string> = {
   maintenance: 'var(--color-category-maintenance)',

@@ -1,4 +1,4 @@
-import type { Property } from '../../data/mock';
+import type { Property } from '../../types';
 
 /** Form shape shared by the add and edit property flows. */
 export interface PropertyDraft {

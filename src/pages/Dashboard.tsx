@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { formatMoney, propertyName, tenantName } from '../data/mock';
 import { AreaChart, Donut } from '../components/charts';
 import { Badge, Card, Progress } from '../components/ui';
 import { Icons } from '../components/icons';
 import KpiCard from '../components/KpiCard';
 import Modal from '../components/Modal';
 import { useStore } from '../state/useStore';
-import { fmtDate } from '../lib/format';
+import { fmtDate, formatMoney } from '../lib/format';
 import { revenueByPeriod, spreadByProperty } from '../lib/stats';
 import type { RevenueRange } from '../lib/stats';
 import { maintenancePriorityTone, paymentTone } from '../lib/tone';
 import { withLiveOccupancy } from '../lib/units';
 import { scopeLabel } from './Maintenance/maintenanceUtils';
+import { propertyName, tenantName } from '../lib/lookup';
 
 type Range = RevenueRange;
 

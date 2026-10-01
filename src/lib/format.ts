@@ -34,6 +34,10 @@ export function toIsoDay(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+export function formatMoney(n: number): string {
+  return '$' + n.toLocaleString('en-US');
+}
+
 /** Renders an ISO timestamp as "25 min ago" / "3 hours ago" / "Yesterday" / a short date, matching the seed notification copy. */
 export function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();

@@ -1,4 +1,4 @@
-import type { Unit } from '../data/mock';
+import type { Unit } from '../types';
 import { apiFetch, stripNulls } from './config';
 
 type UnitDoc = Unit;

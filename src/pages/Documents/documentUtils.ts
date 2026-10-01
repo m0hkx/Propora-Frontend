@@ -1,4 +1,4 @@
-import type { DocFile, DocumentStatus, DocumentType } from '../../data/mock';
+import type { DocFile, DocumentStatus, DocumentType } from '../../types';
 
 export { docStatusTone } from '../../lib/tone';
 

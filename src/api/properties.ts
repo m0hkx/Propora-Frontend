@@ -1,4 +1,4 @@
-import type { Property } from '../data/mock';
+import type { Property } from '../types';
 import type { PropertyDraft } from '../pages/Properties/propertyForm';
 import { apiFetch, assetUrl, stripNulls } from './config';
 

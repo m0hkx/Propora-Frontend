@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Lease, Property, Tenant, Unit } from '../../data/mock';
+import type { Lease, Property, Tenant, Unit } from '../../types';
 import { bedsLabel, unitOccupant, unitsForProperty, validateTenantUnit } from '../../lib/units';
 import { isValidIsoDate, MAX_DATE, MIN_DATE } from '../../lib/format';
 import Modal from '../../components/Modal';

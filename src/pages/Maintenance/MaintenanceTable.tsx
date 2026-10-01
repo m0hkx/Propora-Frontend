@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { formatMoney, propertyName, staffName } from '../../data/mock';
-import type { MaintenanceRequest, MaintenanceStaff, Tenant, Unit } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } from '../../types';
 import { Badge, Card } from '../../components/ui';
 import RowMenu from '../../components/RowMenu';
 import MobileRowCard from '../../components/MobileRowCard';
 import Pagination from '../../components/Pagination';
 import SortableTh from '../../components/SortableTh';
-import { fmtDate } from '../../lib/format';
+import { fmtDate, formatMoney } from '../../lib/format';
 import { onActivateKey } from '../../lib/a11y';
 import { byDate, byNumber, byRank, byText, nextSort, sortRows } from '../../lib/sort';
 import type { SortState } from '../../lib/sort';
 import { MAINTENANCE_PRIORITY_ORDER, MAINTENANCE_STATUS_ORDER, priorityTone, scopeLabel, statusTone, tenantsLabel } from './maintenanceUtils';
+import { propertyName, staffName } from '../../lib/lookup';
 
 type SortKey = 'title' | 'property' | 'tenant' | 'priority' | 'assignee' | 'created' | 'status' | 'cost';
 
@@ -18,12 +18,14 @@ const PAGE_SIZE = 20;
 
 export default function MaintenanceTable({
   rows,
+  properties,
   units,
   tenants,
   staff,
   onSelect,
 }: {
   rows: MaintenanceRequest[];
+  properties: Property[];
   units: Unit[];
   tenants: Tenant[];
   staff: MaintenanceStaff[];
@@ -56,7 +58,7 @@ export default function MaintenanceTable({
     () =>
       sortRows(rows, sort, {
         title: byText((m) => m.title),
-        property: byText((m) => propertyName(m.propertyId)),
+        property: byText((m) => propertyName(m.propertyId, properties)),
         tenant: byText((m) => {
           const label = tenantsLabel(m, tenants);
           return label === '—' ? undefined : label;
@@ -67,7 +69,7 @@ export default function MaintenanceTable({
         status: byRank((m) => m.status, MAINTENANCE_STATUS_ORDER),
         cost: byNumber((m) => m.actualCost ?? m.estimatedCost),
       }),
-    [rows, sort, tenants, staff]
+    [rows, sort, properties, tenants, staff]
   );
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -103,7 +105,7 @@ export default function MaintenanceTable({
                 onKeyDown={onActivateKey(() => onSelect(m))}
               >
                 <td><strong>{m.title}</strong><div className="small muted">{m.category} · {m.id}</div></td>
-                <td>{propertyName(m.propertyId)}<div className="small muted">{scopeLabel(m, units)}</div></td>
+                <td>{propertyName(m.propertyId, properties)}<div className="small muted">{scopeLabel(m, units)}</div></td>
                 <td className="max-compact:hidden small">{tenantsLabel(m, tenants)}</td>
                 <td><Badge tone={priorityTone(m.priority)}>{m.priority}</Badge></td>
                 <td className="max-compact:hidden small">{staffName(m.assigneeId, staff)}</td>
@@ -128,7 +130,7 @@ export default function MaintenanceTable({
         {shown.map((m) => (
           <MobileRowCard key={m.id} onSelect={() => onSelect(m)}>
             <div className="row">
-              <div><strong>{m.title}</strong><div className="small muted">{propertyName(m.propertyId)} · {scopeLabel(m, units)}</div></div>
+              <div><strong>{m.title}</strong><div className="small muted">{propertyName(m.propertyId, properties)} · {scopeLabel(m, units)}</div></div>
               <Badge tone={priorityTone(m.priority)}>{m.priority}</Badge>
             </div>
             <div className="row small mt-2">

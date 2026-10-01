@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { propertyName, tenantName } from '../../data/mock';
-import type { DocFile } from '../../data/mock';
+import type { DocFile, Property, Tenant } from '../../types';
 import { Badge, Card } from '../../components/ui';
 import RowMenu from '../../components/RowMenu';
 import MobileRowCard from '../../components/MobileRowCard';
@@ -10,6 +9,7 @@ import { DOC_STATUS_ORDER, docStatusTone } from './documentUtils';
 import SortableTh from '../../components/SortableTh';
 import { byDate, byRank, byText, nextSort, sortRows } from '../../lib/sort';
 import type { SortState } from '../../lib/sort';
+import { propertyName, tenantName } from '../../lib/lookup';
 
 type SortKey = 'name' | 'property' | 'unit' | 'type' | 'uploaded' | 'status';
 
@@ -17,9 +17,13 @@ export type DocAction = 'view' | 'download' | 'edit' | 'move' | 'archive' | 'del
 
 export default function DocumentTable({
   rows,
+  properties,
+  tenants,
   onAction,
 }: {
   rows: DocFile[];
+  properties: Property[];
+  tenants: Tenant[];
   onAction: (a: DocAction, d: DocFile) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -39,13 +43,13 @@ export default function DocumentTable({
     () =>
       sortRows(rows, sort, {
         name: byText((d) => d.name),
-        property: byText((d) => propertyName(d.propertyId)),
-        unit: byText((d) => d.unit ?? (d.tenantId ? tenantName(d.tenantId) : undefined)),
+        property: byText((d) => propertyName(d.propertyId, properties)),
+        unit: byText((d) => d.unit ?? (d.tenantId ? tenantName(d.tenantId, tenants) : undefined)),
         type: byText((d) => d.type),
         uploaded: byDate((d) => d.uploadDate),
         status: byRank((d) => d.status, DOC_STATUS_ORDER),
       }),
-    [rows, sort]
+    [rows, sort, properties, tenants]
   );
 
   const act = (a: DocAction, d: DocFile) => {
@@ -80,10 +84,10 @@ export default function DocumentTable({
                 onKeyDown={onActivateKey(() => act('view', d))}
               >
                 <td><strong>{d.name}</strong><div className="small muted">{d.size}</div></td>
-                <td>{propertyName(d.propertyId)}</td>
+                <td>{propertyName(d.propertyId, properties)}</td>
                 <td className="max-compact:hidden">
                   {d.unit ? <div>Unit {d.unit}</div> : <div className="muted">—</div>}
-                  {d.tenantId ? <div className="small muted">{tenantName(d.tenantId)}</div> : null}
+                  {d.tenantId ? <div className="small muted">{tenantName(d.tenantId, tenants)}</div> : null}
                 </td>
                 <td><Badge tone="neutral">{d.type}</Badge></td>
                 <td className="max-compact:hidden small">{fmtDate(d.uploadDate)}</td>
@@ -115,7 +119,7 @@ export default function DocumentTable({
         {sorted.map((d) => (
           <MobileRowCard key={d.id} onSelect={() => act('view', d)}>
             <div className="row">
-              <div><strong>{d.name}</strong><div className="small muted">{propertyName(d.propertyId)}{d.unit ? ` · Unit ${d.unit}` : ''}</div></div>
+              <div><strong>{d.name}</strong><div className="small muted">{propertyName(d.propertyId, properties)}{d.unit ? ` · Unit ${d.unit}` : ''}</div></div>
               <Badge tone={docStatusTone(d.status)}>{d.status}</Badge>
             </div>
             <div className="row small mt-2">
@@ -123,7 +127,7 @@ export default function DocumentTable({
               <span className="muted">{fmtDate(d.uploadDate)}</span>
             </div>
             <div className="row mt-2" onClick={(e) => e.stopPropagation()}>
-              <span className="small muted">{d.tenantId ? tenantName(d.tenantId) : 'No tenant'}</span>
+              <span className="small muted">{d.tenantId ? tenantName(d.tenantId, tenants) : 'No tenant'}</span>
               <span className="flex gap-1.5">
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => act('download', d)}>Download</button>
                 <button className="btn btn-ghost btn-sm" type="button" onClick={() => act('edit', d)}>Edit</button>

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { formatMoney } from '../../data/mock';
-import type { Unit, UnitStatus } from '../../data/mock';
+import type { Unit, UnitStatus } from '../../types';
 import { getUnitBlockers, resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { unitStatusTone as statusTone } from '../../lib/tone';
 import { useStore } from '../../state/useStore';
@@ -11,6 +10,7 @@ import type { SortState } from '../../lib/sort';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import UnitFormModal from './UnitFormModal';
+import { formatMoney } from '../../lib/format';
 
 type SortKey = 'name' | 'floor' | 'type' | 'rent' | 'status';
 

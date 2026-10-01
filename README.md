@@ -93,8 +93,9 @@ src/
 ├── components/        # shared primitives (Card, Badge, KpiCard, Modal, charts…)
 ├── pages/             # one route per screen; complex ones get feature folders
 ├── state/             # single Zustand store (+ tiny re-export barrel)
-├── data/mock.ts       # domain types, seed data, deterministic generators
-├── lib/               # shared helpers (date format, count-up, stats)
+├── types/             # domain types, one file per area (+ index.ts barrel)
+├── data/              # static data: countries, phone codes, Inbox seed
+├── lib/               # shared helpers (formatting, lookups, stats, validation)
 └── styles/            # @apply composites + element-level base rules
 ```
 

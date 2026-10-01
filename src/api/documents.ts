@@ -1,4 +1,4 @@
-import type { DocFile } from '../data/mock';
+import type { DocFile } from '../types';
 import type { NewDocDraft } from '../pages/Documents/UploadDocumentModal';
 import { apiFetch, stripNulls } from './config';
 

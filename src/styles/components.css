@@ -612,7 +612,7 @@
 }
 
 .nav-pills {
-  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto max-w-[62vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  @apply flex gap-1 bg-muted p-1 rounded-full overflow-x-auto min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
 
 .nav-pill {

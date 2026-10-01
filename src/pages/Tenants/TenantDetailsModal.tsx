@@ -1,10 +1,10 @@
-import { propertyCity, propertyName } from '../../data/mock';
-import type { Property, Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../types';
 import { Badge } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { TenantAvatar } from './TenantRow';
 import { fmtDate } from '../../lib/format';
 import { leaseTone, paymentTone, tenantTone } from './tenantUtils';
+import { propertyCity, propertyName } from '../../lib/lookup';
 
 export default function TenantDetailsModal({
   tenant,

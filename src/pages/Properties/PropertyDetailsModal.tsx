@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { formatMoney } from '../../data/mock';
 import type { LiveProperty } from '../../lib/units';
 import { Badge, Progress } from '../../components/ui';
 import Modal from '../../components/Modal';
 import { propertyTone } from '../../lib/tone';
 import { propertyHasUnits } from '../../lib/units';
 import UnitsSection from './UnitsSection';
+import { formatMoney } from '../../lib/format';
 
 export default function PropertyDetailsModal({
   property,

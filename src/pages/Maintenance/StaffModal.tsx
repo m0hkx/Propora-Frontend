@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MaintenanceStaffStatus } from '../../data/mock';
+import type { MaintenanceStaffStatus } from '../../types';
 import { getStaffBlockers } from '../../lib/staff';
 import { useStore } from '../../state/useStore';
 import { Badge } from '../../components/ui';

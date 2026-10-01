@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Property } from '../../data/mock';
+import type { Property } from '../../types';
 import type { PropertyDraft } from './propertyForm';
 import Modal from '../../components/Modal';
 import SearchSelect from '../../components/SearchSelect';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } from '../../data/mock';
+import type { MaintenanceRequest, MaintenanceStaff, Property, Tenant, Unit } from '../../types';
 import { tenantOption } from '../Leases/leaseUtils';
 import { resolveUnitStatus, unitsForProperty } from '../../lib/units';
 import { validateMaintenanceTarget } from '../../lib/maintenanceScope';

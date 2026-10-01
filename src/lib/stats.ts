@@ -1,4 +1,4 @@
-import type { Payment, Property } from '../data/mock';
+import type { Payment, Property } from '../types';
 
 /**
  * Honest per-property spread of a metric across the portfolio —

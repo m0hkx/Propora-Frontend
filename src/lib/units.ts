@@ -1,4 +1,4 @@
-import type { Lease, MaintenanceRequest, Property, Tenant, Unit, UnitStatus, UnitType } from '../data/mock';
+import type { Lease, MaintenanceRequest, Property, Tenant, Unit, UnitStatus, UnitType } from '../types';
 
 /**
  * Unit domain helpers (Property → Units → Tenant/Lease).

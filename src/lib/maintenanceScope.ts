@@ -1,4 +1,4 @@
-import type { MaintenanceRequest, Tenant, Unit } from '../data/mock';
+import type { MaintenanceRequest, Tenant, Unit } from '../types';
 
 /**
  * The property → unit(s)/tenant(s) relationship a maintenance request must

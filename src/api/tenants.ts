@@ -1,4 +1,4 @@
-import type { Tenant } from '../data/mock';
+import type { Tenant } from '../types';
 import type { TenantDraft } from '../pages/Tenants/TenantFormModal';
 import { apiFetch, stripNulls } from './config';
 

@@ -1,11 +1,11 @@
-import { propertyCity, propertyName } from '../../data/mock';
-import type { Property, Tenant } from '../../data/mock';
+import type { Property, Tenant } from '../../types';
 import { Badge } from '../../components/ui';
 import RowMenu from '../../components/RowMenu';
 import { fmtDate } from '../../lib/format';
 import { onActivateKey } from '../../lib/a11y';
 import { avatarBg, initials, leaseTone, paymentTone, tenantTone } from './tenantUtils';
 import type { TenantAction } from './tenantUtils';
+import { propertyCity, propertyName } from '../../lib/lookup';
 
 export function TenantAvatar({ name }: { name: string }) {
   return (

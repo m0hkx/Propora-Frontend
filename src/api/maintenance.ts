@@ -1,4 +1,4 @@
-import type { MaintenanceRequest, MaintenanceStatus } from '../data/mock';
+import type { MaintenanceRequest, MaintenanceStatus } from '../types';
 import type { NewMaintenanceDraft } from '../pages/Maintenance/NewMaintenanceModal';
 import { apiFetch, stripNulls } from './config';
 

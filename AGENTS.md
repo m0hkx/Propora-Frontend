@@ -3,7 +3,7 @@
 ## Stack
 
 React 19, TypeScript 6.0, Vite 8, Tailwind CSS v4, Zustand 5.
-Single-page property management app. No backend — all data is mock/in-memory (`src/data/mock.ts`).
+Single-page property management app backed by the sibling `../Propora-API` (Express + MongoDB). Only the Inbox/chat still uses local seed data (`src/data/conversations.ts`).
 
 ## Commands
 
@@ -17,7 +17,8 @@ There is no `typecheck`, `test`, or `format` script. Type-checking happens insid
 ## Project Structure
 
 - `src/main.tsx` → `src/App.tsx` — single entry, all routing is a `page` state variable (no react-router)
-- `src/state/store.ts` — Zustand store (seeded from `src/data/mock.ts`)
+- `src/state/store.ts` — Zustand store, hydrated from the API (`src/api/*`)
+- `src/types/` — domain types, one file per area, re-exported from `src/types/index.ts`
 - `src/components/ui.tsx` — shared primitives: `Card`, `Badge`, `Stat`, `Progress`, `Icon`
 - `src/styles/components.css` — `@apply` composites (`.card`, `.btn-*`, `.badge`, etc.) in the `components` layer
 - `src/styles/base.css` — element-level rules (cannot be utilities)
@@ -43,5 +44,5 @@ The CSS layer order is `theme → base → components → utilities`. Legacy `:r
 
 - Pages live in `src/pages/`; multi-file pages use subdirectories (e.g., `Tenants/Tenants.tsx`)
 - Modals are colocated with their page (`Properties/AddPropertyModal.tsx`)
-- All seed data types are exported from `src/data/mock.ts` — reuse these types everywhere
+- Domain types live in `src/types/` — import them from `../types` and reuse them everywhere
 - Badge/Stat/Card components use `src/styles/components.css` class names — don't create new CSS for these

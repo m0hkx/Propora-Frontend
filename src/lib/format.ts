@@ -27,6 +27,13 @@ export function fmtDate(iso: string | undefined, opts: { year?: boolean } = {}):
   );
 }
 
+export function toIsoDay(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 /** Renders an ISO timestamp as "25 min ago" / "3 hours ago" / "Yesterday" / a short date, matching the seed notification copy. */
 export function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();

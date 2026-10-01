@@ -11,7 +11,7 @@ import KpiCard from '../components/KpiCard';
 import RecordPaymentModal from './Payments/RecordPaymentModal';
 import type { PaymentDraft } from './Payments/RecordPaymentModal';
 import { useStore } from '../state/useStore';
-import { fmtDate } from '../lib/format';
+import { fmtDate, toIsoDay } from '../lib/format';
 import { spreadByProperty } from '../lib/stats';
 import { paymentTone as tone } from '../lib/tone';
 import SortableTh from '../components/SortableTh';
@@ -55,12 +55,24 @@ export default function Payments() {
     return c;
   }, [payments]);
 
+  // `YYYY-MM` of today; recomputed each render so the card follows a month rollover.
+  const currentMonth = toIsoDay(new Date()).slice(0, 7);
+  const isCollectedThisMonth = (p: Payment) => p.status === 'Paid' && p.date.slice(0, 7) === currentMonth;
+
   const sums = useMemo(() => {
     const s: Record<Payment['status'], number> = { Paid: 0, Pending: 0, Overdue: 0 };
-    for (const p of payments) s[p.status] += p.amount;
+    let totalThisMonth = 0;
+
+    for (const p of payments) {
+      if (isCollectedThisMonth(p)) totalThisMonth += p.amount;
+      s[p.status] += p.amount;
+    }
+
     const total = s.Paid + s.Pending + s.Overdue;
-    return { ...s, rate: total === 0 ? 0 : Math.round((s.Paid / total) * 100) };
-  }, [payments]);
+
+    return { ...s, rate: total === 0 ? 0 : Math.round((s.Paid / total) * 100), totalThisMonth };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payments, currentMonth]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -104,6 +116,12 @@ export default function Payments() {
       (p) => p.propertyId,
       (p) => p.amount
     );
+  const collectedByProp = spreadByProperty(
+    properties,
+    payments.filter(isCollectedThisMonth),
+    (p) => p.propertyId,
+    (p) => p.amount
+  );
   const rateSpread = properties.map((p) => {
     const mine = payments.filter((pp) => pp.propertyId === p.id);
     const paid = mine.filter((pp) => pp.status === 'Paid').reduce((s, pp) => s + pp.amount, 0);
@@ -142,9 +160,9 @@ export default function Payments() {
       <div className="grid grid-cols-4 gap-4 max-compact:grid-cols-2 max-md:grid-cols-1">
         <KpiCard
           icon={Icons.card} tint="teal"
-          delta={{ text: 'This period', tone: 'flat' }}
-          value={sums.Paid} format={fmtMoney}
-          label="Collected" spark={sumsByProp('Paid')} stagger="sd-1"
+          delta={{ text: 'This month', tone: 'flat' }}
+          value={sums.totalThisMonth} format={fmtMoney}
+          label="Collected" spark={collectedByProp} stagger="sd-1"
         />
         <KpiCard
           icon={Icons.folder} tint="amber"

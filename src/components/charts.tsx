@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { formatMoney } from '../lib/format';
 
 // Plot geometry (viewBox units). Left margin reserves room for the Y-axis,
 // right margin keeps the last point off the card edge.
@@ -16,20 +17,24 @@ function coords(values: number[], top: number): { x: number; y: number }[] {
   }));
 }
 
-// Largest round step giving at most 4 intervals (≤5 ticks).
+// Smallest round step (1, 2, 2.5 or 5 × 10ⁿ) giving at most 4 intervals (≤5 ticks),
+// for any magnitude — values are whole dollars, from hundreds to millions.
 function niceTicks(maxV: number): { ticks: number[]; top: number } {
-  const steps = [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
-  const step = steps.find((s) => maxV / s <= 4) ?? 5000;
-  const top = Math.ceil(maxV / step) * step;
+  const rough = Math.max(maxV, 4) / 4; // floor of $1 per step: no fractional-dollar ticks
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= rough) ?? 10 * magnitude;
+  const top = Math.max(step, Math.ceil(maxV / step) * step);
   const ticks: number[] = [];
   for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
   return { ticks, top };
 }
 
-function formatRevenueTick(v: number): string {
-  if (v === 0) return '$0';
-  if (v >= 1000) return `$${parseFloat((Math.round(v / 100) / 10).toFixed(1))}M`;
-  return `$${v}K`;
+// Axis labels: compact whole dollars ($800, $12.5K, $1.2M).
+function formatAxisMoney(v: number): string {
+  const trim = (n: number) => String(parseFloat(n.toFixed(1)));
+  if (Math.abs(v) >= 1_000_000) return `$${trim(v / 1_000_000)}M`;
+  if (Math.abs(v) >= 1_000) return `$${trim(v / 1_000)}K`;
+  return `$${trim(v)}`;
 }
 
 export function AreaChart({
@@ -54,7 +59,8 @@ export function AreaChart({
   const area = `${MARGIN.left},${plotBottom} ${line} ${CHART_W - MARGIN.right},${plotBottom}`;
   const plotW = CHART_W - MARGIN.left - MARGIN.right;
   const step = plotW / (values.length - 1);
-  const fmt = formatValue ?? formatRevenueTick;
+  // Exact amount for the tooltip and screen readers; the axis uses compact labels.
+  const fmt = formatValue ?? ((v: number) => formatMoney(Math.round(v)));
   const yOf = (v: number) => MARGIN.top + (plotBottom - MARGIN.top) - (v / top) * (plotBottom - MARGIN.top);
 
   const pick = (clientX: number, rectLeft: number, rectWidth: number) => {
@@ -72,7 +78,7 @@ export function AreaChart({
           viewBox={`0 0 ${CHART_W} ${CHART_H}`}
           width="100%"
           role="img"
-          aria-label={`Revenue trend, $0 to ${fmt(top)}: ${labels.map((l, i) => `${l} ${fmt(values[i])}`).join(', ')}`}
+          aria-label={`Revenue trend, $0 to ${formatAxisMoney(top)}:${labels.map((l, i) => `${l} ${fmt(values[i])}`).join(', ')}`}
           onMouseMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             pick(e.clientX, r.left, r.width);
@@ -103,7 +109,7 @@ export function AreaChart({
                 fontSize="11"
                 fill="var(--color-muted-foreground)"
               >
-                {fmt(t)}
+                {formatAxisMoney(t)}
               </text>
             </g>
           ))}

@@ -2,112 +2,71 @@
 
 # Propora
 
-### Property management, made legible.
+**Property management, made legible.**
 
-A desktop dashboard that brings portfolio health, cash flow, and operational
-priorities into one calm operating picture.
+The web app for Propora: one calm dashboard for properties, tenants, leases, rent, repairs and documents.
 
-![React](https://img.shields.io/badge/react-19-0F766E?style=flat-square&logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/typescript-6-0F766E?style=flat-square&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/vite-8-0F766E?style=flat-square&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/tailwind-4-0F766E?style=flat-square&logo=tailwindcss&logoColor=white)
-![Zustand](https://img.shields.io/badge/zustand-5-0F766E?style=flat-square)
-![React Router](https://img.shields.io/badge/react_router-7-0F766E?style=flat-square&logo=reactrouter&logoColor=white)
+![React](https://img.shields.io/badge/React-19-0F766E?style=flat-square&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-0F766E?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-0F766E?style=flat-square&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-0F766E?style=flat-square&logo=tailwindcss&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-5-0F766E?style=flat-square)
 
-**`WEB APP · DASHBOARD`**
-
-*Product design / UI system / data visualization*
+**[📖 Full documentation →](../docs/README.md)**
 
 </div>
+
 <img src="public/slide.png" alt="Propora — property management, made legible" width="100%" />
 
----
+## About
 
-## The idea
+A React single-page app that talks to the [Propora API](https://github.com/m0hkx/Propora-Backend) (Express + MongoDB). Every screen reads and writes real data through the API, and you stay signed in with a session cookie.
 
-Property managers live in spreadsheets: units here, arrears there, maintenance
-requests in someone's inbox. Propora collapses that into a single screen where
-the answer to *"how is my portfolio doing?"* is legible in under five seconds —
-hero KPIs, a revenue pulse, occupancy, and everything that needs attention,
-ranked.
+## Demo account
 
-This repository is a **frontend portfolio case study**: a fully interactive
-product surface running on realistic generated data. There is no backend — every
-flow (filtering, creating, editing, messaging) works end-to-end in memory, which
-keeps the focus where it belongs: product, interaction, and interface craft.
+| Email | Password |
+| --- | --- |
+| `demo@propora.dev` | `Demo1234!` |
 
-## What it does
-
-| Area | Highlights |
-| ---- | ---------- |
-| **Dashboard** | Animated KPI hero cards with sparklines, revenue area chart with hover tooltips, occupancy donut, property performance, action-required triage modal, activity timeline |
-| **Properties** | Portfolio summary cards, status tabs, type filter, sorting, occupancy/revenue per card, image-with-fallback grid, detail views, create flow with image upload preview |
-| **Tenants** | 128-record roster with status tabs, search, sorting, pagination, detail / edit / delete flows, deep links into leases & payments |
-| **Leases** | Status tabs, property filter, sorting, tenant-scoped focus mode via shareable `?tenantId=` URLs |
-| **Payments** | Collection KPIs + collection rate, status/method filters, payment history, record-payment flow with rent auto-fill |
-| **Maintenance** | Work-queue stats, six-axis filtering, sortable table with incremental loading, status transitions with activity history |
-| **Documents** | Library stats, five-axis filtering, flat or grouped-by-property views, view/edit/move/archive/delete, mocked upload zone |
-| **Inbox** | Notification center with mark-read + deep links, two-pane tenant messaging with replies |
-| **Shell** | Client-side routing, global + per-page search, toasts, profile, fully responsive down to 320px with a mobile nav panel |
-
-## Design system
-
-Designed, not decorated — one teal identity carried through every surface:
-
-- **Palette** — Trust Teal `#0F766E` on a mint wash `#F0FDFA`, deep-teal ink `#134E4A` (never black), semantic badge tones for every status
-- **Type** — Plus Jakarta Sans throughout, tabular numerals for metrics so count-ups never jitter
-- **Shape & depth** — 18px cards with mint-tinted borders and teal-tinted shadows, pill actions, ambient gradient background with a faint architectural grid
-- **Motion** — one spring easing for entrances, one crisp ease for feedback; staggered section reveals, animated charts, press states everywhere, fully `prefers-reduced-motion` safe
-- **Voice** — plain verbs, sentence case, toasts that confirm what happened (`Lease L-1030 created`)
-
-## Tech stack
-
-| Layer | Choice |
-| ----- | ------ |
-| UI runtime | React 19 + TypeScript 6 |
-| Build | Vite 8 (`tsc -b && vite build`) |
-| Styling | Tailwind CSS v4 (`@theme` tokens + `@apply` composites) |
-| State | Zustand 5, selector subscriptions |
-| Routing | React Router 7, flat route table |
-| Charts | Hand-rolled SVG (area, donut, sparklines) — no chart dependency |
-| Quality gates | `tsc -b` project references, ESLint flat config |
+The account is created by `npm run seed` in the API.
 
 ## Getting started
 
+Start the [API](https://github.com/m0hkx/Propora-Backend) first, then:
+
 ```bash
-npm install   # install dependencies
-cp .env.example .env # put API url in VITE_API_URL
-npm run dev   # start the dev server with HMR
-npm run lint  # eslint over the repo
-npm run build # type-check, then bundle to dist/
-npm run preview # serve the production build
+npm install
+cp .env.example .env   # set VITE_API_URL=http://localhost:3000
+npm run dev            # http://localhost:5173
 ```
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Type-check and build for production |
+| `npm run lint` | Run ESLint |
+| `npm run preview` | Preview the production build |
 
 ## Project structure
 
 ```
 src/
-├── App.tsx            # shell: topbar, routing, page header, create-flows, toasts
-├── main.tsx           # StrictMode entry
-├── index.css          # Tailwind v4 entry + @theme design tokens
-├── components/        # shared primitives (Card, Badge, KpiCard, Modal, charts…)
-├── pages/             # one route per screen; complex ones get feature folders
-├── state/             # single Zustand store (+ tiny re-export barrel)
-├── types/             # domain types, one file per area (+ index.ts barrel)
-├── data/              # static data: countries, phone codes, Inbox seed
-├── lib/               # shared helpers (formatting, lookups, stats, validation)
-└── styles/            # @apply composites + element-level base rules
+├── pages/        one folder per screen, with its modals
+├── components/   shared UI: cards, tables, modals, charts
+├── state/        Zustand store, split into slices
+├── api/          one file per API resource
+├── auth/         session check and protected routes
+├── lib/          small helpers: validation, sorting, formatting
+├── types/        shared TypeScript types
+└── styles/       Tailwind v4 layers and component classes
 ```
 
-Conventions: pages own their filter state and modals; domain data flows top-down
-from the store; type-only imports use `import type`; all display copy lives next
-to the component that renders it.
+## Learn more
 
----
+The [main documentation](../docs/README.md) covers everything else:
 
-<div align="center">
+- [Screenshots](../docs/02-screenshots.md) and [features](../docs/03-features.md)
+- [System design](../docs/04-system-design.md) and [design system](../docs/07-design-system.md)
+- [Full setup guide](../docs/08-getting-started.md)
 
-Built as a portfolio case study in interface craft — every pixel and
-interaction above runs in this repo.
-
-</div>
+**Backend:** [Propora-Backend](https://github.com/m0hkx/Propora-Backend)
